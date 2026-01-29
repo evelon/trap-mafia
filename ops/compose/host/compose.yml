@@ -1,0 +1,39 @@
+name: ${PROJECT_NAME}
+
+services:
+  caddy:
+    image: ${CADDY_IMAGE}
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
+    volumes:
+      - ../../../infra/edge/caddy/Caddyfile.host:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      # Linux에서도 host.docker.internal을 쓰기 위한 처리
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: ${REDIS_IMAGE}
+    ports:
+      - "${REDIS_PORT}:6379"
+
+volumes:
+  pg_data:
+  caddy_data:
+  caddy_config:

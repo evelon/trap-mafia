@@ -1,0 +1,89 @@
+name: ${PROJECT_NAME}
+
+services:
+  # 1) FE 정적 export를 수행하는 일회성 빌더
+  frontend_export:
+    image: ${FE_EXPORT_IMAGE}
+    working_dir: /app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Next.js 소스
+      - ../../../apps/frontend:/app
+      # export 산출물(정적 파일)을 담을 볼륨
+      - fe_dist:/out
+    command: >
+      sh -lc "
+      npm ci &&
+      npm run build &&
+      npm run export -- -o /out
+      "
+
+  # 2) Edge proxy + 정적 파일 서버
+  caddy:
+    image: ${CADDY_IMAGE}
+    ports:
+      - "${HTTP_PORT}:80"
+      - "${HTTPS_PORT}:443"
+    volumes:
+      - ../../../infra/edge/caddy/Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - ../../../infra/edge/caddy/maintenance:/app/maintenance:ro
+
+      # FE export 결과물을 Caddy가 서빙
+      - fe_dist:/srv:ro
+
+      # Caddy 자동 HTTPS/설정 저장소(반드시 영구 볼륨)
+      - caddy_data:/data
+      - caddy_config:/config
+    # depends_on:
+    #   frontend_export:
+    #     condition: service_completed_successfully
+    #   backend:
+    #     condition: service_started
+
+  # 3) Backend
+  backend:
+    build:
+      context: ../../../apps/backend
+      dockerfile: Dockerfile
+    image: ${BE_IMAGE}:${BE_IMAGE_TAG}
+    env_file:
+      - ../../env/runtime.local.env
+    ports:
+      # (디버깅 필요 시) 호스트에서 바로 API를 보고 싶으면 열어둠
+      - "${BE_PORT}:8000"
+    depends_on:
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+    # 헬스체크는 나중에 be에 health endpoint 붙이고 추가하는 걸 추천
+    # healthcheck:
+    #   test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+    #   interval: 5s
+    #   timeout: 2s
+    #   retries: 20
+
+  # 4) Postgres
+  postgres:
+    image: ${POSTGRES_IMAGE}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  # 5) Redis
+  redis:
+    image: ${REDIS_IMAGE}
+    ports:
+      - "${REDIS_PORT}:6379"
+
+volumes:
+  fe_dist:
+  pg_data:
+  caddy_data:
+  caddy_config:
