@@ -1,0 +1,110 @@
+
+Enum game_status {
+  WAITING
+  RUNNING
+  ENDED
+}
+
+Enum team {
+  WAITING
+  RED
+  BLUE
+}
+
+Enum team_setting {
+  RANDOM
+  FIXED
+}
+
+Enum phase_type {
+  NIGHT
+  DISCUSS
+  VOTE
+}
+
+Enum phase_state {
+  OPEN
+  CLOSED
+  RESOLVED
+}
+
+Table users {
+  id uuid [pk]
+  username varchar [unique, not null, note: "login identifier"]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table games {
+  id uuid [pk]
+  status game_status [not null]
+  current_round_no int [not null, default: 0]
+  current_phase_id uuid [ref: > phases.id, default: null]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+}
+
+Table game_settings {
+  game_id uuid [pk, ref: > games.id]
+  team_policy team_setting [not null]
+  full_life int [not null, note: ">=1"]
+  night_duration_sec int [not null, default: 30, note: ">=1"]
+  vote_duration_sec int [not null, default: 30, note: ">=1"]
+  discuss_duration_sec int [not null, default: 150, note: ">=0, 0이면 무제한"]
+}
+
+Table game_players {
+  id uuid [pk]
+  game_id uuid [ref: > games.id, not null]
+  user_id uuid [ref: > users.id, not null]
+  seat_no int [not null]
+  team team [not null]
+  life_lost int [not null, note: ">=0"]
+  joined_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    game_id
+    (game_id, user_id) [unique]
+    (game_id, seat_no) [unique]
+  }
+}
+
+Table phases {
+  id uuid [pk]
+  game_id uuid [ref: > games.id, not null]
+  round_no int [not null]
+  seq_in_round int [not null]
+  phase_type phase_type [not null]
+  state phase_state [not null, default: 'OPEN']
+  opened_at timestamptz [not null, default: `now()`]
+  closed_at timestamptz
+  resolved_at timestamptz
+
+  indexes {
+    (game_id, round_no)
+    (game_id, round_no, seq_in_round) [unique]
+  }
+}
+
+Table votes {
+  id uuid [pk]
+  phase_id uuid [ref: > phases.id, not null]
+  voter_player_id uuid [ref: > game_players.id, not null]
+  target_player_id uuid [ref: > game_players.id, not null]
+  cast_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    phase_id
+    (phase_id, voter_player_id) [unique, note: "first vote only"]
+  }
+}
+
+Table phase_readies {
+  phase_id uuid [not null, ref: > phases.id]
+  player_id uuid [not null, ref: > game_players.id]
+  ready_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    phase_id
+    (phase_id, player_id) [unique]
+  }
+}
