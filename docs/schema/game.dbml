@@ -26,6 +26,17 @@ Enum phase_state {
   RESOLVED
 }
 
+Enum vote_choice {
+  YES
+  NO
+}
+
+Enum fail_reason {
+  TIE
+  NO_VALID_VOTES
+  SINGLE_PARTICIPANT
+}
+
 Table users {
   id uuid [pk]
   username varchar(255) [unique, not null, note: "login identifier"]
@@ -44,6 +55,7 @@ Table room_settings {
   max_players int [not null, default: 8, note: ">=4"]
   team_policy team_setting [not null, default: RANDOM]
   full_life int [not null, note: ">=1"]
+  max_vote_phases_per_round int [not null, note: ">=1", default: 2]
   night_duration_sec int [not null, default: 30, note: ">=1"]
   vote_duration_sec int [not null, default: 30, note: ">=1"]
   discuss_duration_sec int [not null, default: 150, note: ">=0, 0이면 무제한"]
@@ -57,7 +69,6 @@ Table room_members {
 
   indexes {
     room_id
-    user_id
   }
 }
 
@@ -69,18 +80,20 @@ Table cases {
   current_phase_id uuid [ref: > phases.id, default: null, note: "case 생성 직후, phase 생성 이전"]
   created_at timestamptz [not null, default: `now()`]
   updated_at timestamptz [not null, default: `now()`]
+  ended_at timestamptz
 
   Note: "Constraint: 하나의 room에 하나의 RUNNING case만 가지도록 partial unique index 걸어야 함."
 }
 
 Table case_settings {
   case_id uuid [pk, ref: > cases.id]
-  max_players int [not null, default: 8, note: ">=4"]
+  max_players int [not null, note: ">=4"]
   team_policy team_setting [not null]
   full_life int [not null, note: ">=1"]
-  night_duration_sec int [not null, default: 30, note: ">=1"]
-  vote_duration_sec int [not null, default: 30, note: ">=1"]
-  discuss_duration_sec int [not null, default: 150, note: ">=0, 0이면 무제한"]
+  max_vote_phases_per_round int [not null, note: ">=1"]
+  night_duration_sec int [not null, note: ">=1"]
+  vote_duration_sec int [not null, note: ">=1"]
+  discuss_duration_sec int [not null, note: ">=0, 0이면 무제한"]
 }
 
 Table case_players {
@@ -90,6 +103,7 @@ Table case_players {
   seat_no int [not null, note: "start from 0"]
   team team [not null]
   life_lost int [not null, note: ">=0"]
+  vote_tokens int [not null, default: 1, note: ">=0, 보유 표"]
 
   indexes {
     case_id
@@ -113,11 +127,25 @@ Table phases {
     (case_id, round_no)
     (case_id, round_no, seq_in_round) [unique]
   }
+
+  Note: "Constraint: 하나의 case에 하나의 OPEN phase만 가지도록 partial unique index 걸어야 함."
 }
 
-Table votes {
+Table phase_vote_meta {
+  phase_id uuid [pk, ref: > phases.id, note: "phase_type=VOTE 인 phase만 존재"]
+  targeter_player_id uuid [ref: > case_players.id, not null, note: "지목한 사람"]
+  targeted_player_id uuid [ref: > case_players.id, not null, note: "지목당한 사람"]
+  targeted_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    targeted_player_id
+    targeter_player_id
+  }
+}
+
+Table red_votes {
   id uuid [pk]
-  phase_id uuid [ref: > phases.id, not null]
+  phase_id uuid [ref: > phases.id, not null, note: "phase_type=NIGHT"]
   voter_player_id uuid [ref: > case_players.id, not null]
   target_player_id uuid [ref: > case_players.id, not null]
   cast_at timestamptz [not null, default: `now()`]
@@ -128,8 +156,32 @@ Table votes {
   }
 }
 
+Table blue_votes {
+  id uuid [pk]
+  phase_id uuid [ref: > phases.id, not null, note: "phase_type=VOTE"]
+  voter_player_id uuid [ref: > case_players.id, not null]
+  choice vote_choice [not null]
+  cast_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    phase_id
+    (phase_id, voter_player_id) [unique, note: "first vote only"]
+  }
+}
+
+Table vote_results {
+  phase_id uuid [pk, ref: > phases.id, note: "phase_type in (NIGHT, VOTE)만 존재"]
+  targeted_player_id uuid [ref: > case_players.id, default: null, note: "표적 선정되지 않으면 null"]
+  fail_reason fail_reason
+  resolved_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    targeted_player_id
+  }
+}
+
 Table phase_readies {
-  phase_id uuid [pk, not null, ref: > phases.id]
+  phase_id uuid [pk, not null, ref: > phases.id, note: "phase_type=DISCUSS인 경우만"]
   player_id uuid [pk, not null, ref: > case_players.id]
   ready_at timestamptz [not null, default: `now()`]
 
