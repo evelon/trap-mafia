@@ -9,6 +9,12 @@ Accepted
 이 프로젝트는 웹 기반 추론 게임 서비스로,  
 **SSE(Server-Sent Events) 및 WebSocket을 통한 실시간 상태 전달**을 핵심 요구사항으로 가진다.
 
+또한 본 프로젝트는 `room`과 `case`를 분리하여 모델링한다.
+
+- `room`은 로비 및 사용자 컨테이너 개념으로,  
+  게임 시작 전/후의 사용자 상태를 관리한다.
+- `case`는 게임 시작 시 생성되는 **단일 게임 플레이 기록 단위**이다.
+
 Backend는 FastAPI 기반 async 구조이며,  
 게임의 모든 핵심 상태는 **RDBMS(Postgres)를 SSOT(Single Source of Truth)**로 관리한다  
 (ADR-0003 참조).
@@ -84,6 +90,19 @@ Event Sourcing은 강력한 감사(audit) 및 완전 리플레이를 가능하�
 
 다음과 같은 **Case 단위 정규 데이터 모델**을 채택한다.
 
+### Room / Case 분리
+
+- 사용자는 먼저 `room`에 입장한다.
+- 게임 시작 시점에 새로운 `case`가 생성된다.
+- `case`는 진행 상태(round, phase)와 결과를 관리한다.
+- `room`은 사용자 멤버십과 호스트 권한의 기준이 된다.
+
+이 분리를 통해:
+
+- 로비 개념과 게임 진행 로직을 분리하고
+- 하나의 room에서 여러 게임(case)을 순차적으로 진행할 수 있으며
+- 게임 기록(case)을 독립적으로 보존할 수 있다.
+
 ### 핵심 원칙
 
 - 하나의 `case`는 하나의 게임 세션을 의미한다
@@ -98,6 +117,8 @@ Event Sourcing은 강력한 감사(audit) 및 완전 리플레이를 가능하�
 
 ### 주요 테이블
 
+- `rooms`: 게임 로비 및 사용자 컨테이너
+- `room_members`: room에 입장한 사용자
 - `cases`: 게임 세션 및 현재 진행 상태
 - `case_settings`: 게임 시작 시 고정되는 규칙
 - `case_players`: 게임 참가자 및 누적 상태
@@ -254,6 +275,7 @@ NIGHT / VOTE phase의 **시간 기반 종료**를
 
 ## Rollout / Next Steps
 
+- Room / Case 분리 구조를 기준으로 API 설계 진행
 - 본 ADR을 기준으로 데이터 모델 확정
 - SQLAlchemy Async 모델 구현
 - Alembic 초기 마이그레이션 생성
@@ -262,4 +284,4 @@ NIGHT / VOTE phase의 **시간 기반 종료**를
 
 ---
 
-Last updated: 2026-01-30
+Last updated: 2026-01-31
