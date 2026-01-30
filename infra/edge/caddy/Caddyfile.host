@@ -1,41 +1,42 @@
 {
-	# 로컬에서는 개발/테스트 편의를 위해 디버그 로그
-	# 필요 없으면 info로 내려도 됨
 	log {
+		output stdout
 		level INFO
 	}
 }
 
-:80 {
-	# ---- maintenance mode ----
+# Host 환경(호스트에서 FE/BE가 직접 실행 중)용
+# DOMAIN 환경변수 없으면 localhost로 동작
+{$DOMAIN:localhost} {
+	# ---- maintenance mode (가장 먼저 처리) ----
 	@maintenanceModeActive file /app/maintenance/maintenance.on {
 		root /
 	}
-
 	handle @maintenanceModeActive {
 		respond "On maintenance" 503
 	}
 
-	# ---- Backend API ----
-	@api path /api/*
+	# ---- 라우팅 우선순위 고정 ----
+	route {
+		# ---- Backend REST API ----
+		@api path /api/*
+		reverse_proxy @api host.docker.internal:8000 {
+			header_up   X-Request-ID {http.request.id}
+			header_down X-Request-ID {http.request.id}
+		}
 
-	reverse_proxy @api host.docker.internal:8000 {
-		header_up   X-Request-ID {http.request.id}
-		header_down X-Request-ID {http.request.id}
+		# ---- Realtime (SSE / WebSocket) ----
+		@realtime path /rt/*
+		reverse_proxy @realtime host.docker.internal:8000 {
+			# SSE는 버퍼링/지연이 생기면 UX가 망가짐
+			# -1 은 "즉시 flush" (저지연)
+			flush_interval -1
+
+			header_up   X-Request-ID {http.request.id}
+			header_down X-Request-ID {http.request.id}
+		}
+
+		# ---- Frontend (Next.js dev server or node server) ----
+		reverse_proxy /* host.docker.internal:3000
 	}
-
-	# ---- SSE (Server-Sent Events) ----
-	@sse path /sse/*
-
-	reverse_proxy @sse host.docker.internal:8000 {
-		# SSE는 버퍼링/지연이 생기면 UX가 망가짐
-		# -1 은 "즉시 flush" (저지연)
-		flush_interval -1
-
-		header_up   X-Request-ID {http.request.id}
-		header_down X-Request-ID {http.request.id}
-	}
-
-	# ---- Frontend ----
-	reverse_proxy /* host.docker.internal:3000
 }

@@ -1,42 +1,43 @@
 {
-	# 로컬에서는 개발/테스트 편의를 위해 디버그 로그
-	# 필요 없으면 info로 내려도 됨
+	# 운영/로컬 공통: 표준 출력으로 로그
 	log {
+		output stdout
 		level INFO
 	}
 }
 
-:80 {
-	# ---- Static site (Next export output) ----
-	root * /srv
-	file_server
+# DOMAIN 환경변수 없으면 localhost로 동작
+{$DOMAIN:localhost} {
 
-	# ---- maintenance mode ----
+	# --- maintenance mode (가장 먼저 처리) ---
 	@maintenanceModeActive file /app/maintenance/maintenance.on {
 		root /
 	}
-
 	handle @maintenanceModeActive {
 		respond "On maintenance" 503
 	}
 
-	# ---- Backend API ----
-	@api path /api/*
+	# --- 라우팅 우선순위 고정 ---
+	route {
+		# ---- Backend REST API ----
+		@api path /api/*
+		reverse_proxy @api http://backend:8000 {
+			header_up   X-Request-ID {http.request.id}
+			header_down X-Request-ID {http.request.id}
+		}
 
-	reverse_proxy @api be:8000 {
-		header_up   X-Request-ID {http.request.id}
-		header_down X-Request-ID {http.request.id}
-	}
+		# ---- Realtime (SSE / WebSocket) ----
+		@realtime path /rt/*
+		reverse_proxy @realtime http://backend:8000 {
+			# 저지연 SSE flush
+			flush_interval -1
 
-	# ---- SSE (Server-Sent Events) ----
-	@sse path /sse/*
+			header_up   X-Request-ID {http.request.id}
+			header_down X-Request-ID {http.request.id}
+		}
 
-	reverse_proxy @sse be:8000 {
-		# SSE는 버퍼링/지연이 생기면 UX가 망가짐
-		# -1 은 "즉시 flush" (저지연)
-		flush_interval -1
-
-		header_up   X-Request-ID {http.request.id}
-		header_down X-Request-ID {http.request.id}
+		# ---- Static site (Next export output) ----
+		root * /srv
+		file_server
 	}
 }

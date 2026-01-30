@@ -42,6 +42,7 @@ Accepted
 - Database: **Postgres**
 - Cache / Coordination: **Redis**
 - ORM & Migration: **SQLAlchemy + Alembic**
+- API Routing: REST와 실시간(SSE/WebSocket) 트래픽을 경로 수준에서 분리
 
 ## Options Considered
 
@@ -85,6 +86,38 @@ sync 방식으로도 구현은 가능하지만,
 초기 설계 단계에서 sync/async를 혼용하면 세션 관리와 실행 모델이 복잡해질 수 있으므로  
 단일 패턴(async)을 채택한다.
 
+### API vs Realtime Routing
+
+이 프로젝트는 일반적인 요청/응답 기반 REST API와,  
+장시간 연결을 유지하는 실시간 통신(SSE, WebSocket)을 동시에 사용한다.
+
+두 트래픽은 성격이 명확히 다르므로, 경로 수준에서 분리하여 관리한다.
+
+- `/api/*`
+  - 일반적인 REST API
+  - 짧은 요청/응답 수명
+  - RPS 기반 모니터링 및 레이트리밋 적용
+
+- `/rt/*`
+  - 실시간 통신 전용(SSE 및 WebSocket)
+  - 장시간 연결 유지
+  - 동시 연결 수 기반 관리
+
+이 분리는 다음과 같은 이점을 제공한다.
+
+- Reverse Proxy(Caddy) 설정 단순화
+- REST와 실시간 트래픽에 서로 다른 타임아웃/버퍼링/압축 정책 적용 가능
+- 로그, 모니터링, 레이트리밋 정책의 명확한 분리
+- 향후 실시간 서버(SSE/WS)만 별도로 분리할 수 있는 확장 여지 확보
+
+실시간 엔드포인트의 구체적인 형태는 다음과 같다.
+
+- SSE: `/rt/sse/...`
+- WebSocket: `/rt/ws/...`
+
+이를 통해 Backend 및 Edge Proxy 계층에서  
+실시간 통신을 명확한 범주로 다룰 수 있도록 한다.
+
 ### Database
 
 게임의 핵심 상태는 유실되면 안 되므로,  
@@ -108,6 +141,7 @@ Alembic은 이에 대응하는 표준 마이그레이션 도구다.
 
 마이그레이션은 **Alembic autogenerate를 기본**으로 사용하며,  
 필요 시 리뷰 후 수동 조정을 옵션으로 둔다.
+ㅋ
 
 ## Consequences
 
@@ -133,9 +167,9 @@ Alembic은 이에 대응하는 표준 마이그레이션 도구다.
 
 - Backend async 스캐폴딩 확정
 - 핵심 도메인 모델(Room, Player, Vote 등) 설계
-- SSE 엔드포인트 기본 구조 구현
+- /rt 경로 하위에 SSE 엔드포인트 기본 구조 구현
 - Frontend와의 실시간 상태 연동 테스트
 
 ---
 
-Last updated: 2026-01-29
+Last updated: 2026-01-30
