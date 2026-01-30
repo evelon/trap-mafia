@@ -37,6 +37,7 @@ Table users {
 Table games {
   id uuid [pk]
   status game_status [not null]
+  host_user_id uuid [ref: > users.id, not null]
   current_round_no int [not null, default: 0]
   current_phase_id uuid [ref: > phases.id, default: null]
   created_at timestamptz [not null, default: `now()`]
