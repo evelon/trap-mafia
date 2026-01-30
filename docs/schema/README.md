@@ -10,13 +10,13 @@
 
 ### `game.dbml`
 
-게임 한 판(game)을 중심으로 한 전체 데이터 모델 정의이다.
+게임 한 판(case)을 중심으로 한 전체 데이터 모델 정의이다.
 
 포함되는 주요 도메인은 다음과 같다.
 
-- 게임 세션 (`games`)
-- 게임 규칙 (`game_settings`)
-- 게임 참가자 (`game_players`)
+- 게임 세션 (`cases`)
+- 게임 규칙 (`case_settings`)
+- 게임 참가자 (`case_players`)
 - 게임 진행 단계 (`phases`)
 - 투표 입력 (`votes`)
 - DISCUSS 단계의 준비 상태 (`phase_readies`)
@@ -34,9 +34,9 @@
 - 서버가 단일한 상태 결정자(Single Source of Truth)이다.
 - 클라이언트는 서버가 조립한 snapshot만을 기준으로 동작한다.
 
-### 2. Game = 하나의 게임 세션
+### 2. Case = 하나의 게임 세션
 
-- `games` 테이블의 한 row는 **한 번의 게임 플레이**를 의미한다.
+- `cases` 테이블의 한 row는 **한 번의 게임 플레이**를 의미한다.
 - 재접속, 서버 재시작 이후에도 게임 상태를 복원할 수 있어야 한다.
 
 ### 3. Phase 중심 상태 모델
@@ -59,7 +59,7 @@
 ### NIGHT / VOTE
 
 - 시간 제한을 가진 phase이다.
-- 제한 시간은 **규칙(rule)** 이므로 `game_settings`에 정의한다.
+- 제한 시간은 **규칙(rule)** 이므로 `case_settings`에 정의한다.
   - `night_duration_sec`
   - `vote_duration_sec`
 - `phases` 테이블에는 실제 발생 시각만 기록한다.
@@ -81,8 +81,8 @@
 
 - 플레이어의 생존 상태는 enum으로 고정하지 않는다.
 - 대신 수치 기반 모델을 사용한다.
-  - `game_settings.full_life`
-  - `game_players.life_lost`
+  - `case_settings.full_life`
+  - `case_players.life_lost`
 - 현재 상태(탈락 여부 등)는 서버 로직에서 계산하여 snapshot에 포함한다.
 
 이 방식은:

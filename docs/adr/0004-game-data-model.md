@@ -1,4 +1,4 @@
-# ADR-0004: Game Data Model (Games / Phases / Votes)
+# ADR-0004: Game Data Model (Cases / Phases / Votes)
 
 ## Status
 
@@ -82,11 +82,11 @@ Event Sourcing은 강력한 감사(audit) 및 완전 리플레이를 가능하�
 
 ## Decision
 
-다음과 같은 **Game 단위 정규 데이터 모델**을 채택한다.
+다음과 같은 **Case 단위 정규 데이터 모델**을 채택한다.
 
 ### 핵심 원칙
 
-- 하나의 `game`은 하나의 게임 세션을 의미한다
+- 하나의 `case`는 하나의 게임 세션을 의미한다
 - 모든 핵심 상태는 DB에 저장되며, 서버가 SSOT이다
 - 클라이언트에는 상태의 “결과와 의미”만 전달한다
 - 룰 변경 가능성이 높은 요소는 수치 기반 또는 조건 기반으로 저장한다
@@ -98,9 +98,9 @@ Event Sourcing은 강력한 감사(audit) 및 완전 리플레이를 가능하�
 
 ### 주요 테이블
 
-- `games`: 게임 세션 및 현재 진행 상태
-- `game_settings`: 게임 시작 시 고정되는 규칙
-- `game_players`: 게임 참가자 및 누적 상태
+- `cases`: 게임 세션 및 현재 진행 상태
+- `case_settings`: 게임 시작 시 고정되는 규칙
+- `case_players`: 게임 참가자 및 누적 상태
 - `phases`: 게임 진행 단계 (round + 순서)
 - `votes`: 투표 원본 입력 로그
 - `phase_readies`: DISCUSS phase 종료를 위한 준비 상태 기록
@@ -169,7 +169,7 @@ Backend에서 계산하여 snapshot에 포함한다.
 ### 5. Phase Time Limit 모델링 (NIGHT / VOTE)
 
 - NIGHT 및 VOTE phase는 제한 시간을 가진다
-- 제한 시간은 게임 규칙에 해당하므로, **game_settings**에 정의한다
+- 제한 시간은 게임 규칙에 해당하므로, **case_settings**에 정의한다
 - phase에는 실제 발생한 시각만 기록한다
   - `opened_at`: phase 시작 시각
   - `closed_at`: 입력 종료 시각
@@ -219,7 +219,7 @@ NIGHT / VOTE phase의 **시간 기반 종료**를
   - 초기 구현 및 운영 복잡도 증가
   - 현재 요구사항 대비 과설계
 
-### Option B: Game + Phase + Vote + Ready 정규 모델 (선택)
+### Option B: Case + Phase + Vote + Ready 정규 모델 (선택)
 
 - 장점
   - 단순하고 명확한 상태 관리
