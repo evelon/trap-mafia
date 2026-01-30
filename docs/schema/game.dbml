@@ -46,6 +46,7 @@ Table games {
 
 Table game_settings {
   game_id uuid [pk, ref: > games.id]
+  max_players int [not null, default: 8, note: ">=4"]
   team_policy team_setting [not null]
   full_life int [not null, note: ">=1"]
   night_duration_sec int [not null, default: 30, note: ">=1"]
