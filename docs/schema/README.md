@@ -20,7 +20,7 @@
 - 게임 규칙 (`case_settings`)
 - 게임 참가자 및 상태/자원 (`case_players` — `life_lost`, `vote_tokens`)
 - 게임 진행 단계 (`phases`)
-- VOTE 단계 메타(개시자/대상) (`phase_vote_meta`)
+- VOTE 단계 메타(개시자/대상) (`blue_vote_meta`)
 - 암전(RED) 투표 입력 (`red_votes`)
 - 점등(BLUE) 투표 입력 (`blue_votes`)
 - 투표 결과 (`vote_results`)
@@ -55,6 +55,8 @@ automatic migration이나 코드 생성의 입력으로 사용하지 않는다.
 - 게임이 시작되면 해당 `room`에 새로운 `case`가 생성된다.
 - 현재 개발 단계에서는 room 관련 동작을 단순화(예: 단일 room)하여 진행할 수 있으나,
   데이터 모델은 장기적으로 **1:N 구조(room:cases)** 확장을 전제로 설계되어 있다.
+- `room_members`는 `(room_id, user_id)`당 **단일 row**로 관리한다.
+  - 재입장은 기존 row를 재사용하며 `left_at`을 `NULL`로 되돌린다. (upsert)
 
 ### 3. Phase 중심 상태 모델
 
@@ -125,22 +127,28 @@ automatic migration이나 코드 생성의 입력으로 사용하지 않는다.
 - 투표 입력은 phase 성격에 따라 테이블을 분리한다.
   - `red_votes`: `phase_type=NIGHT`에서의 지목 투표 입력(암전/RED 투표)
   - `blue_votes`: `phase_type=VOTE`에서의 찬반 투표 입력(점등/BLUE 투표)
+
+각 투표/ready 테이블이 참조하는 phase_type 제약(예: red_votes는 NIGHT, blue_votes는 VOTE 등)은 DBML의 note로 표현되며, v1에서는 서버 로직에서 강제한다.
+
 - 한 phase에서 한 플레이어는 한 번만 입력 가능하다.
   - `(phase_id, voter_player_id)` 유니크 제약을 통해 이를 강제한다.
-  - 투표 변경은 FE에서만 허용하며, 서버는 첫 입력만 인정한다.
+  - 클라이언트 UI는 선택을 바꿀 수 있으나, 서버는 첫 입력만 인정한다(변경 불가).
+  - 즉, 투표 변경은 서버 상태를 바꾸지 않으며(optimistic UI), 최종 반영은 첫 요청 기준이다.
 
 ### VOTE 단계의 개시자/대상
 
 - 점등 투표(`phase_type=VOTE`)는 DISCUSS 단계에서 한 플레이어가 대상을 지목하여 개시된다.
-- 개시자/대상 정보는 투표 입력과 분리하여 `phase_vote_meta`에 저장한다.
+- 개시자/대상 정보는 투표 입력과 분리하여 `blue_vote_meta`에 저장한다.
   - `targeter_player_id`: 개시자
   - `targeted_player_id`: 투표 대상자
+
+또한 개시자(targeter)는 룰 상 찬성(YES)으로 자동 처리된다. 이 자동 YES는 액션 로그(case_action_history)로는 기록하지 않으며, 투표 입력 테이블(blue_votes)에는 서버가 자동으로 1건 생성한다.
 
 ### 투표 결과
 
 - 투표의 결과(표적 선정 여부)는 `vote_results`에 저장한다.
   - `targeted_player_id`가 `null`이면 표적 미선정
-  - `fail_reason`는 표적이 선정되지 않은 경우의 사유를 기록한다. (예: `TIE`, `NO_VALID_VOTES`, `SINGLE_PARTICIPANT`)
+  - `fail_reason`는 표적이 선정되지 않은 경우의 사유를 기록한다. (예: `TIE`, `SOLO_VOTE`)
 
 투표 횟수 제한은 입력 테이블 수준에서 관리하지 않는다.
 대신, 한 round(DAY)에서 생성 가능한 `VOTE` phase의 수를 제한하는 방식으로 모델링한다.

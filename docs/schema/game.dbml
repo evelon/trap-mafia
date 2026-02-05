@@ -1,10 +1,10 @@
 Enum case_status {
   RUNNING
   ENDED
+  INTERRUPTED [note: "비정상 종료 (승패 무효)"]
 }
 
 Enum team {
-  UNASSIGNED
   RED
   BLUE
 }
@@ -29,13 +29,24 @@ Enum phase_state {
 Enum vote_choice {
   YES
   NO
+  SKIP
 }
 
 Enum fail_reason {
   TIE
-  NO_VALID_VOTES
-  SINGLE_PARTICIPANT
+  SOLO_VOTE
 }
+
+Enum action_type {
+  DISCUSS_SKIP
+  DISCUSS_START_BLUE_VOTE [note: "target_seat_no 필요"]
+  NIGHT_RED_VOTE [note: "target_seat_no 필요"]
+  NIGHT_SKIP [note: "active skip"]
+  VOTE_BLUE_YES [note: "targeter인 경우 룰 상 yes지만 VOTE 단계 action은 없음으로 표시"]
+  VOTE_BLUE_NO
+  VOTE_BLUE_SKIP [note: "active skip"]
+}
+
 
 Table users {
   id uuid [pk]
@@ -53,12 +64,12 @@ Table rooms {
 Table room_settings {
   room_id uuid [pk, ref: > rooms.id]
   max_players int [not null, default: 8, note: ">=4"]
-  team_policy team_setting [not null, default: RANDOM]
+  team_policy team_setting [not null, default: 'RANDOM']
   full_life int [not null, note: ">=1"]
   max_vote_phases_per_round int [not null, note: ">=1", default: 2]
   night_duration_sec int [not null, default: 30, note: ">=1"]
   vote_duration_sec int [not null, default: 30, note: ">=1"]
-  discuss_duration_sec int [not null, default: 150, note: ">=0, 0이면 무제한"]
+  discuss_duration_sec int [not null, default: 120, note: ">=0, 0이면 무제한"]
 }
 
 Table room_members {
@@ -69,31 +80,41 @@ Table room_members {
 
   indexes {
     room_id
+    user_id
   }
+
+  Note: "(room_id, user_id)는 단일 row로 관리한다. 재입장은 기존 row의 left_at을 NULL로 되돌리는 upsert 정책을 사용한다."
 }
 
 Table cases {
   id uuid [pk]
   room_id uuid [ref: > rooms.id, not null]
-  status case_status [not null, default: RUNNING]
+  host_user_id uuid [ref: > users.id, not null]
+  status case_status [not null, default: 'RUNNING']
   current_round_no int [not null, default: 1]
   current_phase_id uuid [ref: > phases.id, default: null, note: "case 생성 직후, phase 생성 이전"]
   created_at timestamptz [not null, default: `now()`]
-  updated_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`, note: "자동 갱신 필요"]
   ended_at timestamptz
+
+  indexes {
+    (room_id, status)
+  }
 
   Note: "Constraint: 하나의 room에 하나의 RUNNING case만 가지도록 partial unique index 걸어야 함."
 }
 
 Table case_settings {
   case_id uuid [pk, ref: > cases.id]
-  max_players int [not null, note: ">=4"]
-  team_policy team_setting [not null]
+  team_policy team_setting [not null, default: 'RANDOM']
   full_life int [not null, note: ">=1"]
   max_vote_phases_per_round int [not null, note: ">=1"]
   night_duration_sec int [not null, note: ">=1"]
   vote_duration_sec int [not null, note: ">=1"]
   discuss_duration_sec int [not null, note: ">=0, 0이면 무제한"]
+  red_player_count int [default: null, note: "team_policy가 FIXED인 경우만"]
+
+  Note: "CHECK: (team_policy == 'FIXED' -> red_player_count IS NOT NULL)"
 }
 
 Table case_players {
@@ -106,7 +127,7 @@ Table case_players {
   vote_tokens int [not null, default: 1, note: ">=0, 보유 표"]
 
   indexes {
-    case_id
+    user_id
     (case_id, user_id) [unique]
     (case_id, seat_no) [unique]
   }
@@ -118,20 +139,20 @@ Table phases {
   round_no int [not null]
   seq_in_round int [not null]
   phase_type phase_type [not null]
-  state phase_state [not null, default: OPEN]
+  state phase_state [not null, default: 'OPEN']
   opened_at timestamptz [not null, default: `now()`]
   closed_at timestamptz
   resolved_at timestamptz
 
   indexes {
-    (case_id, round_no)
+    (case_id, state)
     (case_id, round_no, seq_in_round) [unique]
   }
 
   Note: "Constraint: 하나의 case에 하나의 OPEN phase만 가지도록 partial unique index 걸어야 함."
 }
 
-Table phase_vote_meta {
+Table blue_vote_meta {
   phase_id uuid [pk, ref: > phases.id, note: "phase_type=VOTE 인 phase만 존재"]
   targeter_player_id uuid [ref: > case_players.id, not null, note: "지목한 사람"]
   targeted_player_id uuid [ref: > case_players.id, not null, note: "지목당한 사람"]
@@ -145,47 +166,88 @@ Table phase_vote_meta {
 
 Table red_votes {
   id uuid [pk]
-  phase_id uuid [ref: > phases.id, not null, note: "phase_type=NIGHT"]
+  phase_id uuid [ref: > phases.id, not null, note: "phase_type=NIGHT인 경우만"]
   voter_player_id uuid [ref: > case_players.id, not null]
-  target_player_id uuid [ref: > case_players.id, not null]
+  target_player_id uuid [ref: > case_players.id, note: "null인 경우 skip"]
   cast_at timestamptz [not null, default: `now()`]
 
   indexes {
-    phase_id
     (phase_id, voter_player_id) [unique, note: "first vote only"]
   }
+
+  Note: "passive skip의 경우 row 없음."
 }
 
 Table blue_votes {
   id uuid [pk]
-  phase_id uuid [ref: > phases.id, not null, note: "phase_type=VOTE"]
+  phase_id uuid [ref: > phases.id, not null, note: "phase_type=VOTE인 경우만"]
   voter_player_id uuid [ref: > case_players.id, not null]
-  choice vote_choice [not null]
+  choice vote_choice [not null, note: "SKIP인 경우 active skip"]
   cast_at timestamptz [not null, default: `now()`]
 
   indexes {
-    phase_id
     (phase_id, voter_player_id) [unique, note: "first vote only"]
   }
+
+  Note: "passive skip의 경우 row 없음. targeter의 경우는 자동 생성."
 }
 
 Table vote_results {
   phase_id uuid [pk, ref: > phases.id, note: "phase_type in (NIGHT, VOTE)만 존재"]
   targeted_player_id uuid [ref: > case_players.id, default: null, note: "표적 선정되지 않으면 null"]
-  fail_reason fail_reason
+  fail_reason fail_reason [note: "targeted_player_id와 exclusive"]
   resolved_at timestamptz [not null, default: `now()`]
 
   indexes {
     targeted_player_id
   }
+
+  Note: "CHECK: (targeted_player_id IS NULL) <> (fail_reason IS NULL)"
 }
 
 Table phase_readies {
   phase_id uuid [pk, not null, ref: > phases.id, note: "phase_type=DISCUSS인 경우만"]
   player_id uuid [pk, not null, ref: > case_players.id]
   ready_at timestamptz [not null, default: `now()`]
+}
+
+Table case_history {
+  id bigserial [pk, note: "단조 증가 history id (pagination 사용)"]
+  case_id uuid [ref: > cases.id, not null]
+  phase_id uuid [ref: > phases.id, not null, unique]
+  occurred_at timestamptz [not null, default: `now()`, note: "phase 종료 직후"]
+
+  payload jsonb [not null, note: "과거 snapshot (phase별 공개 정보)" ]
+
+  // optional: for forward-compatible schema evolution
+  schema_version int [not null, default: 1]
 
   indexes {
-    phase_id
+    (case_id, id) [note: "pagination path"]
+    (case_id, occurred_at)
   }
+
+  Note: "기본은 append-only. phase 종료 시점에 1회 INSERT(phase_id unique)."
+}
+
+Table case_action_history {
+  id bigserial [pk, note: "action_id (커서)"]
+  case_id uuid [not null, ref: > cases.id]
+  user_id uuid [not null, ref: > users.id]
+  player_id uuid [not null, ref: > case_players.id]
+  phase_id uuid [not null, ref: > phases.id]
+
+  action_type action_type [not null]
+
+  payload jsonb [not null, default: `{}`]
+  idempotency_key uuid [not null, note: "멀티탭/재시도 대비"]
+  accepted_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (case_id, id) [note: "case 내 시간순 조회"]
+    (user_id, case_id, id) [note: "유저의 특정 case 로그"]
+    (case_id, user_id, idempotency_key) [unique, note: "같은 요청 재시도면 같은 receipt 반환"]
+  }
+
+  Note: "서버가 '유효 처리한' 행동만 기록한다. append-only."
 }
