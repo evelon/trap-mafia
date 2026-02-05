@@ -1,0 +1,128 @@
+
+//
+// Trap MVP Minimum DB Schema
+// 목적: MVP 구현에 필요한 최소 테이블/필드만 포함
+// - history/action log 제외
+// - 고급 설정/확장용 컬럼 제외
+
+Enum case_status {
+  RUNNING
+  ENDED
+}
+
+Enum phase_type {
+  NIGHT
+  DISCUSS
+  VOTE
+}
+
+Enum vote_choice {
+  YES
+  NO
+  SKIP
+}
+
+Enum fail_reason {
+  TIE
+  SOLO_VOTE
+}
+
+Table users {
+  id uuid [pk]
+  username varchar(255) [unique, not null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table rooms {
+  id uuid [pk]
+  host_id uuid [ref: > users.id, not null]
+  created_at timestamptz [not null, default: `now()`]
+}
+
+Table room_members {
+  room_id uuid [pk, ref: > rooms.id]
+  user_id uuid [pk, ref: > users.id]
+  joined_at timestamptz [not null, default: `now()`]
+  left_at timestamptz
+}
+
+Table cases {
+  id uuid [pk]
+  room_id uuid [ref: > rooms.id, not null]
+  host_user_id uuid [ref: > users.id, not null]
+  status case_status [not null, default: 'RUNNING']
+  current_round_no int [not null, default: 1]
+  created_at timestamptz [not null, default: `now()`]
+  ended_at timestamptz
+
+  indexes {
+    (room_id, status)
+  }
+
+  Note: "MVP에서는 room당 RUNNING case 1개만 허용 (서버 로직으로 보장)"
+}
+
+Table case_players {
+  id uuid [pk]
+  case_id uuid [ref: > cases.id, not null]
+  user_id uuid [ref: > users.id, not null]
+  seat_no int [not null]
+  life_lost int [not null, default: 0]
+  vote_tokens int [not null, default: 1]
+
+  indexes {
+    (case_id, user_id) [unique]
+    (case_id, seat_no) [unique]
+  }
+}
+
+Table phases {
+  id uuid [pk]
+  case_id uuid [ref: > cases.id, not null]
+  round_no int [not null]
+  seq_in_round int [not null]
+  phase_type phase_type [not null]
+  opened_at timestamptz [not null, default: `now()`]
+  closed_at timestamptz
+
+  indexes {
+    (case_id, round_no, seq_in_round) [unique]
+  }
+}
+
+Table red_votes {
+  id uuid [pk]
+  phase_id uuid [ref: > phases.id, not null]
+  voter_player_id uuid [ref: > case_players.id, not null]
+  target_player_id uuid [ref: > case_players.id]
+  cast_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (phase_id, voter_player_id) [unique]
+  }
+
+  Note: "target_player_id가 NULL이면 active skip"
+}
+
+Table blue_votes {
+  id uuid [pk]
+  phase_id uuid [ref: > phases.id, not null]
+  voter_player_id uuid [ref: > case_players.id, not null]
+  choice vote_choice [not null]
+  cast_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (phase_id, voter_player_id) [unique]
+  }
+
+  Note: "targeter의 YES는 서버가 자동 생성"
+}
+
+Table vote_results {
+  phase_id uuid [pk, ref: > phases.id]
+  targeted_player_id uuid [ref: > case_players.id]
+  fail_reason fail_reason
+  resolved_at timestamptz [not null, default: `now()`]
+
+  Note: "targeted_player_id 또는 fail_reason 중 하나만 존재"
+}
