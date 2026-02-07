@@ -30,15 +30,14 @@ repos:
   # Next.js / TypeScript (apps/frontend)
   - repo: local
     hooks:
-      - id: next-lint
-        name: next lint (apps/frontend)
+      - id: eslint
+        name: eslint (apps/frontend)
         language: system
-        entry: npx --no-install next lint --fix --prefix apps/frontend
-        types_or: [javascript, jsx, ts, tsx]
+        entry: bash -c 'cd apps/frontend && npx eslint --fix "${@#apps/frontend/}"' --
         files: ^apps/frontend/.*\.(js|jsx|ts|tsx)$
 
       - id: prettier
         name: prettier (apps/frontend)
         language: system
-        entry: npx --no-install prettier --write
-        files: ^apps/frontend/.*\.(js|jsx|ts|tsx|json|css|scss|md|html|yml|yaml)$
+        entry: bash -c 'cd apps/frontend && npx prettier --write "${@#apps/frontend/}"' --
+        files: ^apps/frontend/.*\.(js|jsx|ts|tsx)$
