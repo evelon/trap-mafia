@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.services.redis import redis_client
 
-router = APIRouter()
+router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
