@@ -35,6 +35,7 @@ Enum vote_choice {
 Enum fail_reason {
   TIE
   SOLO_VOTE
+  NO_VOTE
 }
 
 Enum action_type {
