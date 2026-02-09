@@ -5,6 +5,8 @@ repos:
       - id: trailing-whitespace
         exclude: \.md$
       - id: end-of-file-fixer
+        # Keep SVGs (often treated as binary-ish assets) untouched
+        exclude: \.svg$
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
