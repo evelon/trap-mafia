@@ -56,11 +56,11 @@ jobs:
 
       - name: Build frontend
         run: |
-          pnpm -C apps/frontend run build --if-present
+          pnpm -C apps/frontend run --if-present build
 
       - name: Lint frontend
         run: |
-          pnpm -C apps/frontend run lint --if-present
+          pnpm -C apps/frontend run --if-present lint
 
       - name: Install pre-commit
         run: |
