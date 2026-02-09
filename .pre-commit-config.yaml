@@ -33,11 +33,11 @@ repos:
       - id: eslint
         name: eslint (apps/frontend)
         language: system
-        entry: bash -c 'cd apps/frontend && npx --no-install eslint --fix "${@#apps/frontend/}"' --
+        entry: bash -c 'cd apps/frontend && pnpm exec eslint --fix "${@#apps/frontend/}"' --
         files: ^apps/frontend/.*\.(js|jsx|ts|tsx)$
 
       - id: prettier
         name: prettier (apps/frontend)
         language: system
-        entry: bash -c 'cd apps/frontend && npx --no-install prettier --write "${@#apps/frontend/}"' --
+        entry: bash -c 'cd apps/frontend && pnpm exec prettier --write "${@#apps/frontend/}"' --
         files: ^apps/frontend/.*\.(js|jsx|ts|tsx)$
