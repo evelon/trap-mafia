@@ -5,21 +5,20 @@ repos:
       - id: trailing-whitespace
         exclude: \.md$
       - id: end-of-file-fixer
-        # Keep SVGs (often treated as binary-ish assets) untouched
         exclude: \.svg$
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.15.0
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.19.1
     hooks:
       - id: mypy
         additional_dependencies:
