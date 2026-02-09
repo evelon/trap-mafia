@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.cases.phases.action import router as action_router
+from app.api.v1.cases.phases.action import router as action_router
 
 router = APIRouter(prefix="/current/phases", tags=["phases"])
 
