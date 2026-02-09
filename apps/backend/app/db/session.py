@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import (
 
 from app.core.config import settings
 
-
 # Async-first: use AsyncEngine/AsyncSession everywhere in the web app.
 engine = create_async_engine(settings.database_url, pool_pre_ping=True)
 AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False)
