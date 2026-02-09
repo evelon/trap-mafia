@@ -33,15 +33,27 @@ jobs:
         with:
           node-version: "20"
           cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
+          cache-dependency-path: apps/frontend/pnpm-lock.yaml
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
           version: "9"
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install frontend dependencies
+        run: |
+          cd apps/frontend
+          pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: |
+          cd apps/frontend
+          pnpm build --if-present
+
+      - name: Lint frontend
+        run: |
+          cd apps/frontend
+          pnpm lint --if-present
 
       - name: Install pre-commit
         run: |
