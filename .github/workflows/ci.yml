@@ -28,6 +28,40 @@ jobs:
           python-version: "3.14"
           cache: "pip"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable Corepack (pnpm)
+        run: |
+          corepack enable
+          corepack prepare pnpm@9 --activate
+
+      - name: Get pnpm store path
+        run: echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE_PATH }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('apps/frontend/pnpm-lock.yaml') }}
+          restore-keys: |
+            pnpm-store-${{ runner.os }}-
+
+      - name: Install frontend dependencies
+        run: |
+          cd apps/frontend
+          pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: |
+          pnpm -C apps/frontend run --if-present build
+
+      - name: Lint frontend
+        run: |
+          pnpm -C apps/frontend run --if-present lint
+
       - name: Install pre-commit
         run: |
           python -m pip install --upgrade pip

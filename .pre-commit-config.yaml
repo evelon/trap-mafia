@@ -5,19 +5,20 @@ repos:
       - id: trailing-whitespace
         exclude: \.md$
       - id: end-of-file-fixer
+        exclude: \.svg$
       - id: check-yaml
       - id: check-toml
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.10
+    rev: v0.15.0
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v1.19.1
     hooks:
       - id: mypy
         additional_dependencies:
@@ -30,15 +31,14 @@ repos:
   # Next.js / TypeScript (apps/frontend)
   - repo: local
     hooks:
-      - id: next-lint
-        name: next lint (apps/frontend)
+      - id: eslint
+        name: eslint (apps/frontend)
         language: system
-        entry: npx --no-install next lint --fix --prefix apps/frontend
-        types_or: [javascript, jsx, ts, tsx]
+        entry: bash -c 'cd apps/frontend && pnpm exec eslint --fix "${@#apps/frontend/}"' --
         files: ^apps/frontend/.*\.(js|jsx|ts|tsx)$
 
       - id: prettier
         name: prettier (apps/frontend)
         language: system
-        entry: npx --no-install prettier --write
-        files: ^apps/frontend/.*\.(js|jsx|ts|tsx|json|css|scss|md|html|yml|yaml)$
+        entry: bash -c 'cd apps/frontend && pnpm exec prettier --write "${@#apps/frontend/}"' --
+        files: ^apps/frontend/.*\.(js|jsx|ts|tsx)$
