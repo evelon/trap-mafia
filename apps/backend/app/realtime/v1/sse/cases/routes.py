@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.realtime.sse.cases.case import router as case_router
+from app.realtime.v1.sse.cases.case import router as case_router
 
 router = APIRouter(prefix="/cases", tags=["cases"])
 

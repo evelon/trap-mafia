@@ -30,7 +30,9 @@ _DISCUSS_PHASE = "DISCUSS"
 @router.post(
     "/current/force-skip-discuss",
     summary="force_skip_discuss",
-    response_model=ForceSkipDiscussSuccessResponse,
+    response_model=ForceSkipDiscussSuccessResponse
+    | ForceSkipDiscussConflictResponse
+    | ForceSkipDiscussForbiddenResponse,
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_403_FORBIDDEN: {"model": ForceSkipDiscussForbiddenResponse},

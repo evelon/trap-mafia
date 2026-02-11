@@ -36,7 +36,7 @@ _VOTE_PHASE = "VOTE"
 @router.post(
     "/current/blue-vote",
     summary="blue_vote",
-    response_model=BlueVoteSuccessResponse,
+    response_model=BlueVoteSuccessResponse | BlueVoteConflictResponse | BlueVoteForbiddenResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_422_RESPONSE,

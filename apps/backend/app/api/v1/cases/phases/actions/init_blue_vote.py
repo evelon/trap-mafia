@@ -35,7 +35,11 @@ router = APIRouter()
 @router.post(
     "/current/init-blue-vote",
     summary="init_blue_vote",
-    response_model=InitBlueVoteSuccessResponse,
+    response_model=InitBlueVoteSuccessResponse
+    | InitBlueVoteBadRequestResponse
+    | InitBlueVoteConflictResponse
+    | InitBlueVoteNotFoundResponse
+    | InitBlueVoteForbiddenResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_422_RESPONSE,
