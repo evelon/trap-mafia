@@ -3,6 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from app.schemas.common.ids import RoomId
+from app.schemas.common.validation import COMMON_422_RESPONSE
+from app.schemas.room.action import CaseStartRequest
 from app.schemas.room.response import (
     CaseStartConflictResponse,
     CaseStartForbiddenResponse,
@@ -113,11 +115,12 @@ def kick_user(user_id: UUID):
     response_model=CaseStartSuccessResponse,
     status_code=status.HTTP_200_OK,
     responses={
+        **COMMON_422_RESPONSE,
         status.HTTP_403_FORBIDDEN: {"model": CaseStartForbiddenResponse},
         status.HTTP_409_CONFLICT: {"model": CaseStartConflictResponse},
     },
 )
-def case_start():
+def case_start(body: CaseStartRequest):
     """
     POST /api/rooms/current/case-start
 

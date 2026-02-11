@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Generic, TypeVar
 
 from pydantic import Field
 from pydantic.generics import GenericModel
 
 DataT = TypeVar("DataT")
-CodeEnumT = TypeVar("CodeEnumT", bound=str)
+CodeEnumT = TypeVar("CodeEnumT", bound=Enum)
 Meta = dict[str, object]
 
 

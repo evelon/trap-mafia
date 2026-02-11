@@ -27,6 +27,7 @@ from app.schemas.case.action_responses.init_blue_vote import (
 )
 from app.schemas.case.actions.common import ActionReceipt
 from app.schemas.case.actions.init_blue_vote import InitBlueVoteRequest
+from app.schemas.common.validation import COMMON_422_RESPONSE
 
 router = APIRouter()
 
@@ -37,6 +38,7 @@ router = APIRouter()
     response_model=InitBlueVoteSuccessResponse,
     status_code=status.HTTP_200_OK,
     responses={
+        **COMMON_422_RESPONSE,
         status.HTTP_400_BAD_REQUEST: {"model": InitBlueVoteBadRequestResponse},
         status.HTTP_403_FORBIDDEN: {"model": InitBlueVoteForbiddenResponse},
         status.HTTP_404_NOT_FOUND: {"model": InitBlueVoteNotFoundResponse},

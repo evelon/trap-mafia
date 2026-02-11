@@ -10,6 +10,7 @@ from app.schemas.auth.response import (
     LoginCode,
     LogoutCode,
 )
+from app.schemas.common.validation import COMMON_422_RESPONSE
 
 router = APIRouter()
 
@@ -20,6 +21,7 @@ router = APIRouter()
     response_model=GuestLoginResponse,
     status_code=status.HTTP_200_OK,
     responses={
+        **COMMON_422_RESPONSE,
         status.HTTP_200_OK: {
             "description": (
                 "Temporary API. Creates/returns a guest user session. "
