@@ -1,3 +1,3 @@
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/{case_id}/phases", tags=["phases"])
+router = APIRouter(prefix="/phases", tags=["phases"])
