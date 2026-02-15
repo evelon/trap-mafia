@@ -5,6 +5,6 @@ from app.api.v1.routes import router as v1_router
 
 router = APIRouter(prefix="/api")
 
-router.include_router(v1_router)
+router.include_router(v1_router, tags=["v1"])
 
 router.include_router(health_router)

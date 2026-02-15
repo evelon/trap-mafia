@@ -36,7 +36,7 @@ _VOTE_PHASE = "VOTE"
 @router.post(
     "/current/blue-vote",
     summary="blue_vote",
-    response_model=BlueVoteSuccessResponse,
+    response_model=BlueVoteSuccessResponse | BlueVoteConflictResponse | BlueVoteForbiddenResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_422_RESPONSE,
@@ -95,7 +95,7 @@ def blue_vote(body: BlueVoteRequest):
     if _PHASE != _VOTE_PHASE:
         return BlueVoteConflictResponse(
             ok=False,
-            code=ActionConflictCode.PHASE_REJECTED_CONFLICT_ACTION,
+            code=ActionConflictCode.PHASE_REJECTED_CONFLICT_ACTION,  # TODO: swagger에 넣기/
             message=None,
             data=None,
             meta=None,

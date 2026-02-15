@@ -33,7 +33,11 @@ router = APIRouter()
 @router.post(
     "/current/red-vote",
     summary="red_vote",
-    response_model=RedVoteSuccessResponse,
+    response_model=RedVoteSuccessResponse
+    | RedVoteBadRequestResponse
+    | RedVoteNotFoundResponse
+    | RedVoteForbiddenResponse
+    | RedVoteConflictResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_422_RESPONSE,
