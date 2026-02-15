@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from typing import AsyncIterator
+from uuid import UUID
 
 from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -15,7 +16,7 @@ router = APIRouter()
 # NOTE: MVP mock 구현
 # - 실제 구현에서는 "현재 유저가 속한 room_id"를 DB/Redis에서 조회합니다.
 # - JWT 도입 전까지는 FE 연동을 위해 헤더로 room_id를 흉내냅니다.
-#   - X-Room-Id: int (방에 속하지 않은 경우 미전달)
+#   - X-Room-Id: string (방에 속하지 않은 경우 미전달)
 #   - X-User-Id: string (Auth mock; 향후 JWT로 대체)
 
 
@@ -46,7 +47,7 @@ def _forbidden_not_in_room() -> JSONResponse:
     )
 
 
-def _mvp_snapshot(room_id: int) -> RoomSnapshot:
+def _mvp_snapshot(room_id: UUID) -> RoomSnapshot:
     # MVP: RoomInfo/RoomSnapshot 기본값으로 충분
     # host_user_id 등은 실제 구현 시 DB에서 채워 넣으면 됩니다.
     return RoomSnapshot(room=RoomInfo(id=room_id))
@@ -55,7 +56,7 @@ def _mvp_snapshot(room_id: int) -> RoomSnapshot:
 @router.get("/current")
 async def room_state_sse(
     x_user_id: str | None = Header(default=None, alias="X-User-Id"),
-    x_room_id: int | None = Header(default=None, alias="X-Room-Id"),
+    x_room_id: str | None = Header(default=None, alias="X-Room-Id"),
 ):
     """GET /rt/v1/sse/rooms/current
 
@@ -76,7 +77,7 @@ async def room_state_sse(
     if x_room_id is None:
         return _forbidden_not_in_room()
 
-    snapshot = _mvp_snapshot(int(x_room_id))
+    snapshot = _mvp_snapshot(UUID(x_room_id))
 
     payload = RoomStateResponse(
         ok=True,

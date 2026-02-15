@@ -39,7 +39,7 @@ class RoomInfo(BaseModel):
     - created_at: ISO-8601 UTC 문자열(예: 2026-01-31T09:12:34.567Z)입니다.
     """
 
-    id: Annotated[int, Field(ge=1, description="Room id (MVP: 1 fixed)")] = 1
+    id: Annotated[UUID, Field(description="Room id")] = UUID("00000000-0000-0000-0000-000000000000")
     room_name: Annotated[
         str,
         Field(min_length=4, max_length=12, description="Room name (MVP:fixed)"),

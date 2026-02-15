@@ -80,7 +80,7 @@ def leave_room():
     - 이미 방에 속해 있지 않은 경우에도 200으로 응답하며, changed=False로 표현한다.
     """
     data = LeaveRoomMutation(changed=True, reason=LeaveRoomReason.LEFT)
-    return LeaveRoomResponse(code=LeaveRoomCode.OK, data=data, meta=None)
+    return LeaveRoomResponse(ok=True, code=LeaveRoomCode.OK, data=data, meta=None)
 
 
 @router.post(
@@ -106,7 +106,7 @@ def kick_user(user_id: UUID):
         changed=False,
         reason=KickUserReason.NOT_IN_ROOM,
     )
-    return KickUserResponse(code=KickUserCode.OK, data=data, meta=None)
+    return KickUserResponse(ok=True, code=KickUserCode.OK, data=data, meta=None)
 
 
 @router.post(
@@ -134,7 +134,7 @@ def case_start(body: CaseStartRequest):
     - 409: room 상태가 case 시작 조건을 만족하지 않는 경우
     """
     data = CaseStartMutation()
-    return CaseStartSuccessResponse(code=CaseStartSuccessCode.OK, data=data, meta=None)
+    return CaseStartSuccessResponse(ok=True, code=CaseStartSuccessCode.OK, data=data, meta=None)
 
 
 # POST /current/force-skip
