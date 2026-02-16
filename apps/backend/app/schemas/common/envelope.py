@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
-from pydantic import Field
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, Field
 
 DataT = TypeVar("DataT")
 CodeEnumT = TypeVar("CodeEnumT", bound=Enum)
-Meta = dict[str, object]
+Meta = dict[str, Any]
 
 
-class Envelope(GenericModel, Generic[DataT, CodeEnumT]):
+class Envelope(BaseModel, Generic[DataT, CodeEnumT]):
     """
     - Keep this as the only top-level shape for every response.
     - Put real payload into `data`.
