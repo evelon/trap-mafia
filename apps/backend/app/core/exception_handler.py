@@ -32,6 +32,6 @@ def register_exception_handlers(app: FastAPI) -> None:
                 code=CommonErrorCode.VALIDATION_ERROR,
                 message=None,
                 data=None,
-                meta={"fields": fields},
+                meta=None,
             ).model_dump(),
         )
