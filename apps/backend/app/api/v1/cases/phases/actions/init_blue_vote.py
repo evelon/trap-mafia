@@ -49,7 +49,7 @@ router = APIRouter()
         status.HTTP_409_CONFLICT: {"model": InitBlueVoteConflictResponse},
     },
 )
-def init_blue_vote(body: InitBlueVoteRequest):
+async def init_blue_vote(body: InitBlueVoteRequest):
     """
     POST /api/cases/current/init-blue-vote
 

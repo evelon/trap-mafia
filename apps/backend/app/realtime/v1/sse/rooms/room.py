@@ -20,7 +20,7 @@ router = APIRouter()
 #   - X-User-Id: string (Auth mock; 향후 JWT로 대체)
 
 
-def _sse_frame(*, event: str, data: dict, id_: int | None = None) -> str:
+async def _sse_frame(*, event: str, data: dict, id_: int | None = None) -> str:
     """SSE 프레임을 생성합니다.
 
     - data는 한 줄 JSON으로 넣습니다(줄바꿈이 있으면 data:가 여러 줄로 쪼개져야 함).
@@ -35,7 +35,7 @@ def _sse_frame(*, event: str, data: dict, id_: int | None = None) -> str:
     return "\n".join(lines) + "\n\n"
 
 
-def _forbidden_not_in_room() -> JSONResponse:
+async def _forbidden_not_in_room() -> JSONResponse:
     return JSONResponse(
         status_code=403,
         content={
@@ -47,7 +47,7 @@ def _forbidden_not_in_room() -> JSONResponse:
     )
 
 
-def _mvp_snapshot(room_id: UUID) -> RoomSnapshot:
+async def _mvp_snapshot(room_id: UUID) -> RoomSnapshot:
     # MVP: RoomInfo/RoomSnapshot 기본값으로 충분
     # host_user_id 등은 실제 구현 시 DB에서 채워 넣으면 됩니다.
     return RoomSnapshot(room=RoomInfo(id=room_id))
@@ -77,7 +77,7 @@ async def room_state_sse(
     if x_room_id is None:
         return _forbidden_not_in_room()
 
-    snapshot = _mvp_snapshot(UUID(x_room_id))
+    snapshot = await _mvp_snapshot(UUID(x_room_id))
 
     payload = RoomStateResponse(
         ok=True,
@@ -88,6 +88,6 @@ async def room_state_sse(
 
     async def gen() -> AsyncIterator[str]:
         # MVP: 연결 직후 스냅샷 1회만 보내고 종료
-        yield _sse_frame(event="room_state", id_=1, data=payload.model_dump())
+        yield await _sse_frame(event="room_state", id_=1, data=payload.model_dump())
 
     return StreamingResponse(gen(), media_type="text/event-stream")
