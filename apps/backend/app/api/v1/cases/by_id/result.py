@@ -34,7 +34,7 @@ _RUNNING_CASE_ID = UUID("00000000-0000-0000-0000-000000000001")
         status.HTTP_409_CONFLICT: {"model": CaseResultErrorResponse},
     },
 )
-def get_case_result(case_id: UUID):
+async def get_case_result(case_id: UUID):
     """
     GET /api/cases/{case_id}/result
 

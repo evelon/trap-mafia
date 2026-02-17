@@ -1,19 +1,20 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import text
-from sqlalchemy.orm import Session
+from __future__ import annotations
 
-from app.db.session import get_db
-from app.services.redis import redis_client
+from fastapi import APIRouter
+from sqlalchemy import text
+
+from app.infra.db.session import DbSession
+from app.infra.redis import RedisClient
 
 router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
-def health(db: Session = Depends(get_db)):
+async def health(db: DbSession, redis_client: RedisClient):
     # DB ping
-    db.execute(text("SELECT 1"))
+    await db.execute(text("SELECT 1"))
 
     # Redis ping (optional)
-    redis_client.ping()
+    await redis_client.ping()
 
     return {"ok": True}

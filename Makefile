@@ -131,7 +131,7 @@ host-logs:
 
 host-be:
 	@echo "[host-be] run backend with $(ENV_RUNTIME_HOST)"
-	@cd "$(BE_DIR)" && $(call RUN_WITH_ENV,$(ENV_RUNTIME_HOST),uv run uvicorn main:app --reload --port 8000)
+	@cd "$(BE_DIR)" && $(call RUN_WITH_ENV,$(ENV_RUNTIME_HOST),uv run uvicorn main:api --reload --port 8000)
 
 host-fe:
 	@echo "[host-fe] run frontend with $(ENV_RUNTIME_HOST)"
@@ -173,7 +173,7 @@ local-up-only: local-infra-up-only local-migrate-only
 	@echo "  - stop: Ctrl+C"
 	@set -euo pipefail; \
 	trap 'echo; echo "[local-up] stopping..."; kill 0' INT TERM; \
-	( cd "$(BE_DIR)" && $(call RUN_WITH_ENV,$(ENV_RUNTIME_LOCAL),uv run uvicorn main:app --reload --port 8000) ) & \
+	( cd "$(BE_DIR)" && $(call RUN_WITH_ENV,$(ENV_RUNTIME_LOCAL),uv run uvicorn main:api --reload --port 8000) ) & \
 	( cd "$(FE_DIR)" && $(call RUN_WITH_ENV,$(ENV_RUNTIME_LOCAL),pnpm dev) ) & \
 	wait
 

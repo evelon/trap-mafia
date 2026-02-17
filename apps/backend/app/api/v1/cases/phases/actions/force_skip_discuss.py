@@ -39,7 +39,7 @@ _DISCUSS_PHASE = "DISCUSS"
         status.HTTP_409_CONFLICT: {"model": ForceSkipDiscussConflictResponse},
     },
 )
-def force_skip_discuss():
+async def force_skip_discuss():
     """
     POST /api/cases/current/force-skip-discuss
 

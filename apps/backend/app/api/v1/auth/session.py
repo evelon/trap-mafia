@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/guest",
+    "/guest-login",
     summary="guest_login",
     response_model=GuestLoginResponse,
     status_code=status.HTTP_200_OK,
@@ -41,7 +41,7 @@ router = APIRouter()
         status.HTTP_400_BAD_REQUEST: {"description": "TBD: Bad Request"},
     },
 )
-def guest_login(body: GuestLoginRequest, response: Response):
+async def guest_login(body: GuestLoginRequest, response: Response):
     """
     POST /api/auth/session/guest
 
@@ -88,7 +88,7 @@ def guest_login(body: GuestLoginRequest, response: Response):
         status.HTTP_400_BAD_REQUEST: {"description": "TBD: Bad Request"},
     },
 )
-def logout(response: Response):
+async def logout(response: Response):
     """
     POST /api/auth/session/logout
 

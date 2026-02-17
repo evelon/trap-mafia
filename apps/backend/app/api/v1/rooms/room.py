@@ -34,7 +34,7 @@ router = APIRouter()
     response_model=JoinRoomResponse,
     status_code=status.HTTP_200_OK,
 )
-def join_room(room_id: RoomId):
+async def join_room(room_id: RoomId):
     """
     POST /api/rooms/{room_id}/join
 
@@ -70,7 +70,7 @@ def join_room(room_id: RoomId):
     response_model=LeaveRoomResponse,
     status_code=status.HTTP_200_OK,
 )
-def leave_room():
+async def leave_room():
     """
     POST /api/rooms/current/leave
 
@@ -89,7 +89,7 @@ def leave_room():
     response_model=KickUserResponse,
     status_code=status.HTTP_200_OK,
 )
-def kick_user(user_id: UUID):
+async def kick_user(user_id: UUID):
     """
     POST /api/rooms/current/users/{user_id}/kick
 
@@ -120,7 +120,7 @@ def kick_user(user_id: UUID):
         status.HTTP_409_CONFLICT: {"model": CaseStartConflictResponse},
     },
 )
-def case_start(body: CaseStartRequest):
+async def case_start(body: CaseStartRequest):
     """
     POST /api/rooms/current/case-start
 

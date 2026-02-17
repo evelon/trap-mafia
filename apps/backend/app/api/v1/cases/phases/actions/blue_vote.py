@@ -44,7 +44,7 @@ _VOTE_PHASE = "VOTE"
         status.HTTP_409_CONFLICT: {"model": BlueVoteConflictResponse},
     },
 )
-def blue_vote(body: BlueVoteRequest):
+async def blue_vote(body: BlueVoteRequest):
     """
     POST /api/cases/current/blue-vote
 

@@ -47,7 +47,7 @@ router = APIRouter()
         status.HTTP_409_CONFLICT: {"model": RedVoteConflictResponse},
     },
 )
-def red_vote(body: RedVoteRequest):
+async def red_vote(body: RedVoteRequest):
     """
     POST /api/cases/current/red-vote
 
