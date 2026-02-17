@@ -6,7 +6,8 @@ from tests._helpers.envelope_assert import assert_is_envelope
 
 
 @pytest.mark.contract
-def test_guest_login_validation_error_is_wrapped_in_envelope(client):
+@pytest.mark.asyncio
+async def test_guest_login_validation_error_is_wrapped_in_envelope(client):
     """
     SSOT:
     - FastAPI validation 에러(보통 422)까지도 외부로는 Envelope 형태로 감싼다.
@@ -17,7 +18,7 @@ def test_guest_login_validation_error_is_wrapped_in_envelope(client):
     url = "/api/v1/auth/guest-login"
 
     # username 길이 3..32 위반(짧음)
-    resp = client.post(url, json={"username": "ab"})
+    resp = await client.post(url, json={"username": "ab"})
     assert resp.status_code in (400, 422)
 
     body = resp.json()

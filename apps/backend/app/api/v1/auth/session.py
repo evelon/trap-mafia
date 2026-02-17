@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/guest",
+    "/guest-login",
     summary="guest_login",
     response_model=GuestLoginResponse,
     status_code=status.HTTP_200_OK,
