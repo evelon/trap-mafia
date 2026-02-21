@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check-type": "tsc",
     "openapi-ts": "openapi-ts"
   },
   "dependencies": {
