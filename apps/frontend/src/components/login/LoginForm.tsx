@@ -40,9 +40,11 @@ export function LoginForm() {
     ...guestLoginApiV1AuthGuestLoginPostMutation(),
     onSuccess: (data) => {
       if (data.data?.in_case) {
-        router.push(`/case/${data.data.current_case_id}`);
+        alert("현재 진행 중인 게임이 있습니다. 게임 페이지로 이동합니다.");
+        // router.push(`/case/${data.data.current_case_id}`);
       } else {
-        router.push("/rooms");
+        alert("로그인에 성공했습니다. 방 목록 페이지로 이동합니다.");
+        // router.push("/rooms");
       }
     },
     onError: () => {
