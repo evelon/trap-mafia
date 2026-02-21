@@ -15,7 +15,14 @@ from sqlalchemy.ext.asyncio import (
 
 from app.infra.db.session import get_db
 from app.infra.redis import get_redis_client
-from main import api
+
+
+@pytest.fixture
+def app():
+    from main import api
+
+    yield api
+    api.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
@@ -67,30 +74,30 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
 
 
 @pytest_asyncio.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(app, db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
 
-    api.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        transport=ASGITransport(app=api),
-        base_url="http://test",
+        transport=ASGITransport(app=app),
+        base_url="https://test",
     ) as ac:
         yield ac
 
-    api.dependency_overrides.clear()
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
-def fake_redis():
+def fake_redis(app):
     fake_redis = fakeredis.aioredis.FakeRedis()
 
     async def override_get_redis_client():
         yield fake_redis
 
-    api.dependency_overrides[get_redis_client] = override_get_redis_client
+    app.dependency_overrides[get_redis_client] = override_get_redis_client
 
     yield fake_redis
 
-    api.dependency_overrides.clear()
+    app.dependency_overrides.clear()

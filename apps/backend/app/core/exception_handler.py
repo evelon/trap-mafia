@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette import status
 
+from app.core.exceptions import EnvelopeException
 from app.schemas.common.envelope import Envelope
 from app.schemas.common.error import CommonErrorCode
 
@@ -32,6 +33,13 @@ def register_exception_handlers(app: FastAPI) -> None:
                 code=CommonErrorCode.VALIDATION_ERROR,
                 message=None,
                 data=None,
-                meta={"fields": fields},
+                meta=None,
             ).model_dump(),
+        )
+
+    @app.exception_handler(EnvelopeException)
+    async def app_error_handler(request: Request, exc: EnvelopeException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=exc.to_envelope_dict(),
         )
