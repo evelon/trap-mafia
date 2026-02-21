@@ -1,1 +1,1 @@
-from .auth import User  # noqa: F401
+from .room import Room  # noqa: F401

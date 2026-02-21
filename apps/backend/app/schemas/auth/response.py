@@ -12,7 +12,7 @@ class LoginCode(str, Enum):
     OK = "OK"
 
 
-class GuestInfo(BaseModel):
+class GuestLoginData(BaseModel):
     id: UserId = Field(description="User ID (UUID)")
     username: str = Field(description="Username")
     in_case: bool = Field(description="Whether the user is currently in a case")
@@ -49,7 +49,7 @@ class GuestInfo(BaseModel):
         return self
 
 
-GuestInfoResponse = Envelope[GuestInfo, LoginCode]
+GuestLoginResponse = Envelope[GuestLoginData, LoginCode]
 
 
 class LogoutCode(str, Enum):

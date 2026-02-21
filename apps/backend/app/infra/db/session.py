@@ -19,4 +19,4 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
 
 
-DbSessionDep = Annotated[AsyncSession, Depends(get_db)]
+DbSession = Annotated[AsyncSession, Depends(get_db)]

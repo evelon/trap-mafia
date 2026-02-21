@@ -6,8 +6,7 @@ from tests._helpers.envelope_assert import assert_is_envelope, assert_set_cookie
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
-async def test_guest_login_same_username_returns_same_user_id_and_sets_cookies(client):
+def test_guest_login_same_username_returns_same_user_id_and_sets_cookies(client):
     """
     SSOT:
     - same username -> same user id
@@ -17,7 +16,7 @@ async def test_guest_login_same_username_returns_same_user_id_and_sets_cookies(c
     """
     url = "/api/v1/auth/guest-login"
 
-    resp1 = await client.post(url, json={"username": "tester_01"})
+    resp1 = client.post(url, json={"username": "tester_01"})
     assert resp1.status_code == 200
 
     body1 = assert_is_envelope(resp1.json(), ok=True, meta_is_null=True)
@@ -33,7 +32,7 @@ async def test_guest_login_same_username_returns_same_user_id_and_sets_cookies(c
     set_cookie_1 = resp1.headers.get("set-cookie", "")
     assert_set_cookie_has_tokens(set_cookie_1)
 
-    resp2 = await client.post(url, json={"username": "tester_01"})
+    resp2 = client.post(url, json={"username": "tester_01"})
     assert resp2.status_code == 200
 
     body2 = assert_is_envelope(resp2.json(), ok=True, meta_is_null=True)
