@@ -19,5 +19,8 @@ class Envelope(BaseModel, Generic[DataT, CodeEnumT]):
     ok: bool = Field(description="Domain-level success/failure.")
     code: CodeEnumT = Field(description="Domain result code or snapshot trigger code.")
     message: str | None = Field(default=None, description="Human-friendly optional message.")
-    data: DataT | None = Field(default=None, description="Actual json payload of responses.")
+    data: DataT | None = Field(
+        default=None,
+        description="Actual json payload of responses.",
+    )
     meta: Meta | None = Field(default=None, description="Optional metadata.", examples=[None])

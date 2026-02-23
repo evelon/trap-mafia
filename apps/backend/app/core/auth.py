@@ -9,10 +9,10 @@ from fastapi import Depends, status
 
 from app.core.config import JwtConfig, get_jwt_config
 from app.core.exceptions import EnvelopeException
-from app.schemas.common.error import AuthErrorCode
+from app.schemas.common.error import AuthTokenErrorCode
 
-ACCESS_TOKEN = "access_token"
-REFRESH_TOKEN = "refresh_token"
+ACCESS_TOKEN: Literal["access_token"] = "access_token"
+REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
 
 _token_type_mapping = {"access_token": "access", "refresh_token": "refresh"}
 
@@ -77,12 +77,17 @@ class JwtHandler:
         except jwt.ExpiredSignatureError as e:
             raise EnvelopeException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_EXPIRED,
+                response_code=AuthTokenErrorCode.AUTH_TOKEN_EXPIRED,
             ) from e
+        except jwt.MissingRequiredClaimError:
+            raise EnvelopeException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                response_code=AuthTokenErrorCode.AUTH_TOKEN_PAYLOAD_INVALID,
+            )
         except jwt.InvalidTokenError as e:
             raise EnvelopeException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_INVALID,
+                response_code=AuthTokenErrorCode.AUTH_TOKEN_INVALID,
             ) from e
 
     def extract_user_id_from_token(
@@ -91,7 +96,7 @@ class JwtHandler:
         if not token:
             raise EnvelopeException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+                response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
             )
         token_typ = _token_type_mapping[token_type]
 
@@ -100,14 +105,9 @@ class JwtHandler:
         if claims["typ"] != token_typ:
             raise EnvelopeException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_INVALID,
+                response_code=AuthTokenErrorCode.AUTH_TOKEN_INVALID,
             )
-        sub = claims.get("sub")
-        if not isinstance(sub, str) or not sub:
-            raise EnvelopeException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_PAYLOAD_INVALID,
-            )
+        sub = claims["sub"]  # decode_and_verify가 존재 보장
         return sub
 
 

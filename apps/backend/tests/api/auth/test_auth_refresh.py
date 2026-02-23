@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import time
-from datetime import timedelta
 
 import jwt
 import pytest
 
 from app.core.auth import ACCESS_TOKEN, REFRESH_TOKEN
-from app.core.config import JwtConfig, get_jwt_config
+from app.core.config import JwtConfig
 from tests._helpers.envelope_assert import assert_is_envelope
 
 
@@ -39,7 +38,7 @@ async def test_refresh_issues_new_access_cookie(client):
     resp = await client.post("/api/v1/auth/refresh")
     assert resp.status_code == 200
 
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
+    _ = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
 
     sc = _set_cookie_header(resp)
     assert f"{ACCESS_TOKEN}=" in sc, f"refresh는 access_token Set-Cookie를 포함해야 함. got={sc}"
@@ -75,26 +74,6 @@ async def test_me_rejects_refresh_token_used_as_access(client):
     assert isinstance(env["code"], str) and env["code"]
 
 
-@pytest.fixture
-def jwt_test_cfg(app):
-    """
-    refresh 테스트는 토큰을 직접 만들기 때문에,
-    서버도 동일한 설정으로 검증하도록 dependency override로 고정한다.
-    """
-    cfg = JwtConfig(
-        issuer="trap-mafia-test",
-        audience="trap-mafia-test",
-        access_ttl=timedelta(minutes=5),
-        refresh_ttl=timedelta(days=7),
-        algorithm="HS256",
-        secret_key="test-secret",
-        public_key=None,
-    )
-    app.dependency_overrides[get_jwt_config] = lambda: cfg
-    yield cfg
-    app.dependency_overrides.pop(get_jwt_config, None)
-
-
 def _mint_refresh(
     cfg: JwtConfig,
     *,
@@ -119,7 +98,7 @@ def _mint_refresh(
 
 @pytest.mark.api
 @pytest.mark.asyncio
-async def test_refresh_rejects_expired_or_invalid_refresh_token(client, jwt_test_cfg: JwtConfig):
+async def test_refresh_rejects_expired_or_invalid_refresh_token(client, jwt_test_config: JwtConfig):
     """
     요구사항:
     - exp 지난 refresh_token -> 401
@@ -132,7 +111,7 @@ async def test_refresh_rejects_expired_or_invalid_refresh_token(client, jwt_test
     user_id = str(env_login["data"]["id"])  # UUID -> str
 
     # A) expired refresh
-    expired = _mint_refresh(jwt_test_cfg, sub=user_id, exp_offset_sec=-10, jti="expired-1")
+    expired = _mint_refresh(jwt_test_config, sub=user_id, exp_offset_sec=-10, jti="expired-1")
     client.cookies.set(REFRESH_TOKEN, expired)
 
     resp1 = await client.post("/api/v1/auth/refresh")
@@ -142,7 +121,11 @@ async def test_refresh_rejects_expired_or_invalid_refresh_token(client, jwt_test
 
     # B) invalid signature refresh
     invalid_sig = _mint_refresh(
-        jwt_test_cfg, sub=user_id, exp_offset_sec=60, jti="bad-1", secret_override="wrong-secret"
+        jwt_test_config,
+        sub=user_id,
+        exp_offset_sec=60,
+        jti="bad-1",
+        secret_override="wrong-secret_Uo8hsuCHcaX6x36wB79trtkVJwlOKgTBEYgBQW4GDc7",
     )
     client.cookies.set(REFRESH_TOKEN, invalid_sig)
 

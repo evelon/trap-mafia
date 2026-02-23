@@ -20,7 +20,7 @@ def jwt_short_access_cfg(app):
         access_ttl=timedelta(seconds=1),
         refresh_ttl=timedelta(days=7),
         algorithm="HS256",
-        secret_key="test-secret",
+        secret_key="test-secret_Uo8hsuCHcaX6x36wB79trtkVJwlOKgTBEYgBQW4GDc7",
         public_key=None,
     )
     app.dependency_overrides[get_jwt_config] = lambda: cfg

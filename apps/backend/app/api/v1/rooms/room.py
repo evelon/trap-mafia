@@ -4,9 +4,9 @@ from fastapi import APIRouter, Request, status
 
 from app.core.auth import ACCESS_TOKEN, JwtHandlerDep
 from app.core.exceptions import EnvelopeException
-from app.schemas.common.error import AuthErrorCode
+from app.schemas.common.error import AuthTokenErrorCode
 from app.schemas.common.ids import RoomId
-from app.schemas.common.validation import COMMON_422_RESPONSE
+from app.schemas.common.response import COMMON_422_VALIDATION_RESPONSE
 from app.schemas.room.action import CaseStartRequest
 from app.schemas.room.mutation import (
     CaseStartMutation,
@@ -52,7 +52,7 @@ async def join_room(
     if not access_token:
         raise EnvelopeException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+            response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
         )
 
     user_id_str = jwt_handler.extract_user_id_from_token(access_token, ACCESS_TOKEN)
@@ -90,7 +90,7 @@ async def leave_room(
     if not access_token:
         raise EnvelopeException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+            response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
         )
 
     user_id_str = jwt_handler.extract_user_id_from_token(access_token, ACCESS_TOKEN)
@@ -139,7 +139,7 @@ async def kick_user(user_id: UUID):
     response_model=CaseStartSuccessResponse,
     status_code=status.HTTP_200_OK,
     responses={
-        **COMMON_422_RESPONSE,
+        **COMMON_422_VALIDATION_RESPONSE,
         status.HTTP_403_FORBIDDEN: {"model": CaseStartForbiddenResponse},
         status.HTTP_409_CONFLICT: {"model": CaseStartConflictResponse},
     },

@@ -27,12 +27,12 @@ def register_exception_handlers(app: FastAPI) -> None:
             )
 
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content=Envelope[None, CommonErrorCode](
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            content=Envelope[dict, CommonErrorCode](
                 ok=False,
                 code=CommonErrorCode.VALIDATION_ERROR,
                 message=None,
-                data=None,
+                data={"fields": fields},
                 meta=None,
             ).model_dump(),
         )

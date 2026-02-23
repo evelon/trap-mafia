@@ -14,8 +14,11 @@ from app.schemas.auth.response import (
     LogoutCode,
 )
 from app.schemas.common.envelope import Envelope
-from app.schemas.common.error import AuthErrorCode
-from app.schemas.common.validation import COMMON_422_RESPONSE
+from app.schemas.common.error import AuthErrorCode, AuthTokenErrorCode
+from app.schemas.common.response import (
+    COMMON_401_TOKEN_AUTH_RESPONSE,
+    COMMON_422_VALIDATION_RESPONSE,
+)
 from app.services.auth import AuthServiceDep
 
 
@@ -50,23 +53,7 @@ router = APIRouter()
     summary="me",
     response_model=GuestInfoResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "No access token attached in cookie.",
-            "model": Envelope[None, AuthErrorCode.AUTH_UNAUTHORIZED],
-            "content": {
-                "application/json": {
-                    "example": {
-                        "ok": False,
-                        "code": AuthErrorCode.AUTH_UNAUTHORIZED,
-                        "message": None,
-                        "data": None,
-                        "meta": None,
-                    }
-                }
-            },
-        }
-    },
+    responses={**COMMON_401_TOKEN_AUTH_RESPONSE},
 )
 async def me(
     request: Request,
@@ -84,7 +71,7 @@ async def me(
     if not access_token:
         raise EnvelopeException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+            response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
         )
 
     user_id = jwt_handler.extract_user_id_from_token(access_token, ACCESS_TOKEN)
@@ -107,7 +94,7 @@ async def me(
     response_model=GuestInfoResponse,
     status_code=status.HTTP_200_OK,
     responses={
-        **COMMON_422_RESPONSE,
+        **COMMON_422_VALIDATION_RESPONSE,
         status.HTTP_200_OK: {
             "description": (
                 "Temporary API. Creates/returns a guest user session. "
@@ -172,7 +159,7 @@ async def guest_login(
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Invalid / expired / missing refresh token.",
-            "model": Envelope[None, AuthErrorCode.AUTH_UNAUTHORIZED],
+            "model": Envelope[None, AuthTokenErrorCode],
             "content": {
                 "application/json": {
                     "example": {
@@ -206,7 +193,7 @@ async def refresh(
     if not refresh_token:
         raise EnvelopeException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+            response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
         )
 
     # NOTE:

@@ -11,14 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import EnvelopeException
 from app.infra.db.session import DbSessionDep
 from app.models.auth import User
-from app.repositories.user import UserRepo
-from app.schemas.common.error import AuthErrorCode
+from app.repositories.user import UserRepo, UserRepoDep
+from app.schemas.common.error import AuthErrorCode, AuthLoginErrorCode
 
 
 class AuthService:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, user_repo: UserRepo):
         self.db = db
-        self.repo = UserRepo(db)
+        self.repo = user_repo
 
     async def get_or_create_guest_user(self, username: str) -> User:
         """게스트 로그인용 user upsert."""
@@ -46,21 +46,30 @@ class AuthService:
 
         - 해당 user가 없으면 404 예외를 발생시킨다.
         """
-        query = select(User).where(User.id == UUID(user_id))
+        try:
+            user_uuid = UUID(user_id)
+        except ValueError:
+            # Invalid UUID in token/session payload -> treat as unauthorized.
+            raise EnvelopeException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                response_code=AuthErrorCode.AUTH_UNAUTHORIZED,
+            )
+
+        query = select(User).where(User.id == user_uuid)
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
 
         if user is None:
             raise EnvelopeException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                response_code=AuthErrorCode.AUTH_USER_NOT_FOUND,
+                response_code=AuthLoginErrorCode.AUTH_USER_NOT_FOUND,
             )
 
         return user.username
 
 
-def get_auth_service(db: DbSessionDep) -> AuthService:
-    return AuthService(db)
+def get_auth_service(db: DbSessionDep, user_repo: UserRepoDep) -> AuthService:
+    return AuthService(db, user_repo)
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]

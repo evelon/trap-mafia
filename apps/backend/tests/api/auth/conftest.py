@@ -3,22 +3,21 @@ from __future__ import annotations
 from datetime import timedelta
 
 import pytest
-import pytest_asyncio
 
-from app.core.auth import get_jwt_handler
 from app.core.config import JwtConfig, get_jwt_config
+from app.repositories.user import UserRepo
 from app.services.auth import get_auth_service
 
 
 @pytest.fixture
-def jwt_test_cfg(app):
+def jwt_test_config(app):
     cfg = JwtConfig(
         issuer="trap-mafia-test",
         audience="trap-mafia-test",
         access_ttl=timedelta(minutes=5),
         refresh_ttl=timedelta(days=7),
         algorithm="HS256",
-        secret_key="test-secret",
+        secret_key="test-secret_Uo8hsuCHcaX6x36wB79trtkVJwlOKgTBEYgBQW4GDc7",
         public_key=None,
     )
     app.dependency_overrides[get_jwt_config] = lambda: cfg
@@ -27,11 +26,6 @@ def jwt_test_cfg(app):
 
 
 @pytest.fixture
-def jwt_test_handler(jwt_test_cfg):
-    handler = get_jwt_handler(jwt_test_cfg)
-    yield handler
-
-
-@pytest_asyncio.fixture
-async def auth_service(db_session):
-    return get_auth_service(db_session)
+def auth_service(db_session):
+    user_repo = UserRepo(db_session)
+    return get_auth_service(db_session, user_repo)

@@ -23,7 +23,7 @@ from app.schemas.case.action_responses.common_action import (
 )
 from app.schemas.case.actions.blue_vote import BlueVoteRequest
 from app.schemas.case.actions.common import ActionReceipt
-from app.schemas.common.validation import COMMON_422_RESPONSE
+from app.schemas.common.response import COMMON_422_VALIDATION_RESPONSE
 
 router = APIRouter()
 
@@ -39,7 +39,7 @@ _VOTE_PHASE = "VOTE"
     response_model=BlueVoteSuccessResponse | BlueVoteConflictResponse | BlueVoteForbiddenResponse,
     status_code=status.HTTP_200_OK,
     responses={
-        **COMMON_422_RESPONSE,
+        **COMMON_422_VALIDATION_RESPONSE,
         status.HTTP_403_FORBIDDEN: {"model": BlueVoteForbiddenResponse},
         status.HTTP_409_CONFLICT: {"model": BlueVoteConflictResponse},
     },
