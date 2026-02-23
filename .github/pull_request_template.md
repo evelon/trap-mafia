@@ -6,19 +6,18 @@
 
 ## Change Scope
 
-해당되는 항목에 체크하세요.
+아래 해당되는 항목만 작성하세요.
 
-- [ ] Frontend
-- [ ] Backend
-- [ ] Infra
-- [ ] Operation
+- Frontend
+- Backend
+- Infra
+- Operation
 
 ---
 
 ## Verification
 
-- [ ] 로컬에서 nginx 경유로 동작 확인함  
-       (`/`, `/api/v1/health/`, `/_health` 등 해당 범위)
+- [ ] 로컬에서 nginx 경유로 동작 확인함
 
 ---
 
