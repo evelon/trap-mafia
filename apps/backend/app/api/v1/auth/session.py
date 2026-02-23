@@ -53,7 +53,7 @@ router = APIRouter()
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "No access token attached in cookie.",
-            "model": Envelope[None, AuthErrorCode.AUTH_UNAUTHORIZED],
+            "model": Envelope[None, AuthErrorCode],
             "content": {
                 "application/json": {
                     "example": {
@@ -102,7 +102,6 @@ async def me(
 
 
 @router.post(
-    "/guest-login",
     "/guest-login",
     summary="guest_login",
     response_model=GuestInfoResponse,
@@ -173,7 +172,7 @@ async def guest_login(
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Invalid / expired / missing refresh token.",
-            "model": Envelope[None, AuthErrorCode.AUTH_UNAUTHORIZED],
+            "model": Envelope[None, AuthErrorCode],
             "content": {
                 "application/json": {
                     "example": {

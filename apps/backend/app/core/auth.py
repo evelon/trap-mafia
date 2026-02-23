@@ -11,8 +11,8 @@ from app.core.config import JwtConfig, get_jwt_config
 from app.core.exceptions import EnvelopeException
 from app.schemas.common.error import AuthErrorCode
 
-ACCESS_TOKEN = "access_token"
-REFRESH_TOKEN = "refresh_token"
+ACCESS_TOKEN: Literal["access_token"] = "access_token"
+REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
 
 _token_type_mapping = {"access_token": "access", "refresh_token": "refresh"}
 
