@@ -1,29 +1,31 @@
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Request, status
 
+from app.core.auth import ACCESS_TOKEN, JwtHandlerDep
+from app.core.exceptions import EnvelopeException
+from app.schemas.common.error import AuthErrorCode
 from app.schemas.common.ids import RoomId
 from app.schemas.common.validation import COMMON_422_RESPONSE
 from app.schemas.room.action import CaseStartRequest
+from app.schemas.room.mutation import (
+    CaseStartMutation,
+    KickUserMutation,
+    KickUserReason,
+    LeaveRoomCode,
+)
 from app.schemas.room.response import (
     CaseStartConflictResponse,
     CaseStartForbiddenResponse,
-    CaseStartMutation,
     CaseStartSuccessCode,
     CaseStartSuccessResponse,
     JoinRoomCode,
-    JoinRoomMutation,
-    JoinRoomReason,
     JoinRoomResponse,
     KickUserCode,
-    KickUserMutation,
-    KickUserReason,
     KickUserResponse,
-    LeaveRoomCode,
-    LeaveRoomMutation,
-    LeaveRoomReason,
     LeaveRoomResponse,
 )
+from app.services.room import RoomServiceDep
 
 router = APIRouter()
 
@@ -34,32 +36,35 @@ router = APIRouter()
     response_model=JoinRoomResponse,
     status_code=status.HTTP_200_OK,
 )
-async def join_room(room_id: RoomId):
+async def join_room(
+    room_id: RoomId,
+    request: Request,
+    room_service: RoomServiceDep,
+    jwt_handler: JwtHandlerDep,
+) -> JoinRoomResponse:
     """
-    POST /api/rooms/{room_id}/join
-
-    의미:
-    - 현재 사용자가 특정 ROOM에 참가를 시도한다.
-    - 성공 시 200 OK + JoinRoomMutation을 반환한다.
-    - 이미 참가 중인 경우에도 200으로 응답하며, changed=False로 표현한다.
-
-    비고:
-    - 실제 ROOM_FULL, membership 검증 로직은 추후 구현 예정이다.
+    POST /api/v1/rooms/{room_id}/join
+    - access_token 쿠키에서 user_id를 추출
+    - RoomService.join_room 호출
+    - JoinRoomResponse(Envelope)로 반환
     """
-    # MVP NOTE:
-    # - Spec currently treats only one room_id as valid.
-    # - Real membership change detection and ROOM_FULL handling will be implemented later.
-    #
-    # For now, return a deterministic "joined" response.
-    data = JoinRoomMutation(
-        changed=True,
-        reason=JoinRoomReason.JOINED,
-    )
+    access_token = request.cookies.get(ACCESS_TOKEN)
+    if not access_token:
+        raise EnvelopeException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+        )
+
+    user_id_str = jwt_handler.extract_user_id_from_token(access_token, ACCESS_TOKEN)
+    user_id = UUID(user_id_str)
+
+    mut = await room_service.join_room(user_id=user_id, room_id=room_id)
+
     return JoinRoomResponse(
         ok=True,
         code=JoinRoomCode.OK,
         message=None,
-        data=data,
+        data=mut,
         meta=None,
     )
 
@@ -70,17 +75,36 @@ async def join_room(room_id: RoomId):
     response_model=LeaveRoomResponse,
     status_code=status.HTTP_200_OK,
 )
-async def leave_room():
+async def leave_room(
+    request: Request,
+    room_service: RoomServiceDep,
+    jwt_handler: JwtHandlerDep,
+) -> LeaveRoomResponse:
     """
-    POST /api/rooms/current/leave
+    POST /api/v1/rooms/current/leave
+    - access_token 쿠키에서 user_id를 추출
+    - RoomService.leave_current_room 호출
+    - LeaveRoomResponse(Envelope)로 반환
+    """
+    access_token = request.cookies.get(ACCESS_TOKEN)
+    if not access_token:
+        raise EnvelopeException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+        )
 
-    의미:
-    - 현재 사용자가 자신이 속한 ROOM에서 나가기를 시도한다.
-    - 성공 시 200 OK + LeaveRoomMutation을 반환한다.
-    - 이미 방에 속해 있지 않은 경우에도 200으로 응답하며, changed=False로 표현한다.
-    """
-    data = LeaveRoomMutation(changed=True, reason=LeaveRoomReason.LEFT)
-    return LeaveRoomResponse(ok=True, code=LeaveRoomCode.OK, data=data, meta=None)
+    user_id_str = jwt_handler.extract_user_id_from_token(access_token, ACCESS_TOKEN)
+    user_id = UUID(user_id_str)
+
+    mut = await room_service.leave_current_room(user_id=user_id)
+
+    return LeaveRoomResponse(
+        ok=True,
+        code=LeaveRoomCode.OK,
+        message=None,
+        data=mut,
+        meta=None,
+    )
 
 
 @router.post(
@@ -101,12 +125,12 @@ async def kick_user(user_id: UUID):
     주의:
     - 이 API는 대상 room에서의 멤버십 제거 여부만 보장한다.
     """
-    data = KickUserMutation(
+    mut = KickUserMutation(
         subject_id=user_id,
         changed=False,
         reason=KickUserReason.NOT_IN_ROOM,
     )
-    return KickUserResponse(ok=True, code=KickUserCode.OK, data=data, meta=None)
+    return KickUserResponse(ok=True, code=KickUserCode.OK, data=mut, meta=None)
 
 
 @router.post(
@@ -133,8 +157,8 @@ async def case_start(body: CaseStartRequest):
     - 403: room에 속해 있지 않거나 시작 권한이 없는 경우
     - 409: room 상태가 case 시작 조건을 만족하지 않는 경우
     """
-    data = CaseStartMutation()
-    return CaseStartSuccessResponse(ok=True, code=CaseStartSuccessCode.OK, data=data, meta=None)
+    mut = CaseStartMutation()
+    return CaseStartSuccessResponse(ok=True, code=CaseStartSuccessCode.OK, data=mut, meta=None)
 
 
 # POST /current/force-skip

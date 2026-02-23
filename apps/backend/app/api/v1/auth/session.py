@@ -103,7 +103,6 @@ async def me(
 
 @router.post(
     "/guest-login",
-    "/guest-login",
     summary="guest_login",
     response_model=GuestInfoResponse,
     status_code=status.HTTP_200_OK,
