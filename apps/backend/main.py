@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as rest_router
 from app.core.exception_handler import register_exception_handlers
+from app.core.middleware import register_middlewares
 from app.realtime.routes import router as realtime_router
 
 api = FastAPI()
@@ -19,4 +20,5 @@ api.add_middleware(
 api.include_router(rest_router)
 api.include_router(realtime_router)
 
+register_middlewares(api)
 register_exception_handlers(api)
