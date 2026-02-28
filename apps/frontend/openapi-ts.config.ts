@@ -3,22 +3,23 @@ import { defineConfig } from "@hey-api/openapi-ts";
 export default defineConfig({
   input: "http://localhost:8000/openapi.json",
   output: {
-    path: "./src/client",
+    path: "./src/client/gen",
     postProcess: ["prettier"],
   },
   plugins: [
-    // "@hey-api/schemas",
-    // {
-    //   dates: true,
-    //   name: "@hey-api/transformers",
-    // },
-    // {
-    //   name: "@hey-api/sdk",
-    //   transformer: true,
-    // },
+    {
+      name: "@hey-api/sdk",
+      includeInEntry: false,
+    },
     "@hey-api/typescript",
-    "@hey-api/client-axios",
+    {
+      name: "@hey-api/client-axios",
+      runtimeConfigPath: "../axios-config",
+    },
     "zod",
-    "@tanstack/react-query",
+    {
+      name: "@tanstack/react-query",
+      includeInEntry: true,
+    },
   ],
 });

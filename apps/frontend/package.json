@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "check-type": "tsc",
+    "format": "prettier --write . **/*.{ts,tsx}",
     "openapi-ts": "openapi-ts"
   },
   "dependencies": {
