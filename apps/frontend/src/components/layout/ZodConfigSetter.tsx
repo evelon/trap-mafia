@@ -10,6 +10,6 @@ import { ko } from "zod/locales";
  */
 z.config(ko());
 
-export function ZodConfigProvider({ children }: { children: React.ReactNode }) {
+export function ZodConfigSetter({ children }: { children: React.ReactNode }) {
   return children;
 }

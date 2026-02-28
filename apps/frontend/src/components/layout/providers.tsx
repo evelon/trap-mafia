@@ -1,10 +1,13 @@
+import { AxiosSetter } from "./AxiosSetter";
 import ReactQueryProvider from "./ReactQueryProvider";
-import { ZodConfigProvider } from "./ZodLocaleProvider";
+import { ZodConfigSetter } from "./ZodConfigSetter";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ReactQueryProvider>
-      <ZodConfigProvider>{children}</ZodConfigProvider>
-    </ReactQueryProvider>
+    <AxiosSetter>
+      <ReactQueryProvider>
+        <ZodConfigSetter>{children}</ZodConfigSetter>
+      </ReactQueryProvider>
+    </AxiosSetter>
   );
 }

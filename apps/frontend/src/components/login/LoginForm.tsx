@@ -1,10 +1,10 @@
 "use client";
 
+import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -15,44 +15,54 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { guestLoginApiV1AuthGuestLoginPostMutation } from "@/client/@tanstack/react-query.gen";
-import { zGuestLoginRequest } from "@/client/zod.gen";
-import { refineField } from "@/lib/zod";
+import {
+  guestLoginApiV1AuthGuestLoginPostMutation,
+  meApiV1AuthMeGetQueryKey,
+} from "@/client/gen";
+import type { GuestInfo } from "@/client/gen";
 import { toast } from "sonner";
+import {
+  LoginFormValues,
+  loginSchema,
+  LOGIN_DEFAULT_VALUES,
+} from "./login-schema";
 
-const schema = refineField(zGuestLoginRequest, {
-  field: "username",
-  check: (val) => val.trim().length > 0,
-  message: "공백만 입력할 수 없습니다",
-});
-
-type FormValues = z.infer<typeof schema>;
+function getPostLoginPath(user: GuestInfo) {
+  switch (user.in_case) {
+    case true:
+      return `/case/${user.current_case_id}`;
+    default:
+      return "/rooms";
+  }
+}
 
 export function LoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [isNavigating, startTransition] = useTransition();
 
-  const { control, handleSubmit } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { username: "" },
+  const { control, handleSubmit } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: LOGIN_DEFAULT_VALUES,
   });
 
   const { mutate, isPending } = useMutation({
     ...guestLoginApiV1AuthGuestLoginPostMutation(),
     onSuccess: (data) => {
-      if (data.data?.in_case) {
-        alert("현재 진행 중인 게임이 있습니다. 게임 페이지로 이동합니다.");
-        // router.push(`/case/${data.data.current_case_id}`);
-      } else {
-        alert("로그인에 성공했습니다. 방 목록 페이지로 이동합니다.");
-        // router.push("/rooms");
-      }
+      queryClient.setQueryData(meApiV1AuthMeGetQueryKey(), data);
+
+      startTransition(() => {
+        router.push(getPostLoginPath(data.data!));
+      });
     },
     onError: () => {
       toast.error("로그인에 실패했습니다. 다시 시도해주세요.");
     },
   });
 
-  const onSubmit = ({ username }: FormValues) => {
+  const isDisabled = isPending || isNavigating;
+
+  const onSubmit = ({ username }: LoginFormValues) => {
     mutate({ body: { username } });
   };
 
@@ -73,7 +83,7 @@ export function LoginForm() {
                   <Input
                     {...field}
                     placeholder="닉네임을 입력하세요"
-                    disabled={isPending}
+                    disabled={isDisabled}
                     aria-invalid={fieldState.invalid}
                   />
                   <FieldError errors={[fieldState.error]} />
@@ -89,9 +99,9 @@ export function LoginForm() {
           className="w-full"
           type="submit"
           form="login-form"
-          disabled={isPending}
+          disabled={isDisabled}
         >
-          {isPending ? "로그인 중..." : "로그인"}
+          {isDisabled ? "로그인 중..." : "로그인"}
         </Button>
       </CardFooter>
     </Card>
