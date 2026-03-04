@@ -4,13 +4,13 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from app.infra.db.session import DbSessionDep
-from app.infra.redis import RedisClient
+from app.infra.redis.client import RedisClientDep
 
 router = APIRouter(tags=["health"])
 
 
 @router.get("/health")
-async def health(db: DbSessionDep, redis_client: RedisClient):
+async def health(db: DbSessionDep, redis_client: RedisClientDep):
     # DB ping
     await db.execute(text("SELECT 1"))
 

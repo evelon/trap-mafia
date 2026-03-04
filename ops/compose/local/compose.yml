@@ -3,7 +3,7 @@ name: ${PROJECT_NAME}
 services:
   # 1) FE 정적 export를 수행하는 일회성 빌더
   frontend_export:
-    image: ${FE_EXPORT_IMAGE}
+    image: ${FE_EXPORT_BASE_IMAGE}
     working_dir: /app
     environment:
       - NODE_ENV=production
@@ -43,6 +43,7 @@ services:
 
   # 3) Backend
   backend:
+    pull_policy: never
     build:
       context: ../../../apps/backend
       dockerfile: Dockerfile
@@ -54,15 +55,14 @@ services:
       - "${BE_PORT}:8000"
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_started
-    # 헬스체크는 나중에 be에 health endpoint 붙이고 추가하는 걸 추천
-    # healthcheck:
-    #   test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
-    #   interval: 5s
-    #   timeout: 2s
-    #   retries: 20
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
 
   # 4) Postgres
   postgres:
@@ -75,6 +75,11 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   # 5) Redis
   redis:

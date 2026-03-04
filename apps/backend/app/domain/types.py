@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Annotated
+from uuid import UUID
 
 from pydantic import Field
 
@@ -14,6 +16,12 @@ from app.domain.constants import SEAT_NO_MAX_EXCLUSIVE, SEAT_NO_MIN
   타입 레벨에서 강제하기 위한 공통 타입을 정의한다.
 - Pydantic validation과 OpenAPI 문서 생성을 동시에 만족시키는 것을 목표로 한다.
 """
+
+
+@dataclass(frozen=True)
+class AuthUser:
+    id: UUID
+    username: str
 
 
 SeatNo = Annotated[

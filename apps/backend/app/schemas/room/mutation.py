@@ -6,10 +6,6 @@ from pydantic import Field
 from app.schemas.common.mutation import BaseMutation, Subject, Target
 
 
-class LeaveRoomCode(str, Enum):
-    OK = "OK"
-
-
 class JoinRoomReason(str, Enum):
     JOINED = "JOINED"
     ALREADY_JOINED = "ALREADY_JOINED"

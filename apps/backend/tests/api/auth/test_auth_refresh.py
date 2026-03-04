@@ -4,9 +4,11 @@ import time
 
 import jwt
 import pytest
+from httpx import AsyncClient
 
-from app.core.auth import ACCESS_TOKEN, REFRESH_TOKEN
 from app.core.config import JwtConfig
+from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN
+from tests._helpers.auth import UserAuth
 from tests._helpers.envelope_assert import assert_is_envelope
 
 
@@ -16,8 +18,7 @@ def _set_cookie_header(resp) -> str:
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
-async def test_refresh_issues_new_access_cookie(client):
+async def test_refresh_issues_new_access_cookie(client: AsyncClient, user_auth: UserAuth):
     """
     요구사항:
     - refresh_token 쿠키가 유효하면 /auth/refresh는 성공(200)하고
@@ -25,15 +26,7 @@ async def test_refresh_issues_new_access_cookie(client):
     - (선택) refresh rotation을 한다면 refresh_token도 새로 내려줄 수 있다.
       -> 이 테스트는 rotation 유무에 대해 관대하게(둘 다 허용) 작성.
     """
-    # 1) guest-login으로 유저/refresh 쿠키 확보
-    login = await client.post("/api/v1/auth/guest-login", json={"username": "tester_refresh_ok"})
-    assert login.status_code == 200
-    assert_is_envelope(login.json(), ok=True, meta_is_null=True)
-
-    assert client.cookies.get(REFRESH_TOKEN) is not None, (
-        "guest-login이 refresh_token 쿠키를 줘야 함"
-    )
-
+    # 1) user_auth로 유저/refresh 쿠키 확보
     # 2) refresh 호출
     resp = await client.post("/api/v1/auth/refresh")
     assert resp.status_code == 200
@@ -49,21 +42,13 @@ async def test_refresh_issues_new_access_cookie(client):
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
-async def test_me_rejects_refresh_token_used_as_access(client):
+async def test_me_rejects_refresh_token_used_as_access(client: AsyncClient, user_auth: UserAuth):
     """
     요구사항:
     - refresh 토큰(typ=refresh)을 access_token 쿠키에 넣으면 /me에서 거부(401)해야 함.
     """
-    login = await client.post(
-        "/api/v1/auth/guest-login", json={"username": "tester_refresh_as_access"}
-    )
-    assert login.status_code == 200
-    assert_is_envelope(login.json(), ok=True, meta_is_null=True)
 
-    refresh = client.cookies.get(REFRESH_TOKEN)
-    assert refresh is not None
-
+    refresh = user_auth[REFRESH_TOKEN]
     # access_token 자리에 refresh 토큰을 꽂아버림
     client.cookies.set(ACCESS_TOKEN, refresh)
 
@@ -97,18 +82,16 @@ def _mint_refresh(
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
-async def test_refresh_rejects_expired_or_invalid_refresh_token(client, jwt_test_config: JwtConfig):
+async def test_refresh_rejects_expired_or_invalid_refresh_token(
+    client: AsyncClient, jwt_test_config: JwtConfig, user_auth: UserAuth
+):
     """
     요구사항:
     - exp 지난 refresh_token -> 401
     - 서명 틀린 refresh_token -> 401
     """
     # 0) user를 하나 만들어서 sub(user_id)가 실제 DB에 존재하도록
-    login = await client.post("/api/v1/auth/guest-login", json={"username": "tester_refresh_bad"})
-    assert login.status_code == 200
-    env_login = assert_is_envelope(login.json(), ok=True, meta_is_null=True)
-    user_id = str(env_login["data"]["id"])  # UUID -> str
+    user_id = str(user_auth["id"])
 
     # A) expired refresh
     expired = _mint_refresh(jwt_test_config, sub=user_id, exp_offset_sec=-10, jti="expired-1")
@@ -125,7 +108,7 @@ async def test_refresh_rejects_expired_or_invalid_refresh_token(client, jwt_test
         sub=user_id,
         exp_offset_sec=60,
         jti="bad-1",
-        secret_override="wrong-secret_Uo8hsuCHcaX6x36wB79trtkVJwlOKgTBEYgBQW4GDc7",
+        secret_override="wrong-test_token2-wrong-test_token2-wrong-test_token2",
     )
     client.cookies.set(REFRESH_TOKEN, invalid_sig)
 

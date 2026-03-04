@@ -32,6 +32,8 @@ class RoomStateCode(str, Enum):
     - ROOM_CASE_START: case 시작으로 current_case.status 변경.
     - ROOM_CASE_END: case 종료로 current_case.status 변경.
     - ROOM_DELETED: 방 삭제.
+
+    - STREAM_CLOSE: close로 인한 stream 끊기
     """
 
     SNAPSHOT_ON_CONNECT = "SNAPSHOT_ON_CONNECT"
@@ -40,6 +42,8 @@ class RoomStateCode(str, Enum):
     ROOM_CASE_START = "ROOM_CASE_START"
     ROOM_CASE_END = "ROOM_CASE_END"
     ROOM_DELETED = "ROOM_DELETED"
+
+    STREAM_CLOSE = "STREAM_CLOSE"
 
 
 RoomStateResponse = Envelope[RoomSnapshot, RoomStateCode]

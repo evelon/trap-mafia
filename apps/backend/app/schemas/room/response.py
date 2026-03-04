@@ -5,7 +5,6 @@ from app.schemas.room.mutation import (
     CaseStartMutation,
     JoinRoomMutation,
     KickUserMutation,
-    LeaveRoomCode,
     LeaveRoomMutation,
 )
 
@@ -14,26 +13,51 @@ class JoinRoomCode(str, Enum):
     OK = "OK"
 
 
-JoinRoomResponse = Envelope[JoinRoomMutation, JoinRoomCode]
+class JoinRoomResponse(Envelope[JoinRoomMutation, JoinRoomCode]):
+    @classmethod
+    def default_ok_code(cls) -> JoinRoomCode:
+        return JoinRoomCode.OK
 
 
-LeaveRoomResponse = Envelope[LeaveRoomMutation, LeaveRoomCode]
+class LeaveRoomCode(str, Enum):
+    OK = "OK"
+
+
+class LeaveRoomResponse(Envelope[LeaveRoomMutation, LeaveRoomCode]):
+    @classmethod
+    def default_ok_code(cls) -> LeaveRoomCode:
+        return LeaveRoomCode.OK
 
 
 class KickUserCode(str, Enum):
     OK = "OK"
 
 
-KickUserResponse = Envelope[KickUserMutation, KickUserCode]
+class KickUserResponse(Envelope[KickUserMutation, KickUserCode]):
+    @classmethod
+    def default_ok_code(cls) -> KickUserCode:
+        return KickUserCode.OK
 
 
 class CaseStartSuccessCode(str, Enum):
     OK = "OK"
 
 
+CaseStartSuccessResponse = Envelope[CaseStartMutation, CaseStartSuccessCode]
+
+
+class CaseStartResponse(Envelope[CaseStartMutation, CaseStartSuccessCode]):
+    @classmethod
+    def default_ok_code(cls) -> CaseStartSuccessCode:
+        return CaseStartSuccessCode.OK
+
+
 class CaseStartForbiddenCode(str, Enum):
     PERMISSION_DENIED_NOT_IN_ROOM = "PERMISSION_DENIED_NOT_IN_ROOM"
     PERMISSION_DENIED_NOT_HOST = "PERMISSION_DENIED_NOT_HOST"
+
+
+CaseStartForbiddenResponse = Envelope[None, CaseStartForbiddenCode]
 
 
 class CaseStartConflictCode(str, Enum):
@@ -43,6 +67,4 @@ class CaseStartConflictCode(str, Enum):
     ROOM_DELETED = "ROOM_DELETED"
 
 
-CaseStartSuccessResponse = Envelope[CaseStartMutation, CaseStartSuccessCode]
-CaseStartForbiddenResponse = Envelope[None, CaseStartForbiddenCode]
 CaseStartConflictResponse = Envelope[None, CaseStartConflictCode]

@@ -11,7 +11,7 @@ class AuthErrorCode(BaseErrorCode):
     )
 
 
-class AuthLoginErrorCode(BaseErrorCode):
+class AuthUserErrorCode(BaseErrorCode):
     AUTH_USER_NOT_FOUND = "AUTH_USER_NOT_FOUND"  # 토큰에 있는 user를 찾을 수 없음.
     AUTH_USERNAME_NOT_FOUND = (
         "AUTH_USERNAME_NOT_FOUND"  # 해당 username 없음 (보안상 `AUTH_UNAUTHORIZED`로 치환 가능)
@@ -28,5 +28,15 @@ class AuthTokenErrorCode(BaseErrorCode):
     AUTH_TOKEN_PAYLOAD_INVALID = "AUTH_TOKEN_PAYLOAD_INVALID"  # 토큰 payload가 유효하지 않음
 
 
+class PermissionErrorCode(BaseErrorCode):
+    PERMISSION_DENIED_NOT_IN_ROOM = "PERMISSION_DENIED_NOT_IN_ROOM"
+
+
 class CommonErrorCode(BaseErrorCode):
     VALIDATION_ERROR = "VALIDATION_ERROR"
+    UNKNOWN_ERROR = "UNKNOWN_ERROR"
+    PERMISSION_DENIED = "PERMISSION_DENIED"
+    NOT_FOUND = "NOT_FOUND"
+    CONFLICT = "CONFLICT"
+    ALREADY_EXISTS = "ALREADY_EXISTS"
+    INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"

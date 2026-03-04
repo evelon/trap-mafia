@@ -2,9 +2,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Request, Response, status
 
-from app.core.auth import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandlerDep
 from app.core.config import JwtConfig
-from app.core.exceptions import EnvelopeException
+from app.core.exceptions import EnvelopeHTTPException
+from app.core.security.auth import CurrentUser
+from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandlerDep
 from app.schemas.auth.request import GuestLoginRequest
 from app.schemas.auth.response import (
     GuestInfo,
@@ -56,9 +57,7 @@ router = APIRouter()
     responses={**COMMON_401_TOKEN_AUTH_RESPONSE},
 )
 async def me(
-    request: Request,
-    auth_service: AuthServiceDep,
-    jwt_handler: JwtHandlerDep,
+    user: CurrentUser,
 ) -> GuestInfoResponse:
     """Return current guest info from access_token cookie.
 
@@ -67,21 +66,11 @@ async def me(
     - On missing/invalid/expired token, raises 401.
     """
 
-    access_token = request.cookies.get(ACCESS_TOKEN)
-    if not access_token:
-        raise EnvelopeException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
-        )
-
-    user_id = jwt_handler.extract_user_id_from_token(access_token, ACCESS_TOKEN)
-
     # DB에서 실제 user 조회
-    username = await auth_service.get_username_by_user_id(user_id)
 
     data = GuestInfo(
-        id=UUID(user_id),
-        username=username,
+        id=user.id,
+        username=user.username,
         in_case=False,
         current_case_id=None,
     )
@@ -188,12 +177,11 @@ async def refresh(
     - Issues a new access token and sets it as cookie.
     - Returns current guest info (DB lookup).
     """
-
     refresh_token = request.cookies.get(REFRESH_TOKEN)
     if not refresh_token:
-        raise EnvelopeException(
+        raise EnvelopeHTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            response_code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+            code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
         )
 
     # NOTE:

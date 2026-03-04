@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import pytest
+from httpx import AsyncClient
 
-from app.core.auth import ACCESS_TOKEN, REFRESH_TOKEN
+from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN
+from tests._helpers.auth import UserAuth
 from tests._helpers.envelope_assert import assert_is_envelope
 
 
@@ -11,22 +13,14 @@ def _set_cookie_header(resp) -> str:
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
-async def test_logout_clears_access_and_refresh_cookies(client):
+async def test_logout_clears_access_and_refresh_cookies(client: AsyncClient, user_auth: UserAuth):
     """
     SSOT(현재 Notion):
     - POST /api/v1/auth/logout
     - 200 OK + Envelope(ok=True, code=OK, data=None, meta=None)
     - Side effect: access_token/refresh_token 제거 (Max-Age=0)
     """
-    # 1) 로그인해서 쿠키 확보
-    login = await client.post("/api/v1/auth/guest-login", json={"username": "tester_logout"})
-    assert login.status_code == 200
-    assert_is_envelope(login.json(), ok=True, meta_is_null=True)
-
-    assert client.cookies.get(ACCESS_TOKEN) is not None
-    assert client.cookies.get(REFRESH_TOKEN) is not None
-
+    # 1) user_auth로 로그인
     # 2) logout
     resp = await client.post("/api/v1/auth/logout")
     assert resp.status_code == 200

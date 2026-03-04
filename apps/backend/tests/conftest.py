@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import AsyncGenerator
+from uuid import UUID
 
 import fakeredis
 import pytest
@@ -14,10 +15,12 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from app.core.auth import JwtHandler
 from app.core.config import JwtConfig, Settings, get_jwt_config, get_settings
+from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandler
 from app.infra.db.session import get_db
-from app.infra.redis import get_redis_client
+from app.infra.redis.client import get_redis_client
+from tests._helpers.auth import login_url
+from tests._helpers.envelope_assert import assert_is_envelope
 
 
 @pytest.fixture
@@ -121,8 +124,8 @@ def test_settings(db_url: str) -> Settings:
     return Settings(
         database_url=db_url,
         redis_url="redis://fake_redis/0",
-        jwt_secret="test-secret_qyQPnd7XMy5ECrfz0HHJACbd5IDqliDFfse8CNwFEOl",
-    )
+        jwt_secret="valid-test-token2-valid-test-token2-valid-test-token2",
+    )  # type: ignore[reportCallIssue]
 
 
 @pytest.fixture(autouse=True)
@@ -141,3 +144,26 @@ def jwt_test_config(test_settings: Settings):
 @pytest.fixture
 def jwt_test_handler(jwt_test_config: JwtConfig):
     return JwtHandler(jwt_test_config)
+
+
+@pytest_asyncio.fixture
+async def user_auth(client: AsyncClient):
+    username = "username"
+    resp = await client.post(login_url, json={"username": username})
+    assert resp.status_code == 200
+    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
+    user_id = UUID(env["data"]["id"])
+    cookies = resp.cookies
+    access_token = cookies.get(ACCESS_TOKEN)
+    refresh_token = cookies.get(REFRESH_TOKEN)
+    assert access_token is not None
+    assert refresh_token is not None
+    return {
+        "id": user_id,
+        "username": username,
+        "envelope": env,
+        "cookies": cookies,
+        ACCESS_TOKEN: access_token,
+        REFRESH_TOKEN: refresh_token,
+        "response": resp,
+    }

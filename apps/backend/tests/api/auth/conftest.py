@@ -17,7 +17,7 @@ def jwt_test_config(app):
         access_ttl=timedelta(minutes=5),
         refresh_ttl=timedelta(days=7),
         algorithm="HS256",
-        secret_key="test-secret_Uo8hsuCHcaX6x36wB79trtkVJwlOKgTBEYgBQW4GDc7",
+        secret_key="valid-test-token-valid-test-token-valid-test-token-valid-test-token",
         public_key=None,
     )
     app.dependency_overrides[get_jwt_config] = lambda: cfg

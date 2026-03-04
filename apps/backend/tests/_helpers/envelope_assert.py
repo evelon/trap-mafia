@@ -11,7 +11,7 @@ def assert_is_envelope(
     ok: bool | None = None,
     meta_is_null: bool = True,
     allow_extra_keys: bool = False,
-) -> dict[str, Any]:
+) -> dict:
     """
     Envelope 형태를 강제하는 공용 assert.
 

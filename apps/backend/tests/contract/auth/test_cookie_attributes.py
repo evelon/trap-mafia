@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import pytest
+from httpx import AsyncClient
 
 from tests._helpers.envelope_assert import assert_is_envelope
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
-async def test_guest_login_sets_cookie_attributes_minimum(client):
+async def test_guest_login_sets_cookie_attributes_minimum(client: AsyncClient):
     """
     SSOT:
     - HttpOnly / Secure / SameSite=Lax / Path=/

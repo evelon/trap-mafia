@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Annotated, cast
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import Depends
-from sqlalchemy import select, update
-from sqlalchemy.engine import CursorResult
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infra.db.session import DbSessionDep
@@ -24,12 +23,52 @@ class RoomMemberRepo:
     def __init__(self, db: AsyncSession) -> None:
         self.db = db
 
+    async def upsert_membership(self, *, room_id: UUID, user_id: UUID) -> RoomMember:
+        """
+        (room_id, user_id) 복합 PK 설계에 맞춘 join 처리.
+
+        - row가 없으면: INSERT
+        - row가 있는데 left_at != NULL이면: revive (left_at=NULL, joined_at=now)
+        - row가 있는데 left_at IS NULL이면: 그대로 반환 (idempotent)
+        """
+        q = select(RoomMember).where(
+            RoomMember.room_id == room_id,
+            RoomMember.user_id == user_id,
+        )
+        member = (await self.db.execute(q)).scalar_one_or_none()
+
+        if member is None:
+            member = RoomMember(room_id=room_id, user_id=user_id)
+            self.db.add(member)
+            # commit/flush는 service가 책임지는 패턴이면 여기서 하지 않음
+            return member
+
+        # 이미 active면 그대로
+        if member.left_at is None:
+            return member
+
+        # revive
+        member.left_at = None
+        member.joined_at = datetime.now(timezone.utc)
+        return member
+
     async def get_active_by_user_id(self, *, user_id: UUID) -> RoomMember | None:
-        query = select(RoomMember).where(
+        q = select(RoomMember).where(
             RoomMember.user_id == user_id,
             RoomMember.left_at.is_(None),
         )
-        return (await self.db.execute(query)).scalar_one_or_none()
+        return (await self.db.execute(q)).scalar_one_or_none()
+
+    async def leave_active_by_user_id(self, *, user_id: UUID) -> bool:
+        """
+        active membership을 종료(left_at 세팅).
+        - 변경이 있으면 True, 없으면 False
+        """
+        active = await self.get_active_by_user_id(user_id=user_id)
+        if active is None:
+            return False
+        active.left_at = datetime.now(timezone.utc)
+        return True
 
     async def create_membership(self, *, user_id: UUID, room_id: UUID) -> RoomMember:
         member = RoomMember(user_id=user_id, room_id=room_id)
@@ -38,21 +77,6 @@ class RoomMemberRepo:
         # 여기서 flush만 해도 된다.
         await self.db.flush()
         return member
-
-    async def leave_active_by_user_id(self, *, user_id: UUID) -> int:
-        """
-        active membership을 종료한다.
-
-        반환:
-        - 업데이트된 row 수 (0 or 1)
-        """
-        query = (
-            update(RoomMember)
-            .where(RoomMember.user_id == user_id, RoomMember.left_at.is_(None))
-            .values(left_at=datetime.now(timezone.utc))
-        )
-        result = cast(CursorResult, await self.db.execute(query))
-        return int(result.rowcount or 0)
 
 
 def get_room_member_repo(db: DbSessionDep) -> RoomMemberRepo:

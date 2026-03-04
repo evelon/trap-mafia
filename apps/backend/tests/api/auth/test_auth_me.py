@@ -3,8 +3,8 @@ from __future__ import annotations
 import jwt  # PyJWT
 import pytest
 
-from app.core.auth import ACCESS_TOKEN, JwtHandler
 from app.core.config import JwtConfig
+from app.core.security.jwt import ACCESS_TOKEN, JwtHandler
 from app.services.auth import AuthService
 from tests._helpers.envelope_assert import assert_is_envelope
 
@@ -31,7 +31,6 @@ def _encode_access(jwt_handler: JwtHandler, *, sub: str, exp_seconds: int = 60) 
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
 async def test_me_accepts_valid_access_jwt_in_cookie(
     client, auth_service: AuthService, jwt_test_handler: JwtHandler
 ):
@@ -45,7 +44,6 @@ async def test_me_accepts_valid_access_jwt_in_cookie(
     client.cookies.set(ACCESS_TOKEN, token)
 
     resp = await client.get("/api/v1/auth/me")
-    print(resp.json())
     assert resp.status_code == 200
 
     env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
@@ -57,7 +55,6 @@ async def test_me_accepts_valid_access_jwt_in_cookie(
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
 async def test_me_rejects_invalid_signature(
     client, app, jwt_test_config: JwtConfig, jwt_test_handler: JwtHandler
 ):
@@ -72,7 +69,7 @@ async def test_me_rejects_invalid_signature(
         access_ttl=jwt_test_config.access_ttl,
         refresh_ttl=jwt_test_config.refresh_ttl,
         algorithm=jwt_test_config.algorithm,
-        secret_key="wrong-secret_6tj9CnvaINPtVFJQcQaXWKlTYPTQrWgbYvOVxqar7Gt",
+        secret_key="wrong-test-token-wrong-test-token-wrong-test-token",
         public_key=None,
     )
     bad_handler = JwtHandler(bad_cfg)
@@ -87,7 +84,6 @@ async def test_me_rejects_invalid_signature(
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
 async def test_me_rejects_expired_token(client, app, jwt_test_handler: JwtHandler):
     """
     구현 강제 포인트:
@@ -104,7 +100,6 @@ async def test_me_rejects_expired_token(client, app, jwt_test_handler: JwtHandle
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
 async def test_me_rejects_token_missing_required_claims(client, app, jwt_test_config: JwtConfig):
     """
     구현 강제 포인트:
@@ -136,7 +131,6 @@ async def test_me_rejects_token_missing_required_claims(client, app, jwt_test_co
 
 
 @pytest.mark.api
-@pytest.mark.asyncio
 async def test_me_rejects_refresh_token_used_as_access(client, app, jwt_test_config: JwtConfig):
     """
     구현 강제 포인트:
