@@ -21,8 +21,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-# MVP에서 문서 예시로 사용한 고정값(테스트/목업 편의)
-MVP_FIXED_UTC_ISO = "1970-01-01T00:00:00.000Z"
+from app.mvp import MVP_ROOM_ID
 
 
 class RoomInfo(BaseModel):
@@ -39,13 +38,13 @@ class RoomInfo(BaseModel):
     - created_at: ISO-8601 UTC 문자열(예: 2026-01-31T09:12:34.567Z)입니다.
     """
 
-    id: Annotated[UUID, Field(description="Room id")] = UUID("00000000-0000-0000-0000-000000000000")
+    id: Annotated[UUID, Field(description="Room id")] = MVP_ROOM_ID
     room_name: Annotated[
         str,
-        Field(min_length=4, max_length=12, description="Room name (MVP:fixed)"),
-    ] = "test_room"
-    host_user_id: UUID = UUID("00000000-0000-0000-0000-000000000000")
-    created_at: Annotated[str, Field(description="ISO-8601 UTC string")] = MVP_FIXED_UTC_ISO
+        Field(min_length=4, max_length=255, description="Room name"),
+    ]
+    host_user_id: UUID | None = None
+    created_at: Annotated[str, Field(description="ISO-8601 UTC string")]
 
 
 class RoomSettings(BaseModel):
@@ -101,7 +100,7 @@ class RoomMember(BaseModel):
 
     user_id: UUID
     username: Annotated[str, Field(min_length=4, max_length=255)]
-    joined_at: Annotated[str, Field(default=MVP_FIXED_UTC_ISO, description="ISO-8601 UTC string")]
+    joined_at: Annotated[str, Field(description="ISO-8601 UTC string")]
 
 
 class RoomSnapshot(BaseModel):

@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.room import Room, RoomMember
 
 
 class User(Base):
@@ -29,4 +33,14 @@ class User(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+    )
+
+    hosted_rooms: Mapped[list["Room"]] = relationship(
+        "Room",
+        back_populates="host",
+    )
+
+    room_memberships: Mapped[list["RoomMember"]] = relationship(
+        "RoomMember",
+        back_populates="user",
     )

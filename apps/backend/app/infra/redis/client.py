@@ -17,4 +17,4 @@ def get_redis_client() -> Redis:
     )
 
 
-RedisClient = Annotated[Redis, Depends(get_redis_client)]
+RedisClientDep = Annotated[Redis, Depends(get_redis_client)]

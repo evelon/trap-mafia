@@ -6,7 +6,6 @@ from tests._helpers.envelope_assert import assert_is_envelope
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
 async def test_guest_login_validation_error_is_wrapped_in_envelope(client):
     """
     SSOT:

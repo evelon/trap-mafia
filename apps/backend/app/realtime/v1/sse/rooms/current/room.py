@@ -4,9 +4,12 @@ import json
 from typing import AsyncIterator
 from uuid import UUID
 
-from fastapi import APIRouter, Header
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
+from app.core.deps.require_in_room import CurrentRoomId
+from app.realtime.events.room_state_bus import RoomStateBusDep
+from app.realtime.topics import RoomTopic
 from app.schemas.room.sse_response import RoomStateCode, RoomStateResponse
 from app.schemas.room.state import RoomInfo, RoomSnapshot
 
@@ -15,9 +18,6 @@ router = APIRouter()
 
 # NOTE: MVP mock 구현
 # - 실제 구현에서는 "현재 유저가 속한 room_id"를 DB/Redis에서 조회합니다.
-# - JWT 도입 전까지는 FE 연동을 위해 헤더로 room_id를 흉내냅니다.
-#   - X-Room-Id: string (방에 속하지 않은 경우 미전달)
-#   - X-User-Id: string (Auth mock; 향후 JWT로 대체)
 
 
 async def _sse_frame(*, event: str, data: dict, id_: int | None = None) -> str:
@@ -35,34 +35,24 @@ async def _sse_frame(*, event: str, data: dict, id_: int | None = None) -> str:
     return "\n".join(lines) + "\n\n"
 
 
-async def _forbidden_not_in_room() -> JSONResponse:
-    return JSONResponse(
-        status_code=403,
-        content={
-            "ok": False,
-            "code": "PERMISSION_DENIED_NOT_IN_ROOM",
-            "message": "The user is not in a room.",
-            "data": None,
-        },
-    )
-
-
 async def _mvp_snapshot(room_id: UUID) -> RoomSnapshot:
     # MVP: RoomInfo/RoomSnapshot 기본값으로 충분
     # host_user_id 등은 실제 구현 시 DB에서 채워 넣으면 됩니다.
-    return RoomSnapshot(room=RoomInfo(id=room_id))
+    return RoomSnapshot(
+        room=RoomInfo(id=room_id, room_name="test_name", host_user_id=None, created_at="")
+    )
 
 
-@router.get("/current")
+@router.get("/state")
 async def room_state_sse(
-    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
-    x_room_id: str | None = Header(default=None, alias="X-Room-Id"),
+    room_id: CurrentRoomId,
+    room_state_bus: RoomStateBusDep,
 ):
     """GET /rt/v1/sse/rooms/current
 
     Notion: room_state
-    - Auth: User (MVP: X-User-Id 헤더, 추후 JWT로 대체)
-    - Permission: In Room (MVP: X-Room-Id 헤더로 대체)
+    - Auth: User
+    - Permission: In Room
 
     Response (SSE)
     - event: room_state
@@ -73,11 +63,7 @@ async def room_state_sse(
     - 403: PERMISSION_DENIED_NOT_IN_ROOM
     """
 
-    # MVP: "In Room"만 목업한다.
-    if x_room_id is None:
-        return _forbidden_not_in_room()
-
-    snapshot = await _mvp_snapshot(UUID(x_room_id))
+    snapshot = await _mvp_snapshot(room_id)
 
     payload = RoomStateResponse(
         ok=True,
@@ -87,7 +73,13 @@ async def room_state_sse(
     )
 
     async def gen() -> AsyncIterator[str]:
-        # MVP: 연결 직후 스냅샷 1회만 보내고 종료
-        yield await _sse_frame(event="room_state", id_=1, data=payload.model_dump())
+        yield await _sse_frame(event="room_state", id_=1, data=payload.model_dump(mode="json"))
+
+        room_state_iter = room_state_bus.subscribe(RoomTopic(room_id))
+        async for room_state in room_state_iter:
+            yield await _sse_frame(event="room_state", data=room_state.model_dump(mode="json"))
+
+            if room_state.code == RoomStateCode.STREAM_CLOSE:
+                break
 
     return StreamingResponse(gen(), media_type="text/event-stream")

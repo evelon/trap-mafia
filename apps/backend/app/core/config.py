@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import lru_cache
-from typing import Literal
+from typing import Annotated, Literal
 
+from fastapi import Depends
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -57,6 +58,9 @@ def get_settings() -> Settings:
     return Settings()  # pyright: ignore[reportCallIssue]
 
 
+SettingsDep = Annotated[Settings, Depends(get_settings)]
+
+
 @dataclass(frozen=True)
 class JwtConfig:
     issuer: str
@@ -68,16 +72,14 @@ class JwtConfig:
     public_key: str | None = None  # RS256 검증용(선택)
 
 
-@lru_cache
-def get_jwt_config() -> JwtConfig:
+def get_jwt_config(settings: SettingsDep) -> JwtConfig:
     """Settings로부터 JwtConfig를 조합해 반환합니다."""
-    s = get_settings()
     return JwtConfig(
-        issuer=s.jwt_issuer,
-        audience=s.jwt_audience,
-        access_ttl=timedelta(minutes=s.jwt_access_expires_minutes),
-        refresh_ttl=timedelta(days=s.jwt_refresh_expires_days),
-        algorithm=s.jwt_algorithm,
-        secret_key=s.jwt_secret,
-        public_key=s.jwt_public_key,
+        issuer=settings.jwt_issuer,
+        audience=settings.jwt_audience,
+        access_ttl=timedelta(minutes=settings.jwt_access_expires_minutes),
+        refresh_ttl=timedelta(days=settings.jwt_refresh_expires_days),
+        algorithm=settings.jwt_algorithm,
+        secret_key=settings.jwt_secret,
+        public_key=settings.jwt_public_key,
     )

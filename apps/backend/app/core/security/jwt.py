@@ -8,8 +8,8 @@ import jwt  # PyJWT
 from fastapi import Depends, status
 
 from app.core.config import JwtConfig, get_jwt_config
-from app.core.exceptions import EnvelopeException
-from app.schemas.common.error import AuthErrorCode
+from app.core.exceptions import EnvelopeHTTPException
+from app.schemas.common.error import AuthTokenErrorCode
 
 ACCESS_TOKEN: Literal["access_token"] = "access_token"
 REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"
@@ -59,14 +59,16 @@ class JwtHandler:
         }
         return self._encode(payload), refresh_jti
 
-    def decode_and_verify(self, token: str) -> dict[str, Any]:
+    def decode_and_verify(
+        self, token: str, token_type: Literal["access_token", "refresh_token"] = ACCESS_TOKEN
+    ) -> dict[str, Any]:
         key = (
             self.cfg.public_key
             if (self.cfg.algorithm.startswith("RS") and self.cfg.public_key)
             else self.cfg.secret_key
         )
         try:
-            return jwt.decode(
+            payload = jwt.decode(
                 token,
                 key,
                 algorithms=[self.cfg.algorithm],
@@ -75,39 +77,49 @@ class JwtHandler:
                 options={"require": ["exp", "iat", "sub", "typ"]},
             )
         except jwt.ExpiredSignatureError as e:
-            raise EnvelopeException(
+            raise EnvelopeHTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_EXPIRED,
+                code=AuthTokenErrorCode.AUTH_TOKEN_EXPIRED,
             ) from e
-        except jwt.InvalidTokenError as e:
-            raise EnvelopeException(
+        except jwt.MissingRequiredClaimError:
+            raise EnvelopeHTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_INVALID,
+                code=AuthTokenErrorCode.AUTH_TOKEN_PAYLOAD_INVALID,
+            )
+        except jwt.InvalidTokenError as e:
+            raise EnvelopeHTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                code=AuthTokenErrorCode.AUTH_TOKEN_INVALID,
             ) from e
 
+        token_typ = _token_type_mapping[token_type]
+        if payload["typ"] != token_typ:
+            raise EnvelopeHTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                code=AuthTokenErrorCode.AUTH_TOKEN_INVALID,
+                message="wrong type of token",
+            )
+        return payload
+
     def extract_user_id_from_token(
-        self, token: str, token_type: Literal["access_token", "refresh_token"]
+        self, token: str, token_type: Literal["access_token", "refresh_token"] = ACCESS_TOKEN
     ) -> str:
         if not token:
-            raise EnvelopeException(
+            raise EnvelopeHTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_NOT_INCLUDED,
+                code=AuthTokenErrorCode.AUTH_TOKEN_NOT_INCLUDED,
             )
         token_typ = _token_type_mapping[token_type]
 
-        claims = self.decode_and_verify(token)
+        claims = self.decode_and_verify(token, token_type)
 
         if claims["typ"] != token_typ:
-            raise EnvelopeException(
+            raise EnvelopeHTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_INVALID,
+                code=AuthTokenErrorCode.AUTH_TOKEN_INVALID,
+                message="wrong type of token",
             )
-        sub = claims.get("sub")
-        if not isinstance(sub, str) or not sub:
-            raise EnvelopeException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                response_code=AuthErrorCode.AUTH_TOKEN_PAYLOAD_INVALID,
-            )
+        sub = claims["sub"]  # decode_and_verify가 존재 보장
         return sub
 
 

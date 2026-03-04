@@ -8,17 +8,17 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import EnvelopeException
+from app.core.exceptions import EnvelopeHTTPException
 from app.infra.db.session import DbSessionDep
 from app.models.auth import User
-from app.repositories.user import UserRepo
-from app.schemas.common.error import AuthErrorCode
+from app.repositories.user import UserRepo, UserRepoDep
+from app.schemas.common.error import AuthErrorCode, AuthUserErrorCode
 
 
 class AuthService:
-    def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession, user_repo: UserRepo):
         self.db = db
-        self.repo = UserRepo(db)
+        self.repo = user_repo
 
     async def get_or_create_guest_user(self, username: str) -> User:
         """게스트 로그인용 user upsert."""
@@ -40,27 +40,37 @@ class AuthService:
         await self.db.refresh(user)
         return user
 
-    async def get_username_by_user_id(self, user_id: str) -> str:
+    async def get_username_by_user_id(self, user_id: str | UUID) -> str:
         """
         user_id로 username을 조회한다.
 
         - 해당 user가 없으면 404 예외를 발생시킨다.
         """
-        query = select(User).where(User.id == UUID(user_id))
+        if isinstance(user_id, str):
+            try:
+                user_id = UUID(user_id)
+            except ValueError:
+                # Invalid UUID in token/session payload -> treat as unauthorized.
+                raise EnvelopeHTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    code=AuthErrorCode.AUTH_UNAUTHORIZED,
+                )
+
+        query = select(User).where(User.id == user_id)
         result = await self.db.execute(query)
         user = result.scalar_one_or_none()
 
         if user is None:
-            raise EnvelopeException(
+            raise EnvelopeHTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                response_code=AuthErrorCode.AUTH_USER_NOT_FOUND,
+                code=AuthUserErrorCode.AUTH_USER_NOT_FOUND,
             )
 
         return user.username
 
 
-def get_auth_service(db: DbSessionDep) -> AuthService:
-    return AuthService(db)
+def get_auth_service(db: DbSessionDep, user_repo: UserRepoDep) -> AuthService:
+    return AuthService(db, user_repo)
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]

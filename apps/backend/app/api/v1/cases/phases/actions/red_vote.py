@@ -25,7 +25,7 @@ from app.schemas.case.action_responses.red_vote import (
 )
 from app.schemas.case.actions.common import ActionReceipt
 from app.schemas.case.actions.red_vote import RedVoteRequest
-from app.schemas.common.validation import COMMON_422_RESPONSE
+from app.schemas.common.response import COMMON_422_VALIDATION_RESPONSE
 
 router = APIRouter()
 
@@ -40,7 +40,7 @@ router = APIRouter()
     | RedVoteConflictResponse,
     status_code=status.HTTP_200_OK,
     responses={
-        **COMMON_422_RESPONSE,
+        **COMMON_422_VALIDATION_RESPONSE,
         status.HTTP_400_BAD_REQUEST: {"model": RedVoteBadRequestResponse},
         status.HTTP_403_FORBIDDEN: {"model": RedVoteForbiddenResponse},
         status.HTTP_404_NOT_FOUND: {"model": RedVoteNotFoundResponse},
