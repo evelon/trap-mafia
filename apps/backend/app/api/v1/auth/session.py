@@ -54,7 +54,24 @@ router = APIRouter()
     summary="me",
     response_model=GuestInfoResponse,
     status_code=status.HTTP_200_OK,
-    responses={**COMMON_401_TOKEN_AUTH_RESPONSE},
+    responses={
+        **COMMON_401_TOKEN_AUTH_RESPONSE,
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "No access token attached in cookie.",
+            "model": Envelope[None, AuthErrorCode],
+            "content": {
+                "application/json": {
+                    "example": {
+                        "ok": False,
+                        "code": AuthErrorCode.AUTH_UNAUTHORIZED,
+                        "message": None,
+                        "data": None,
+                        "meta": None,
+                    }
+                }
+            },
+        },
+    },
 )
 async def me(
     user: CurrentUser,

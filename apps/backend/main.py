@@ -18,6 +18,15 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
+# TODO: 프론트 cors 임시 대응. 추후 수정 필요
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 api.include_router(rest_router)
 api.include_router(realtime_router)
 
