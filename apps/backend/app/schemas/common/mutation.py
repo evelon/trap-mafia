@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import Annotated
 
 from pydantic import BaseModel
 
@@ -14,11 +14,7 @@ class Subject(str, Enum):
     USER = "USER"
 
 
-ReasonT = TypeVar("ReasonT", bound=Enum)
-SubjectIdT = TypeVar("SubjectIdT")
-
-
-class BaseMutation(BaseModel, Generic[ReasonT, SubjectIdT]):
+class BaseMutation[ReasonT: Enum, SubjectIdT](BaseModel):
     """
     공통 Mutation 응답 모델.
 
@@ -34,9 +30,9 @@ class BaseMutation(BaseModel, Generic[ReasonT, SubjectIdT]):
     도메인 수준의 결과는 changed 및 reason으로 표현한다.
     """
 
-    target: Target
-    subject: Subject
-    subject_id: SubjectIdT
-    on_target: bool
-    changed: bool
-    reason: ReasonT
+    target: Annotated[Target, "변경이 발생한 상위 리소스 종류"]
+    subject: Annotated[Subject, "행위의 주체 종류"]
+    subject_id: Annotated[SubjectIdT, "subject에 대응하는 식별자. ME면 None 가능"]
+    on_target: Annotated[bool, "요청 직후 subject가 target에 속해 있는지 여부"]
+    changed: Annotated[bool, "요청으로 실제 상태 변화가 발생했는지 여부"]
+    reason: Annotated[ReasonT, "해당 mutation의 세부 결과 코드"]

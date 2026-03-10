@@ -5,6 +5,8 @@ from typing import Any, AsyncIterator
 
 from httpx import Response
 
+from app.schemas.room.state import RoomSnapshot
+
 
 @dataclass
 class SSEReader:
@@ -68,3 +70,9 @@ class SSEReader:
 
         raw = await asyncio.wait_for(_read_until_event(), timeout=timeout_s)
         return self._parse_sse_message(raw)
+
+
+def assert_room_snapshot_response(body: dict[str, Any]) -> RoomSnapshot:
+    assert body["ok"] is True
+    assert body["message"] is None
+    return RoomSnapshot.model_validate(body["data"])

@@ -1,7 +1,8 @@
 import os
+from collections import defaultdict, deque
+from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncGenerator
-from uuid import UUID
+from typing import AsyncGenerator, AsyncIterator
 
 import fakeredis
 import pytest
@@ -19,8 +20,10 @@ from app.core.config import JwtConfig, Settings, get_jwt_config, get_settings
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandler
 from app.infra.db.session import get_db
 from app.infra.redis.client import get_redis_client
+from app.realtime.topics import RoomTopic
+from app.schemas.auth.response import UserInfoResponse
 from tests._helpers.auth import login_url
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator
 
 
 @pytest.fixture
@@ -151,8 +154,10 @@ async def user_auth(client: AsyncClient):
     username = "username"
     resp = await client.post(login_url, json={"username": username})
     assert resp.status_code == 200
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
-    user_id = UUID(env["data"]["id"])
+    resp_validator = RespValidator(UserInfoResponse)
+    env = resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
+    assert env.data is not None
+    user_id = env.data.id
     cookies = resp.cookies
     access_token = cookies.get(ACCESS_TOKEN)
     refresh_token = cookies.get(REFRESH_TOKEN)
@@ -167,3 +172,37 @@ async def user_auth(client: AsyncClient):
         REFRESH_TOKEN: refresh_token,
         "response": resp,
     }
+
+
+@dataclass
+class _Published:
+    topic: RoomTopic
+    message: str
+
+
+class FakePubSub:
+    """
+    Minimal fake implementation of the PubSub interface for unit-testing RoomEventBus.
+
+    - publish(topic, message): records messages and enqueues them for subscribe().
+    - subscribe(topic): yields enqueued messages for that topic, then completes.
+    """
+
+    def __init__(self) -> None:
+        self.published: list[_Published] = []
+        self._queues: dict[RoomTopic, deque[str]] = defaultdict(deque)
+
+    async def publish(self, topic: RoomTopic, message: str) -> int:
+        self.published.append(_Published(topic=topic, message=message))
+        self._queues[topic].append(message)
+        return 1
+
+    async def subscribe(self, topic: RoomTopic) -> AsyncIterator[str]:
+        q = self._queues[topic]
+        while q:
+            yield q.popleft()
+
+
+@pytest.fixture
+def fake_pubsub():
+    return FakePubSub()

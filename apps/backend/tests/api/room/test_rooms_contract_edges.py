@@ -7,8 +7,11 @@ from httpx import AsyncClient
 
 from app.mvp import MVP_ROOM_ID
 from app.schemas.common.error import AuthErrorCode, CommonErrorCode
+from app.schemas.room.response import JoinRoomResponse
 from tests._helpers.auth import UserAuth
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator, general_failure_validator
+
+join_room_validator = RespValidator(JoinRoomResponse)
 
 
 @pytest.mark.api
@@ -20,8 +23,8 @@ async def test_rooms_join_requires_auth(client: AsyncClient):
     resp = await client.post("/api/v1/rooms/current/join")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env["code"] == AuthErrorCode.AUTH_UNAUTHORIZED
+    env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
+    assert env.code == AuthErrorCode.AUTH_UNAUTHORIZED
 
 
 @pytest.mark.api
@@ -29,8 +32,8 @@ async def test_rooms_kick_requires_auth(client: AsyncClient):
     resp = await client.post(f"/api/v1/rooms/current/users/{uuid.uuid4()}/kick")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env["code"] == AuthErrorCode.AUTH_UNAUTHORIZED
+    env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
+    assert env.code == AuthErrorCode.AUTH_UNAUTHORIZED
 
 
 @pytest.mark.api
@@ -45,9 +48,8 @@ async def test_rooms_kick_invalid_uuid_is_enveloped_validation_error(
     resp = await client.post("/api/v1/rooms/current/users/not-a-uuid/kick")
     assert resp.status_code == 422
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env["code"] == CommonErrorCode.VALIDATION_ERROR
-    assert isinstance(env["data"], dict)
+    env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
+    assert env.code == CommonErrorCode.VALIDATION_ERROR
 
 
 @pytest.mark.api
@@ -65,15 +67,12 @@ async def test_join_response_does_not_include_case_info_even_if_case_exists(
     # join
     resp = await client.post(f"/api/v1/rooms/{MVP_ROOM_ID}/join")
     assert resp.status_code == 200
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
 
-    data = env["data"]
-    assert isinstance(data, dict)
+    env = join_room_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
 
     # JoinRoomMutation의 핵심 키들만 기대 (너희 스키마 기준)
     # - target, subject, subject_id, on_target, changed, reason
-    assert set(data.keys()) == {"target", "subject", "subject_id", "on_target", "changed", "reason"}
 
     # case 관련 정보가 섞이지 않는지 (방어적 체크)
     forbidden = {"case_id", "current_case_id", "redirect_to", "case", "case_state", "running_case"}
-    assert forbidden.isdisjoint(set(data.keys()))
+    assert forbidden.isdisjoint(set(env.data.__dict__.keys()))

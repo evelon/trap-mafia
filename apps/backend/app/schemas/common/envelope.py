@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Generic, Self, TypeVar
+from typing import Any, Self
 
 from pydantic import BaseModel, Field
 
-DataT = TypeVar("DataT")
-CodeEnumT = TypeVar("CodeEnumT", bound=Enum)
 Meta = dict[str, Any]
 
 
-class Envelope(BaseModel, Generic[DataT, CodeEnumT]):
+class Envelope[DataT, CodeEnumT: Enum](BaseModel):
     """
     - Keep this as the only top-level shape for every response.
     - Put real payload into `data`.
@@ -20,7 +18,6 @@ class Envelope(BaseModel, Generic[DataT, CodeEnumT]):
     code: CodeEnumT = Field(description="Domain result code or snapshot trigger code.")
     message: str | None = Field(default=None, description="Human-friendly optional message.")
     data: DataT | None = Field(
-        default=None,
         description="Actual json payload of responses.",
     )
     meta: Meta | None = Field(default=None, description="Optional metadata.", examples=[None])
@@ -37,7 +34,7 @@ class Envelope(BaseModel, Generic[DataT, CodeEnumT]):
         code: CodeEnumT | None = None,
         data: DataT | None = None,
         message: str | None = None,
-        meta: dict[str, Any] | None = None,
+        meta: Meta | None = None,
     ) -> Self:
         if code is None:
             code = cls.default_ok_code()
@@ -50,6 +47,6 @@ class Envelope(BaseModel, Generic[DataT, CodeEnumT]):
         code: CodeEnumT,
         message: str | None = None,
         data: DataT | None = None,
-        meta: dict[str, Any] | None = None,
+        meta: Meta | None = None,
     ) -> Self:
         return cls(ok=False, code=code, message=message, data=data, meta=meta)

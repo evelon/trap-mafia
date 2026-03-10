@@ -9,9 +9,14 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.models.room import RoomMember
 from app.schemas.common.error import CommonErrorCode
+from app.schemas.common.mutation import Subject, Target
+from app.schemas.room.mutation import KickUserReason
+from app.schemas.room.response import KickUserResponse
 from tests._helpers.auth import UserAuth
 from tests._helpers.entity import create_room, create_user
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator, general_failure_validator
+
+kick_resp_validator = RespValidator(KickUserResponse)
 
 
 async def _add_active_membership(
@@ -42,17 +47,17 @@ async def test_kick_user_success_returns_kicked(
     resp = await client.post(f"/api/v1/rooms/current/users/{target_id}/kick")
     assert resp.status_code == 200
 
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
-    data = env["data"]
-    assert isinstance(data, dict)
+    env = kick_resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
 
+    data = env.data
+    assert data is not None
     # Mutation 계약
-    assert data["target"] == "ROOM"
-    assert data["subject"] == "USER"
-    assert data["subject_id"] == str(target_id)
-    assert data["on_target"] is False
-    assert data["changed"] is True
-    assert data["reason"] == "KICKED"
+    assert data.target == Target.ROOM
+    assert data.subject == Subject.USER
+    assert data.subject_id == target_id
+    assert data.on_target is False
+    assert data.changed is True
+    assert data.reason == KickUserReason.KICKED
 
 
 @pytest.mark.api
@@ -72,16 +77,16 @@ async def test_kick_user_idempotent_when_target_not_in_room(
     resp = await client.post(f"/api/v1/rooms/current/users/{target_id}/kick")
     assert resp.status_code == 200
 
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
-    data = env["data"]
-    assert isinstance(data, dict)
+    env = kick_resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
+    data = env.data
 
-    assert data["target"] == "ROOM"
-    assert data["subject"] == "USER"
-    assert data["subject_id"] == str(target_id)
-    assert data["on_target"] is False
-    assert data["changed"] is False
-    assert data["reason"] == "NOT_IN_ROOM"
+    assert data is not None
+    assert data.target == Target.ROOM
+    assert data.subject == Subject.USER
+    assert data.subject_id == target_id
+    assert data.on_target is False
+    assert data.changed is False
+    assert data.reason == KickUserReason.NOT_IN_ROOM
 
 
 @pytest.mark.api
@@ -103,10 +108,8 @@ async def test_kick_returns_user_not_found_when_target_user_missing(
     # 너희 정책에 맞춰 하나로 고정하면 됨 (보통 404가 자연스러움)
     assert resp.status_code == status.HTTP_404_NOT_FOUND
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
+    env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
 
     # 프로젝트에 이미 있는 코드로 맞춰줘.
     # (예: USER_NOT_FOUND / AUTH_USER_NOT_FOUND / RESOURCE_NOT_FOUND 등)
-    assert env["code"] == CommonErrorCode.NOT_FOUND
-    assert set(env["data"].keys()) == {"entity", "identifier"}
-    assert env["data"]["entity"] == "User"
+    assert env.code == CommonErrorCode.NOT_FOUND

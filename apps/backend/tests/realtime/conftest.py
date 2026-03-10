@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import socket
 import subprocess
@@ -6,7 +8,6 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import AsyncGenerator, Iterator, Literal
-from uuid import UUID
 
 import httpx
 import pytest
@@ -19,8 +20,12 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN
+from app.schemas.auth.response import UserInfoResponse
 from tests._helpers.auth import UserAuth, login_url
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator
+
+info_resp_validator = RespValidator(UserInfoResponse)
+
 
 # ✅ 여기만 너 프로젝트에 맞게 고치면 됨
 UVICORN_APP = "main:api"
@@ -183,8 +188,9 @@ async def _sse_user_auth(sse_client: AsyncClient) -> UserAuth:
     resp = await sse_client.post(login_url, json={"username": username})
     assert resp.status_code == 200
 
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
-    user_id = UUID(env["data"]["id"])
+    env = info_resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
+    assert env.data is not None
+    user_id = env.data.id
 
     # 서버가 Set-Cookie로 내려준 값을 '문자열'로 뽑아낸다
     # (resp.cookies는 secure 정책 때문에 http에선 안 들어있을 수 있음)
@@ -224,7 +230,7 @@ async def _sse_user_auth(sse_client: AsyncClient) -> UserAuth:
         "id": user_id,
         "username": username,
         "envelope": env,
-        "cookies": sse_client.cookies,
+        "cookies": dict(sse_client.cookies),
         ACCESS_TOKEN: access_token,
         REFRESH_TOKEN: refresh_token,
         "response": resp,

@@ -49,11 +49,13 @@ class GuestInfo(BaseModel):
         return self
 
 
-GuestInfoResponse = Envelope[GuestInfo, LoginCode]
+_GuestInfoResponse = Envelope[GuestInfo, LoginCode]
+UserInfoResponse = _GuestInfoResponse
 
 
 class LogoutCode(str, Enum):
     OK = "OK"
 
 
-GuestLogoutResponse = Envelope[None, LogoutCode]
+_GuestLogoutResponse = Envelope[None, LogoutCode]
+LogoutResponse = _GuestLogoutResponse

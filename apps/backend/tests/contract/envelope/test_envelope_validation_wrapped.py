@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import pytest
 
-from tests._helpers.envelope_assert import assert_is_envelope
+from app.schemas.auth.response import UserInfoResponse
+from tests._helpers.validators import RespValidator, general_failure_validator
+
+info_resp_validator = RespValidator(UserInfoResponse)
 
 
 @pytest.mark.contract
@@ -21,8 +24,5 @@ async def test_guest_login_validation_error_is_wrapped_in_envelope(client):
     assert resp.status_code in (400, 422)
 
     body = resp.json()
-    env = assert_is_envelope(body, ok=False, meta_is_null=True)
 
-    # validation 에러의 상세(detail)를 어디에 담는지는 구현 자유.
-    # 다만, "FastAPI 기본 형식({detail: [...]})이 top-level로 노출되면 안 됨"은 강제.
-    assert set(env.keys()) != {"detail"}
+    _ = general_failure_validator.assert_envelope(body, ok=False, meta_is_null=True)
