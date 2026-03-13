@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.schemas.common.envelope import Envelope
+from app.schemas.room.sse_response import RoomStateEnvelope
 
 
 class RespValidator[EnvelopeType: Envelope[Any, Any]]:
@@ -50,3 +51,6 @@ def assert_set_cookie_has_tokens(set_cookie_header: str) -> None:
     assert isinstance(set_cookie_header, str)
     assert "access_token=" in set_cookie_header, f"access_token 쿠키 누락: {set_cookie_header}"
     assert "refresh_token=" in set_cookie_header, f"refresh_token 쿠키 누락: {set_cookie_header}"
+
+
+room_sse_validator = RespValidator(RoomStateEnvelope)

@@ -12,7 +12,7 @@ from app.schemas.room.response import (
     CaseStartSuccessResponse,
     LeaveRoomResponse,
 )
-from app.services.room import RoomServiceDep
+from app.services.deps import RoomServiceDep
 
 router = APIRouter()
 

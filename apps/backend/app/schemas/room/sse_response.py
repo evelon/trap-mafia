@@ -16,34 +16,11 @@ from enum import Enum
 
 from app.schemas.common.envelope import Envelope
 from app.schemas.room.state import RoomSnapshot
+from app.schemas.sse.response import SSEEnvelopeCode
 
 
-class RoomStateCode(str, Enum):
-    """Purpose
-    - room_state SSE payload의 code 필드에 사용됩니다.
-
-    Meaning
-    - 방 상태 변화의 원인을 표현하는 이벤트 코드입니다.
-
-    Field interpretation
-    - SNAPSHOT_ON_CONNECT: SSE 최초 연결 시 최신 snapshot 전달.
-    - ROOM_USER_JOINED: 방에 유저가 입장.
-    - ROOM_USER_LEFT: 방에서 유저가 퇴장.
-    - ROOM_CASE_START: case 시작으로 current_case.status 변경.
-    - ROOM_CASE_END: case 종료로 current_case.status 변경.
-    - ROOM_DELETED: 방 삭제.
-
-    - STREAM_CLOSE: close로 인한 stream 끊기
-    """
-
-    SNAPSHOT_ON_CONNECT = "SNAPSHOT_ON_CONNECT"
-    ROOM_USER_JOINED = "ROOM_USER_JOINED"
-    ROOM_USER_LEFT = "ROOM_USER_LEFT"
-    ROOM_CASE_START = "ROOM_CASE_START"
-    ROOM_CASE_END = "ROOM_CASE_END"
-    ROOM_DELETED = "ROOM_DELETED"
-
-    STREAM_CLOSE = "STREAM_CLOSE"
+class RoomEventCode(str, Enum):
+    ROOM_STATE = "ROOM_STATE"
 
 
-RoomStateResponse = Envelope[RoomSnapshot, RoomStateCode]
+RoomStateEnvelope = Envelope[RoomSnapshot, SSEEnvelopeCode]

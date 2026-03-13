@@ -6,9 +6,9 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from app.domain.events.room_event import RoomEventType
+from app.domain.events import RoomEventType
+from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
-from app.realtime.topics import RoomTopic
 from app.schemas.room.mutation import JoinRoomReason
 from tests._helpers.auth import UserAuth
 from tests.api.room.room_actions.conftest import FakeRoomEventBus

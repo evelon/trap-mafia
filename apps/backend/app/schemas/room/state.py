@@ -21,6 +21,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.domain.enum import CaseStatus
+from app.domain.events import RoomEventType
 from app.mvp import MVP_ROOM_ID
 
 
@@ -69,9 +71,9 @@ class RoomSettings(BaseModel):
     discuss_duration_sec: Annotated[int, Field(ge=0)] = 120
 
 
-class RoomCurrentCase(BaseModel):
+class RoomCaseInfo(BaseModel):
     """Purpose
-    - 현재 방에서 진행 중인 케이스(게임 한 판)의 최소 상태를 담습니다.
+    - 현재 방에서 진행 중이거나 과거의 케이스(게임 한 판)의 최소 상태를 담습니다.
 
     Meaning
     - room_snapshot.current_case 블록에 해당합니다.
@@ -83,7 +85,7 @@ class RoomCurrentCase(BaseModel):
     """
 
     case_id: UUID | None = None
-    status: Literal["RUNNING"] | None = None
+    status: CaseStatus | None = None
 
 
 class RoomMember(BaseModel):
@@ -116,9 +118,11 @@ class RoomSnapshot(BaseModel):
     """
 
     room: RoomInfo
-    settings: RoomSettings = Field(default_factory=RoomSettings)
-    current_case: RoomCurrentCase = Field(default_factory=RoomCurrentCase)
-    members: list[RoomMember] = Field(default_factory=list)
+    settings: Annotated[RoomSettings, Field(default_factory=RoomSettings)]
+    current_case: Annotated[RoomCaseInfo | None, Field(default_factory=RoomCaseInfo)]
+    members: Annotated[list[RoomMember], Field(default_factory=list)]
+    last_event: RoomEventType | None = None
+    logs: Annotated[list[str], Field(default_factory=list)]
 
 
 def now_utc_iso() -> str:

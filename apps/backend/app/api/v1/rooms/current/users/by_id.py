@@ -5,7 +5,7 @@ from app.schemas.common.ids import UserId
 from app.schemas.room.response import (
     KickUserResponse,
 )
-from app.services.room import RoomServiceDep
+from app.services.deps import RoomServiceDep
 
 router = APIRouter(prefix="/{user_id}")
 

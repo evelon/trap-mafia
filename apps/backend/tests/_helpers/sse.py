@@ -1,11 +1,15 @@
 import asyncio
 import json
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, TypedDict
 
-from httpx import Response
+from httpx import RemoteProtocolError, Response
 
-from app.schemas.room.state import RoomSnapshot
+
+class SSEPayload(TypedDict):
+    event: str | None
+    id: str | None
+    data: Any
 
 
 @dataclass
@@ -29,15 +33,24 @@ class SSEReader:
     async def _read_next_chunk(self) -> bytes:
         it = self._ensure_iter()
         try:
-            return await anext(it)  # Python 3.12+
+            return await anext(it)
         except StopAsyncIteration:
             return b""
+        except RemoteProtocolError as e:
+            raise AssertionError(
+                "SSE stream was closed unexpectedly before the next event was received. "
+                "The server likely terminated the streaming response early."
+            ) from e
 
-    def _parse_sse_message(self, raw: str) -> dict[str, Any]:
+    def _parse_sse_message(self, raw: str) -> SSEPayload:
         """
         raw: "event: ...\\nid: ...\\ndata: {...}\\n\\n"
         """
-        msg: dict[str, Any] = {"event": None, "id": None, "data": None}
+        msg: SSEPayload = {
+            "event": None,
+            "id": None,
+            "data": None,
+        }
         for line in raw.strip().splitlines():
             if line.startswith("event: "):
                 msg["event"] = line.removeprefix("event: ").strip()
@@ -47,7 +60,7 @@ class SSEReader:
                 msg["data"] = json.loads(line.removeprefix("data: ").strip())
         return msg
 
-    async def read_one(self, *, timeout_s: float = 1.0) -> dict[str, Any]:
+    async def read_one(self, *, timeout_s: float = 1.0) -> SSEPayload:
         async def _read_until_event() -> str:
             # 먼저 버퍼에 이미 이벤트가 완성되어 있는지 체크
             if b"\n\n" in self._buf:
@@ -70,9 +83,3 @@ class SSEReader:
 
         raw = await asyncio.wait_for(_read_until_event(), timeout=timeout_s)
         return self._parse_sse_message(raw)
-
-
-def assert_room_snapshot_response(body: dict[str, Any]) -> RoomSnapshot:
-    assert body["ok"] is True
-    assert body["message"] is None
-    return RoomSnapshot.model_validate(body["data"])

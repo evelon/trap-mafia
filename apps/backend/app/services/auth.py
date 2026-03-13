@@ -11,7 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import EnvelopeHTTPException
 from app.infra.db.session import DbSessionDep
 from app.models.auth import User
-from app.repositories.user import UserRepo, UserRepoDep
+from app.repositories.deps import UserRepoDep
+from app.repositories.user import UserRepo
 from app.schemas.common.error import AuthErrorCode, AuthUserErrorCode
 
 

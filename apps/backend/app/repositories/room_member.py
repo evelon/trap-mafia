@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infra.db.session import DbSessionDep
+from app.models.auth import User
 from app.models.room import RoomMember
+from app.repositories.projections import SnapshotRoomMember
 
 
 class RoomMemberRepo:
@@ -78,9 +77,16 @@ class RoomMemberRepo:
         await self.db.flush()
         return member
 
+    async def get_active_members_by_room_id(self, *, room_id: UUID) -> list[SnapshotRoomMember]:
+        q = (
+            select(RoomMember.user_id, User.username, RoomMember.joined_at)
+            .join(User, User.id == RoomMember.user_id)
+            .where(RoomMember.room_id == room_id, RoomMember.left_at.is_(None))
+            .order_by(RoomMember.joined_at.asc())
+        )
+        rows = await self.db.execute(q)
 
-def get_room_member_repo(db: DbSessionDep) -> RoomMemberRepo:
-    return RoomMemberRepo(db)
-
-
-RoomMemberRepoDep = Annotated[RoomMemberRepo, Depends(get_room_member_repo)]
+        return [
+            SnapshotRoomMember(user_id, username, joined_at)
+            for user_id, username, joined_at in rows.tuples().all()
+        ]

@@ -1,12 +1,8 @@
 from __future__ import annotations
 
-from typing import Annotated
-
-from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infra.db.session import DbSessionDep
 from app.models.auth import User
 
 
@@ -37,10 +33,3 @@ class UserRepo:
         user = User(username=username)
         self.db.add(user)
         return user
-
-
-def get_user_repo(db: DbSessionDep) -> UserRepo:
-    return UserRepo(db)
-
-
-UserRepoDep = Annotated[UserRepo, Depends(get_user_repo)]

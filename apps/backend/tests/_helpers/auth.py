@@ -23,7 +23,7 @@ class UserAuthEnvelopeDict(TypedDict):
 
 class UserAuth(TypedDict):
     id: UUID
-    username: Literal["username"]
+    username: str
     envelope: Envelope
     cookies: dict[str, str]
     access_token: str
