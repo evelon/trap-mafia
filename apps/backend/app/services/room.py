@@ -52,7 +52,6 @@ class RoomService:
         """
         room_id = self._normalize_room_id(room_id)  # MVP
         active = await self._member_repo.get_active_by_user_id(user_id=user_id)
-
         if active is not None and active.room_id == room_id:
             # 이미 같은 방에 있음 -> 멱등
             return JoinRoomMutation(
@@ -146,7 +145,7 @@ class RoomService:
     ) -> KickUserMutation:
         """
         정책 (MVP):
-        - 누구나 누구나 kick 가능 (권한 체크 없음)
+        - 누구나 누구를 kick 가능 (권한 체크 없음)
         - target이 현재 room에 없으면 멱등 처리
         - DB 효과는 leave와 동일 (left_at 채움)
         """

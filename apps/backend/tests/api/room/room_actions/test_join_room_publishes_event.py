@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 import pytest
 from fastapi import status
 from httpx import AsyncClient
@@ -9,8 +7,11 @@ from httpx import AsyncClient
 from app.domain.events import RoomSnapshotType
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
+from app.schemas.common.mutation import Subject, Target
 from app.schemas.room.mutation import JoinRoomReason
+from app.schemas.room.response import JoinRoomCode, JoinRoomResponse
 from tests._helpers.auth import UserAuth
+from tests._helpers.room_actions import join_room
 from tests.api.room.room_actions.conftest import FakeRoomEventBus
 
 
@@ -26,8 +27,18 @@ async def test_join_room_emits_member_joined_event(
     r = await client.post(f"/api/v1/rooms/{room_id}/join")
     assert r.status_code == status.HTTP_200_OK, r.text
 
-    body: dict[str, Any] = r.json()
-    assert body["ok"] is True
+    envelope = JoinRoomResponse.model_validate(r.json())
+    assert envelope.ok is True
+    assert envelope.code == JoinRoomCode.OK
+
+    mutation = envelope.data
+    assert mutation
+    assert mutation.target == Target.ROOM
+    assert mutation.subject == Subject.ME
+    assert mutation.subject_id is None
+    assert mutation.on_target is True
+    assert mutation.changed is True
+    assert mutation.reason == JoinRoomReason.JOINED
 
     # 상태 변화가 있었다면 publish 되어야 함
     assert len(fake_bus.calls) == 1
@@ -46,19 +57,25 @@ async def test_join_room_does_not_emit_when_already_joined(
     publish하지 않는다.
     """
     room_id = MVP_ROOM_ID
-
     # 첫 join: join 발생 -> publish 1회
-    r1 = await client.post(f"/api/v1/rooms/{room_id}/join")
-    assert r1.status_code == status.HTTP_200_OK, r1.text
-
+    _ = await join_room(client, room_id)
     assert len(fake_bus.calls) == 1
 
     # 두 번째 join: already joined -> publish 증가 없음
-    r2 = await client.post(f"/api/v1/rooms/{room_id}/join")
-    assert r2.status_code == status.HTTP_200_OK, r2.text
+    r = await client.post(f"/api/v1/rooms/{room_id}/join")
+    assert r.status_code == status.HTTP_200_OK, r.text
 
-    body2: dict[str, Any] = r2.json()
-    # JoinRoomResponse.success(data=mut) 형태에서 mut.reason이 내려온다고 가정
-    assert body2["data"]["reason"] == JoinRoomReason.ALREADY_JOINED.value
+    envelope = JoinRoomResponse.model_validate(r.json())
+    assert envelope.ok is True
+    assert envelope.code == JoinRoomCode.OK
+
+    mutation = envelope.data
+    assert mutation
+    assert mutation.target == Target.ROOM
+    assert mutation.subject == Subject.ME
+    assert mutation.subject_id is None
+    assert mutation.on_target is True
+    assert mutation.changed is False
+    assert mutation.reason == JoinRoomReason.ALREADY_JOINED
 
     assert len(fake_bus.calls) == 1

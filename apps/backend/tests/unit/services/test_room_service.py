@@ -131,7 +131,7 @@ async def test_service_leave_current_room_idempotent_when_not_in_room(
     """
     user_id = await create_user(db_session, username="svc_user_leave_idem")
 
-    m = await room_service.leave_current_room(user_id=user_id)
+    m = await room_service.leave_room(user_id=user_id)
     assert isinstance(m, BaseMutation)
     assert m.target == Target.ROOM
     assert m.subject == Subject.ME
@@ -161,7 +161,7 @@ async def test_service_leave_current_room_ends_active_membership(
     await room_service.join_room(user_id=user_id, room_id=room_id)
     assert await _count_active(db_session, user_id=user_id) == 1
 
-    m = await room_service.leave_current_room(user_id=user_id)
+    m = await room_service.leave_room(user_id=user_id)
     assert isinstance(m, BaseMutation)
     assert m.target == Target.ROOM
     assert m.subject == Subject.ME

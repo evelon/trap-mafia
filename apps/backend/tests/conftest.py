@@ -114,6 +114,17 @@ async def client(app: FastAPI, db_session: AsyncSession) -> AsyncGenerator[Async
     app.dependency_overrides.clear()
 
 
+@pytest_asyncio.fixture
+async def client2(
+    client, app: FastAPI, db_session: AsyncSession
+) -> AsyncGenerator[AsyncClient, None]:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="https://test",
+    ) as ac:
+        yield ac
+
+
 @pytest.fixture
 def fake_redis(app):
     fake_redis = fakeredis.aioredis.FakeRedis()
@@ -156,9 +167,7 @@ def jwt_test_handler(jwt_test_config: JwtConfig):
     return JwtHandler(jwt_test_config)
 
 
-@pytest_asyncio.fixture
-async def user_auth(client: AsyncClient):
-    username = "username"
+async def _user_auth(client: AsyncClient, username: str) -> UserAuth:
     resp = await client.post(login_url, json={"username": username})
     assert resp.status_code == 200
     resp_validator = RespValidator(UserInfoResponse)
@@ -174,11 +183,21 @@ async def user_auth(client: AsyncClient):
         "id": user_id,
         "username": username,
         "envelope": env,
-        "cookies": cookies,
+        "cookies": dict(cookies),
         ACCESS_TOKEN: access_token,
         REFRESH_TOKEN: refresh_token,
         "response": resp,
     }
+
+
+@pytest_asyncio.fixture
+async def user_auth(client: AsyncClient) -> UserAuth:
+    return await _user_auth(client, "username")
+
+
+@pytest_asyncio.fixture
+async def user_auth2(client2: AsyncClient) -> UserAuth:
+    return await _user_auth(client2, "username2")
 
 
 @dataclass
@@ -430,7 +449,7 @@ async def _sse_user_auth(sse_client: AsyncClient, username: str) -> UserAuth:
 
 @pytest_asyncio.fixture
 async def sse_user_auth(sse_client: AsyncClient):
-    return await _sse_user_auth(sse_client, "username1")
+    return await _sse_user_auth(sse_client, "username")
 
 
 @pytest_asyncio.fixture

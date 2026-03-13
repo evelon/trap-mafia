@@ -1,10 +1,9 @@
 from fastapi import APIRouter, status
 
+from app.core.deps.require_in_room import CurrentRoomId
 from app.core.security.auth import CurrentUser
 from app.schemas.common.ids import UserId
-from app.schemas.room.response import (
-    KickUserResponse,
-)
+from app.schemas.room.response import KickUserResponse
 from app.services.deps import RoomServiceDep
 
 router = APIRouter(prefix="/{user_id}")
@@ -18,6 +17,7 @@ router = APIRouter(prefix="/{user_id}")
 )
 async def kick_user(
     user: CurrentUser,
+    room_id: CurrentRoomId,
     user_id: UserId,
     room_service: RoomServiceDep,
 ):
@@ -31,6 +31,7 @@ async def kick_user(
 
     주의:
     - 이 API는 대상 room에서의 멤버십 제거 여부만 보장한다.
+    - MVP: room 상관 없이 멱등 kick
     """
     mut = await room_service.kick_user(
         actor_user_id=user.id,
