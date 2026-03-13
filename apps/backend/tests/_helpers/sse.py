@@ -34,8 +34,6 @@ class SSEReader:
         it = self._ensure_iter()
         try:
             return await anext(it)
-        except StopAsyncIteration:
-            return b""
         except RemoteProtocolError as e:
             raise AssertionError(
                 "SSE stream was closed unexpectedly before the next event was received. "
@@ -67,7 +65,6 @@ class SSEReader:
                 raw_event, _sep, rest = self._buf.partition(b"\n\n")
                 self._buf = bytearray(rest)
                 return raw_event.decode("utf-8") + "\n\n"
-
             while True:
                 chunk = await self._read_next_chunk()
                 if not chunk:

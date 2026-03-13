@@ -33,7 +33,7 @@ async def leave_room(
     - RoomService.leave_current_room 호출
     - LeaveRoomResponse(Envelope)로 반환
     """
-    mut = await room_service.leave_current_room(user_id=user.id)
+    mut = await room_service.leave_room(user_id=user.id)
 
     return LeaveRoomResponse.success(data=mut)
 

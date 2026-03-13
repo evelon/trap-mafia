@@ -1,7 +1,7 @@
 import json
 from typing import AsyncIterator
 
-from app.domain.events import RoomEventDelta, RoomEventType
+from app.domain.events import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.topics import RoomTopic
 from app.infra.pubsub.transport.base import PubSub
 
@@ -11,7 +11,7 @@ class RoomEventBus:
         self._pubsub = pubsub
 
     async def publish(self, room_topic: RoomTopic, event: RoomEventDelta) -> None:
-        if event.type == RoomEventType.ON_CONNECT:
+        if event.type == RoomSnapshotType.ON_CONNECT:
             raise ValueError("ON_CONNECT must not be published to pubsub")
         payload = event.model_dump(mode="json")
         await self._pubsub.publish(

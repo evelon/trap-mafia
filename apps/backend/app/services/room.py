@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.events import RoomEventDelta, RoomEventType
+from app.domain.events import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
@@ -81,7 +81,7 @@ class RoomService:
             await self._room_event_bus.publish(
                 RoomTopic(room_id),
                 RoomEventDelta(
-                    type=RoomEventType.MEMBER_JOINED,
+                    type=RoomSnapshotType.MEMBER_JOINED,
                     user_id=user_id,
                 ),  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
             )
@@ -98,16 +98,16 @@ class RoomService:
             reason=JoinRoomReason.JOINED,
         )
 
-    async def leave_current_room(self, *, user_id: UserId) -> LeaveRoomMutation:
+    async def leave_room(self, *, user_id: UserId) -> LeaveRoomMutation:
         """
         정책:
         - active membership이 있으면 종료 (changed=True)
         - 없으면 멱등 처리 (changed=False)
         """
-        updated = await self._member_repo.leave_active_by_user_id(user_id=user_id)
+        left_member = await self._member_repo.leave_active_by_user_id(user_id=user_id)
         await self._db.commit()
 
-        if updated == 0:
+        if left_member is None:
             return LeaveRoomMutation(
                 target=Target.ROOM,
                 subject=Subject.ME,
@@ -117,6 +117,18 @@ class RoomService:
                 reason=LeaveRoomReason.ALREADY_LEFT,
             )
 
+        try:
+            await self._room_event_bus.publish(
+                RoomTopic(left_member.room_id),
+                RoomEventDelta(
+                    type=RoomSnapshotType.MEMBER_LEFT,
+                    user_id=user_id,
+                ),  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
+            )
+        except Exception:
+            # MVP: join 응답 자체는 성공시켜야 하므로 event emit 실패는 삼킨다.
+            # (원하면 추후 로깅/리트라이/에러 정책으로 강화)
+            pass
         return LeaveRoomMutation(
             target=Target.ROOM,
             subject=Subject.ME,

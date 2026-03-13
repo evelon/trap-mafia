@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 
 from app.core.security.auth import CurrentUser
-from app.domain.events import RoomEventDelta, RoomEventType
+from app.domain.events import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.bus.deps import RoomEventBusDep
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
@@ -29,7 +29,7 @@ async def close_room_state_stream(
     )
 
     event_msg = RoomEventDelta(
-        type=RoomEventType.STREAM_CLOSE, user_id=user.id, ts=datetime.now(timezone.utc)
+        type=RoomSnapshotType.STREAM_CLOSE, user_id=user.id, ts=datetime.now(timezone.utc)
     )
     room_topic = RoomTopic(room_id)
     await room_state_bus.publish(room_topic, event_msg)

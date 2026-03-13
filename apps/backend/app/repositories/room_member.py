@@ -58,16 +58,16 @@ class RoomMemberRepo:
         )
         return (await self.db.execute(q)).scalar_one_or_none()
 
-    async def leave_active_by_user_id(self, *, user_id: UUID) -> bool:
+    async def leave_active_by_user_id(self, *, user_id: UUID) -> RoomMember | None:
         """
         active membership을 종료(left_at 세팅).
         - 변경이 있으면 True, 없으면 False
         """
         active = await self.get_active_by_user_id(user_id=user_id)
         if active is None:
-            return False
+            return None
         active.left_at = datetime.now(timezone.utc)
-        return True
+        return active
 
     async def create_membership(self, *, user_id: UUID, room_id: UUID) -> RoomMember:
         member = RoomMember(user_id=user_id, room_id=room_id)

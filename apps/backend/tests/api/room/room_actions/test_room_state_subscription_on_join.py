@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from app.domain.events import RoomEventType
+from app.domain.events import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
 from tests._helpers.auth import UserAuth
 from tests._helpers.room_actions import (
@@ -37,7 +37,7 @@ async def test_join_room_emits_second_snapshot_on_sse(
         assert snapshot.room.id == room_id
 
         assert snapshot.last_event
-        assert snapshot.last_event == RoomEventType.MEMBER_JOINED
+        assert snapshot.last_event == RoomSnapshotType.MEMBER_JOINED
         assert len(snapshot.logs) == 1
         assert "입장" in snapshot.logs[0]
 

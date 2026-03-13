@@ -6,7 +6,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from app.domain.events import RoomEventType
+from app.domain.events import RoomSnapshotType
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
 from app.schemas.room.mutation import JoinRoomReason
@@ -33,7 +33,7 @@ async def test_join_room_emits_member_joined_event(
     assert len(fake_bus.calls) == 1
     call = fake_bus.calls[0]
     assert call.topic == RoomTopic(room_id)
-    assert call.event.type == RoomEventType.MEMBER_JOINED
+    assert call.event.type == RoomSnapshotType.MEMBER_JOINED
     assert call.event.user_id == user_auth["id"]
 
 

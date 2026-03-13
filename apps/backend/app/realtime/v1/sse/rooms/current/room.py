@@ -28,5 +28,5 @@ async def room_state_sse(
     Response (REST)
     - 403: PERMISSION_DENIED_NOT_IN_ROOM
     """
-    stream = room_state_stream.stream(room_id)
+    stream = room_state_stream.stream(user.id, room_id)
     return sse_stream_response(stream)

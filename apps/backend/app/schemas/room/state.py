@@ -22,7 +22,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.domain.enum import CaseStatus
-from app.domain.events import RoomEventType
+from app.domain.events import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
 
 
@@ -121,7 +121,7 @@ class RoomSnapshot(BaseModel):
     settings: Annotated[RoomSettings, Field(default_factory=RoomSettings)]
     current_case: Annotated[RoomCaseInfo | None, Field(default_factory=RoomCaseInfo)]
     members: Annotated[list[RoomMember], Field(default_factory=list)]
-    last_event: RoomEventType | None = None
+    last_event: RoomSnapshotType | None = None
     logs: Annotated[list[str], Field(default_factory=list)]
 
 

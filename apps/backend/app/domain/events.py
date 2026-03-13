@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 
-class RoomEventType(str, Enum):
+class RoomSnapshotType(str, Enum):
     ON_CONNECT = "room.connected"
     MEMBER_JOINED = "room.member.joined"
     MEMBER_LEFT = "room.member.left"
@@ -19,7 +19,7 @@ class RoomEventType(str, Enum):
 
 
 class RoomEventDelta(BaseModel):
-    type: RoomEventType
+    type: RoomSnapshotType
     user_id: UUID | None = None
     ts: Annotated[datetime, Field(default_factory=lambda: datetime.now(timezone.utc))]
     version: int | None = None

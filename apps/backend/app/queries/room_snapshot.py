@@ -3,7 +3,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from app.core.exceptions import raise_not_found
-from app.domain.events import RoomEventType
+from app.domain.events import RoomSnapshotType
 from app.repositories.case import CaseRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo
@@ -33,7 +33,7 @@ class RoomSnapshotQuery:
         self,
         *,
         room_id: UUID,
-        last_event: RoomEventType,
+        last_event: RoomSnapshotType,
         logs: list[str],
     ) -> RoomSnapshot:
         room = await self._room_repo.get_by_id(room_id=room_id)

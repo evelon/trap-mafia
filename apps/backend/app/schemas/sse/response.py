@@ -29,3 +29,10 @@ class SSEEnvelopeCode(str, Enum):
 
     ROOM_STATE = "ROOM_STATE"
     CASE_STATE = "CASE_STATE"
+
+    ROOM_LEAVE = "ROOM_LEAVE"
+    ROOM_KICKED = "ROOM_KICKED"
+
+    ROOM_MEMBERSHIP_INVALID = "ROOM_MEMBERSHIP_INVALID"
+
+    STREAM_CLOSE = "STREAM_CLOSE"  # 강제 종료 시 (close api 등)

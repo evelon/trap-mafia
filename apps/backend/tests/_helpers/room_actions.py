@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import status
 from httpx import AsyncClient, Response
 
-from app.domain.events import RoomEventType
+from app.domain.events import RoomSnapshotType
 from app.schemas.common.ids import RoomId
 from app.schemas.room.state import RoomSnapshot
 from app.schemas.sse.response import SSEEnvelopeCode, SSEEventType
@@ -72,7 +72,7 @@ async def skip_on_connect_snapshot(
         assert first_snapshot.room.id == room_id
 
         assert first_snapshot.last_event
-        assert first_snapshot.last_event == RoomEventType.ON_CONNECT
+        assert first_snapshot.last_event == RoomSnapshotType.ON_CONNECT
 
         # 최초 연결 snapshot이므로 logs는 비어 있어야 함
         assert first_snapshot.logs == []

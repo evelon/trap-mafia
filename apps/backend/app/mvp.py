@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.events import RoomEventType
+from app.domain.events import RoomSnapshotType
 from app.infra.db.engine import get_sessionmaker
 from app.models.room import Room
 
@@ -38,14 +38,14 @@ async def mvp_lifespan(app: FastAPI):
 
 # NOTE: MVP mock 구현
 # - 실제 구현에서는 "현재 유저가 속한 room_id"를 DB/Redis에서 조회합니다.
-def mvp_logs_mapper(event_type: RoomEventType) -> list[str]:
-    if event_type == RoomEventType.ON_CONNECT:
+def mvp_logs_mapper(event_type: RoomSnapshotType) -> list[str]:
+    if event_type == RoomSnapshotType.ON_CONNECT:
         return []
-    elif event_type == RoomEventType.MEMBER_LEFT:
+    elif event_type == RoomSnapshotType.MEMBER_LEFT:
         return ["사용자가 방을 나갔습니다"]
-    elif event_type == RoomEventType.MEMBER_JOINED:
+    elif event_type == RoomSnapshotType.MEMBER_JOINED:
         return ["사용자가 방에 입장했습니다"]
-    elif event_type == RoomEventType.MEMBER_KICKED:
+    elif event_type == RoomSnapshotType.MEMBER_KICKED:
         return ["사용자가 방에서 내보내졌습니다"]
     else:
         return []
