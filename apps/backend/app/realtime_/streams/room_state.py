@@ -75,7 +75,9 @@ class RoomStateStream:
             if user_id not in [member.user_id for member in snapshot.members]:
                 close_envelope = self._build_close_envelope(event_delta.type)
                 yield build_envelope_sse_frame(
-                    event=SSEEventType.ROOM_EVENT, id_=event_id, data=close_envelope
+                    event=SSEEventType.ROOM_EVENT,
+                    id_=event_id,
+                    data=close_envelope,
                 )
                 return
 

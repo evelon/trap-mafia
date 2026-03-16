@@ -14,6 +14,7 @@ import fakeredis
 import httpx
 import pytest
 import pytest_asyncio
+import redis.asyncio as redis
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -28,6 +29,11 @@ from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandler
 from app.infra.db.session import get_db
 from app.infra.pubsub.topics import RoomTopic
 from app.infra.redis.client import get_redis_client
+from app.models.auth import User
+from app.models.room import Room
+from app.repositories.room import RoomRepo
+from app.repositories.room_member import RoomMemberRepo
+from app.repositories.user import UserRepo
 from app.schemas.auth.response import UserInfoResponse
 from tests._helpers.auth import UserAuth, login_url
 from tests._helpers.validators import RespValidator
@@ -200,6 +206,72 @@ async def user_auth2(client2: AsyncClient) -> UserAuth:
     return await _user_auth(client2, "username2")
 
 
+@pytest.fixture
+async def user_repo(db_session: AsyncSession) -> UserRepo:
+    user_repo = UserRepo(db_session)
+    return user_repo
+
+
+@pytest.fixture
+def room_repo(db_session: AsyncSession) -> RoomRepo:
+    room_repo = RoomRepo(db_session)
+    return room_repo
+
+
+@pytest_asyncio.fixture
+async def room_member_repo(db_session: AsyncSession) -> RoomMemberRepo:
+    room_member_repo = RoomMemberRepo(db_session)
+    return room_member_repo
+
+
+@pytest_asyncio.fixture
+async def random_user(db_session: AsyncSession, user_repo: UserRepo) -> User:
+    user = await user_repo.create(username="random_user")
+    await db_session.commit()
+    return user
+
+
+@pytest_asyncio.fixture
+async def random_room(
+    db_session: AsyncSession,
+    room_repo: RoomRepo,
+    room_member_repo: RoomMemberRepo,
+    random_user: User,
+) -> Room:
+    room = await room_repo.create(host_id=random_user.id, room_name="random_name")
+    await room_member_repo.create_membership(user_id=random_user.id, room_id=room.id)
+    await db_session.commit()
+    return room
+
+
+@pytest_asyncio.fixture
+async def user_hosted_room(
+    db_session: AsyncSession,
+    room_repo: RoomRepo,
+    room_member_repo: RoomMemberRepo,
+    user_auth: UserAuth,
+) -> Room:
+    host_id = user_auth["id"]
+    room = await room_repo.create(host_id=host_id, room_name="random_room")
+    _ = await room_member_repo.create_membership(user_id=host_id, room_id=room.id)
+    await db_session.commit()
+    return room
+
+
+@pytest_asyncio.fixture
+async def user2_hosted_room(
+    db_session: AsyncSession,
+    room_repo: RoomRepo,
+    room_member_repo: RoomMemberRepo,
+    user_auth2: UserAuth,
+) -> Room:
+    host_id = user_auth2["id"]
+    room = await room_repo.create(host_id=host_id, room_name="random_room")
+    _ = await room_member_repo.create_membership(user_id=host_id, room_id=room.id)
+    await db_session.commit()
+    return room
+
+
 @dataclass
 class _Published:
     topic: RoomTopic
@@ -234,7 +306,10 @@ def fake_pubsub():
     return FakePubSub()
 
 
+###############################################################################
 ###### realtime fixtures
+###############################################################################
+
 info_resp_validator = RespValidator(UserInfoResponse)
 
 
@@ -317,13 +392,27 @@ async def prepare_live_db(live_async_engine: AsyncEngine):
         await conn.run_sync(Base.metadata.drop_all)
 
 
+@pytest_asyncio.fixture
+async def live_redis_url() -> AsyncGenerator[str, None]:
+    redis_url = "redis://127.0.0.1:6379/15"  # 테스트 전용 DB 번호 예시
+    client: redis.Redis = redis.from_url(redis_url, decode_responses=True)
+
+    await client.flushdb()
+    try:
+        yield redis_url
+    finally:
+        await client.flushdb()
+        await client.aclose()  # type: ignore[attr-defined] # pyright: ignore[reportAttributeAccessIssue]
+
+
 @pytest.fixture
-def live_server(live_db_url: str) -> Iterator[LiveServer]:
+def live_server(live_db_url: str, live_redis_url: str) -> Iterator[LiveServer]:
     port = _get_free_port()
     base_url = f"http://127.0.0.1:{port}"
 
     env = os.environ.copy()
     env["DATABASE_URL"] = live_db_url
+    env["REDIS_URL"] = live_redis_url
     # stderr/stdout를 캡처해두면 실패 시 디버깅 쉬움
     proc = subprocess.Popen(
         [

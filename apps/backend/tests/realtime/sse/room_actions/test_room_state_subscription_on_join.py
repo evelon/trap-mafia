@@ -12,7 +12,7 @@ from tests._helpers.room_actions import (
 
 
 @pytest.mark.anyio
-@pytest.mark.timeout(10)
+@pytest.mark.timeout(5)
 async def test_join_room_emits_second_snapshot_on_sse(
     sse_client: AsyncClient,
     sse_client2: AsyncClient,
@@ -31,7 +31,7 @@ async def test_join_room_emits_second_snapshot_on_sse(
         # 2) user2 입장 -> delta publish -> user1 SSE에 두 번째 snapshot 와야 함
         _ = await join_room(sse_client2, room_id)
 
-        payload = await reader.read_one(timeout_s=3.0)
+        payload = await reader.read_one(timeout_s=0.5)
         snapshot = assert_room_snapshot_from_sse(payload)
         assert snapshot
         assert snapshot.room.id == room_id

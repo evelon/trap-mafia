@@ -6,11 +6,10 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from app.mvp import MVP_ROOM_ID
+from app.models.room import Room
 from app.schemas.common.error import AuthErrorCode, CommonErrorCode
 from app.schemas.room.response import JoinRoomResponse
 from tests._helpers.auth import UserAuth
-from tests._helpers.room_actions import join_room
 from tests._helpers.validators import RespValidator, general_failure_validator
 
 join_room_validator = RespValidator(JoinRoomResponse)
@@ -39,22 +38,20 @@ async def test_rooms_kick_requires_auth(client: AsyncClient):
 
 
 @pytest.mark.api
+async def test_rooms_kick_not_in_room_403(client: AsyncClient, user_auth: UserAuth) -> None:
+    r = await client.post("/api/v1/rooms/current/users/not-a-uuid/kick")
+    assert r.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.api
 async def test_rooms_kick_invalid_uuid_is_enveloped_validation_error(
-    client: AsyncClient, user_auth: UserAuth
+    client: AsyncClient, user_auth: UserAuth, user_hosted_room: Room
 ):
     """
     FastAPI validation error까지 Envelope로 감싸는 정책 고정.
     """
-    room_id = MVP_ROOM_ID
     # user_auth로 로그인(쿠키 확보)
     # user_id 자리에 UUID가 아닌 값을 넣어서 422 유도
-
-    # 단, 방 입장 전에 room check가 먼저 있음.
-    r1 = await client.post("/api/v1/rooms/current/users/not-a-uuid/kick")
-    assert r1.status_code == status.HTTP_403_FORBIDDEN
-
-    # 방 입장
-    _ = await join_room(client, room_id)
 
     # 422
     r2 = await client.post("/api/v1/rooms/current/users/not-a-uuid/kick")
@@ -65,7 +62,7 @@ async def test_rooms_kick_invalid_uuid_is_enveloped_validation_error(
 
 @pytest.mark.api
 async def test_join_response_does_not_include_case_info_even_if_case_exists(
-    client: AsyncClient, user_auth: UserAuth
+    client: AsyncClient, user_auth: UserAuth, random_room: Room
 ):
     """
     정책:
@@ -76,7 +73,7 @@ async def test_join_response_does_not_include_case_info_even_if_case_exists(
     # 로그인
 
     # join
-    resp = await client.post(f"/api/v1/rooms/{MVP_ROOM_ID}/join")
+    resp = await client.post(f"/api/v1/rooms/{random_room.id}/join")
     assert resp.status_code == 200
 
     env = join_room_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)

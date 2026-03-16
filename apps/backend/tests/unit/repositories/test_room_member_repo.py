@@ -124,9 +124,9 @@ async def test_repo_leave_active_returns_zero_when_no_active(db_session):
     user_id = await create_user(db_session, username="repo_user_leave_none")
 
     repo = RoomMemberRepo(db_session)
-    left_member = await repo.leave_active_by_user_id(user_id=user_id)
+    updated = await repo.leave_active_by_user_id(user_id=user_id)
 
-    assert left_member is None
+    assert updated is None
     assert await _count_active(db_session, user_id=user_id) == 0
 
 

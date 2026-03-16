@@ -1,17 +1,21 @@
 import anyio
 import pytest
+from fastapi import status
 from httpx import AsyncClient
 
 from app.domain.events import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
+from app.schemas.common.error import PermissionErrorCode
 from app.schemas.sse.response import SSEEnvelopeCode, SSEEventType
 from tests._helpers.auth import UserAuth
 from tests._helpers.room_actions import (
+    assert_room_envelope_from_sse,
     assert_room_snapshot_from_sse,
     join_room,
     leave_room,
     skip_on_connect_snapshot,
 )
+from tests._helpers.validators import room_sse_validator
 
 
 @pytest.mark.anyio
@@ -73,3 +77,56 @@ async def test_leave_room_emits_snapshot_to_remaining_member(
         logs = snapshot.logs
         assert isinstance(logs, list)
         assert len(logs) >= 1
+
+        _ = await leave_room(sse_client2)
+
+        with anyio.move_on_after(1) as scope:
+            _ = await reader.read_one(timeout_s=None)
+            pytest.fail("unexpected event after idempotent leave")
+
+        assert scope.cancel_called
+
+
+@pytest.mark.anyio
+async def test_member_left_receives_last_envelope(
+    sse_client: AsyncClient,
+    sse_user_auth: UserAuth,
+) -> None:
+    room_id = MVP_ROOM_ID
+
+    _ = await join_room(sse_client, room_id)
+
+    async with skip_on_connect_snapshot(sse_client, room_id) as reader:
+        _ = await leave_room(sse_client)
+        # kick user snapshot
+        payload = await reader.read_one(timeout_s=2.0)
+        with pytest.raises(StopAsyncIteration):
+            _ = await reader.read_one(timeout_s=2.0)
+
+    body = assert_room_envelope_from_sse(payload)
+    envelope = room_sse_validator.assert_envelope(body)
+
+    assert envelope.ok is True
+    assert envelope.code == SSEEnvelopeCode.ROOM_LEAVE
+    assert envelope.message is None
+    assert envelope.data is None
+
+
+@pytest.mark.anyio
+async def test_left_member_cannot_subscribe(
+    sse_client: AsyncClient, sse_user_auth: UserAuth
+) -> None:
+    room_id = MVP_ROOM_ID
+
+    _ = await join_room(sse_client, room_id)
+    _ = await leave_room(sse_client)
+
+    resp = await sse_client.get("/rt/v1/sse/rooms/current/state")
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+    envelope_dict = resp.json()
+
+    assert envelope_dict["ok"] is False
+    assert envelope_dict["code"] == PermissionErrorCode.PERMISSION_DENIED_NOT_IN_ROOM
+    assert envelope_dict["message"] is None
+    assert envelope_dict["data"] is None

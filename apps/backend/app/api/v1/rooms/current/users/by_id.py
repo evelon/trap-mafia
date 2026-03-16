@@ -34,6 +34,7 @@ async def kick_user(
     - MVP: room 상관 없이 멱등 kick
     """
     mut = await room_service.kick_user(
+        room_id=room_id,
         actor_user_id=user.id,
         target_user_id=user_id,
     )

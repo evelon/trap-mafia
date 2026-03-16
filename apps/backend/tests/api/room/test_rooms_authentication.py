@@ -13,7 +13,10 @@ info_resp_validator = RespValidator(UserInfoResponse)
 
 
 @pytest.mark.api
-async def test_join_room_requires_authentication(client, db_session):
+async def test_join_room_requires_authentication(
+    client,
+    db_session,
+):
     """
     rooms 라우터는 router-level RequireAuthentication이 걸려 있어야 한다.
     access_token 쿠키 없이 join 요청 시 401 + Envelope 응답을 반환해야 한다.

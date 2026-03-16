@@ -14,7 +14,7 @@ router = APIRouter()
 async def room_state_sse(
     user: CurrentUser, room_id: CurrentRoomId, room_state_stream: RoomStateStreamDep
 ):
-    """GET /rt/v1/sse/rooms/current
+    """GET /rt/v1/sse/rooms/current/state
 
     Notion: room_state
     - Auth: User

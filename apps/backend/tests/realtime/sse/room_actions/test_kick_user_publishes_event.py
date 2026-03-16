@@ -14,7 +14,7 @@ from app.schemas.room.response import (
 )
 from tests._helpers.auth import UserAuth
 from tests._helpers.room_actions import join_room
-from tests.api.room.room_actions.conftest import FakeRoomEventBus
+from tests.realtime.sse.room_actions.conftest import FakeRoomEventBus
 
 
 @pytest.mark.anyio

@@ -140,6 +140,7 @@ class RoomService:
     async def kick_user(
         self,
         *,
+        room_id: RoomId,
         actor_user_id: UserId,
         target_user_id: UserId,
     ) -> KickUserMutation:
@@ -169,6 +170,18 @@ class RoomService:
 
         await self._db.commit()
 
+        try:
+            await self._room_event_bus.publish(
+                RoomTopic(room_id),
+                RoomEventDelta(
+                    type=RoomSnapshotType.MEMBER_KICKED,
+                    user_id=target_user_id,
+                ),  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
+            )
+        except Exception:
+            # MVP: join 응답 자체는 성공시켜야 하므로 event emit 실패는 삼킨다.
+            # (원하면 추후 로깅/리트라이/에러 정책으로 강화)
+            pass
         return KickUserMutation(
             subject_id=target_user_id,
             changed=True,

@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.domain.exceptions import EntityNotFoundError
 from app.models.room import RoomMember
@@ -193,6 +194,7 @@ async def test_service_kick_user_success(db_session, room_service: RoomService):
     # A가 B를 kick
     m = await room_service.kick_user(
         actor_user_id=user_a,
+        room_id=room_id,
         target_user_id=user_b,
     )
 
@@ -207,17 +209,23 @@ async def test_service_kick_user_success(db_session, room_service: RoomService):
 
 
 @pytest.mark.unit
-async def test_service_kick_user_idempotent_when_not_in_room(db_session, room_service: RoomService):
+async def test_service_kick_user_idempotent_when_not_in_room(
+    db_session: AsyncSession, room_service: RoomService
+):
     """
     - 대상이 방에 없으면
       - changed=False
       - reason=NOT_IN_ROOM
     """
-    user_a = await create_user(db_session, username="svc_kick2_a")
-    user_b = await create_user(db_session, username="svc_kick2_b")
+    username_a = "svc_kick2_a"
+    username_b = "svc_kick2_b"
+    user_a = await create_user(db_session, username=username_a)
+    user_b = await create_user(db_session, username=username_b)
+    room_id = await create_room(db_session, host_id=user_a)
 
     m = await room_service.kick_user(
         actor_user_id=user_a,
+        room_id=room_id,
         target_user_id=user_b,
     )
 
@@ -264,6 +272,7 @@ async def test_service_kick_user_raises_when_target_user_missing(
     - target_user_id가 존재하지 않으면 예외를 던진다.
     - NOT_IN_ROOM 멱등으로 처리하지 않는다.
     """
+    room_id = MVP_ROOM_ID
 
     actor_id = uuid.uuid4()
     missing_target_id = uuid.uuid4()
@@ -271,4 +280,6 @@ async def test_service_kick_user_raises_when_target_user_missing(
     # 너희 프로젝트의 NotFound 예외 타입으로 바꿔줘.
     # 예: DomainError, AppException, NotFoundError 등
     with pytest.raises(EntityNotFoundError):
-        await room_service.kick_user(actor_user_id=actor_id, target_user_id=missing_target_id)
+        await room_service.kick_user(
+            actor_user_id=actor_id, room_id=room_id, target_user_id=missing_target_id
+        )

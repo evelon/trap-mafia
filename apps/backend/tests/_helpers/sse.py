@@ -1,8 +1,8 @@
-import asyncio
 import json
 from dataclasses import dataclass, field
 from typing import Any, AsyncIterator, TypedDict
 
+import anyio
 from httpx import RemoteProtocolError, Response
 
 
@@ -58,7 +58,7 @@ class SSEReader:
                 msg["data"] = json.loads(line.removeprefix("data: ").strip())
         return msg
 
-    async def read_one(self, *, timeout_s: float = 1.0) -> SSEPayload:
+    async def read_one(self, *, timeout_s: float | None = 1.0) -> SSEPayload:
         async def _read_until_event() -> str:
             # 먼저 버퍼에 이미 이벤트가 완성되어 있는지 체크
             if b"\n\n" in self._buf:
@@ -78,5 +78,10 @@ class SSEReader:
                     self._buf = bytearray(rest)
                     return raw_event.decode("utf-8") + "\n\n"
 
-        raw = await asyncio.wait_for(_read_until_event(), timeout=timeout_s)
+        if timeout_s is None:
+            raw = await _read_until_event()
+        else:
+            with anyio.fail_after(timeout_s):
+                raw = await _read_until_event()
+
         return self._parse_sse_message(raw)

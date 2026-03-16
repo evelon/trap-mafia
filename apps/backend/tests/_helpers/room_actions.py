@@ -7,7 +7,8 @@ from fastapi import status
 from httpx import AsyncClient, Response
 
 from app.domain.events import RoomSnapshotType
-from app.schemas.common.ids import RoomId
+from app.schemas.common.ids import RoomId, UserId
+from app.schemas.room.sse_response import RoomStateEnvelope
 from app.schemas.room.state import RoomSnapshot
 from app.schemas.sse.response import SSEEnvelopeCode, SSEEventType
 from tests._helpers.sse import SSEPayload, SSEReader
@@ -48,6 +49,21 @@ async def leave_room(client: AsyncClient) -> Response:
     return resp
 
 
+async def kick_user(client: AsyncClient, room_id: RoomId, target: UserId) -> Response:
+    """
+    테스트 상황을 만들기 위하여 kick_user를 호출한다.
+    leave_room api 자체는 별도의 테스트로 검증되어야 한다.
+    이 함수 내부에서는 최소한의 validation만 진행한다.
+    """
+    resp = await client.post(f"/api/v1/rooms/current/users/{target}/kick")
+
+    body = resp.json()
+    assert body["ok"] is True
+    assert body["message"] is None
+
+    return resp
+
+
 @asynccontextmanager
 async def skip_on_connect_snapshot(
     client: AsyncClient, room_id: RoomId
@@ -80,6 +96,15 @@ async def skip_on_connect_snapshot(
         assert first_snapshot.logs == []
 
         yield reader
+
+
+def assert_room_envelope_from_sse(payload: SSEPayload) -> RoomStateEnvelope:
+    assert payload["event"] == SSEEventType.ROOM_EVENT
+    sse_id = payload.get("id")
+    assert sse_id
+    sse_data = payload.get("data")
+    envelope = room_sse_validator.assert_envelope(sse_data, ok=True)
+    return envelope
 
 
 def assert_room_snapshot_from_sse(payload: SSEPayload) -> RoomSnapshot:
