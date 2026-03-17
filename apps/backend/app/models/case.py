@@ -1,9 +1,18 @@
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
+from uuid import uuid4
 
-from sqlalchemy import CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,22 +27,22 @@ class Case(Base):
 
     __tablename__ = "cases"
 
-    id: Mapped[uuid.UUID] = mapped_column(
+    id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        default=uuid.uuid4,
+        default=uuid4,
     )
 
-    room_id: Mapped[uuid.UUID] = mapped_column(
+    room_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("rooms.id", ondelete="CASCADE"), nullable=False
     )
 
-    host_user_id: Mapped[uuid.UUID] = mapped_column(
+    host_user_id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
     )
 
     status: Mapped[CaseStatus] = mapped_column(
-        Enum(CaseStatus, name="case_status"), default=CaseStatus.RUNNING, nullable=False
+        Enum(CaseStatus, name="case_status_"), default=CaseStatus.RUNNING, nullable=False
     )
 
     current_round_no: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
@@ -41,7 +50,12 @@ class Case(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
@@ -58,5 +72,38 @@ class Case(Base):
             "OR "
             "(status = 'ENDED' AND ended_at IS NOT NULL)",
             name="ck_cases_status_ended_at_consistency",
+        ),
+    )
+
+
+class CasePlayer(Base):
+    __tablename__ = "case_players"
+
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    case_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("cases.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    seat_no: Mapped[int] = mapped_column(nullable=False)
+    life_left: Mapped[int] = mapped_column(nullable=False, default=2)
+    vote_tokens: Mapped[int] = mapped_column(nullable=False, default=0)
+
+    __table_args__ = (
+        UniqueConstraint("case_id", "user_id", name="uq_case_players_case_user"),
+        UniqueConstraint("case_id", "seat_no", name="uq_case_players_case_seat"),
+        CheckConstraint("seat_no >= 0 AND seat_no < 8", name="ck_case_players_seat_no_range"),
+        CheckConstraint(
+            "life_left >= 0 AND life_left <= 2", name="ck_case_players_life_left_range"
+        ),
+        CheckConstraint(
+            "vote_tokens >= 0 AND vote_tokens <= 4", name="ck_case_players_vote_tokens_range"
         ),
     )

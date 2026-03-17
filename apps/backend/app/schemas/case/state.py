@@ -29,9 +29,8 @@ class PhaseState(BaseModel):
 class Player(BaseModel):
     username: str  # only in MVP
     seat_no: SeatNo
-    life_lost: Annotated[int, Field(ge=0)]
+    life_left: Annotated[int, Field(ge=0)]
     vote_tokens: Annotated[int, Field(ge=0, le=4)]
-    eliminated: bool
 
 
 class NightPhaseInfo(BaseModel):
