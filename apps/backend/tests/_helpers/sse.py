@@ -1,9 +1,15 @@
-import asyncio
 import json
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, TypedDict
 
-from httpx import Response
+import anyio
+from httpx import RemoteProtocolError, Response
+
+
+class SSEPayload(TypedDict):
+    event: str | None
+    id: str | None
+    data: Any
 
 
 @dataclass
@@ -27,15 +33,22 @@ class SSEReader:
     async def _read_next_chunk(self) -> bytes:
         it = self._ensure_iter()
         try:
-            return await anext(it)  # Python 3.12+
-        except StopAsyncIteration:
-            return b""
+            return await anext(it)
+        except RemoteProtocolError as e:
+            raise AssertionError(
+                "SSE stream was closed unexpectedly before the next event was received. "
+                "The server likely terminated the streaming response early."
+            ) from e
 
-    def _parse_sse_message(self, raw: str) -> dict[str, Any]:
+    def _parse_sse_message(self, raw: str) -> SSEPayload:
         """
         raw: "event: ...\\nid: ...\\ndata: {...}\\n\\n"
         """
-        msg: dict[str, Any] = {"event": None, "id": None, "data": None}
+        msg: SSEPayload = {
+            "event": None,
+            "id": None,
+            "data": None,
+        }
         for line in raw.strip().splitlines():
             if line.startswith("event: "):
                 msg["event"] = line.removeprefix("event: ").strip()
@@ -45,14 +58,13 @@ class SSEReader:
                 msg["data"] = json.loads(line.removeprefix("data: ").strip())
         return msg
 
-    async def read_one(self, *, timeout_s: float = 1.0) -> dict[str, Any]:
+    async def read_one(self, *, timeout_s: float | None = 1.0) -> SSEPayload:
         async def _read_until_event() -> str:
             # 먼저 버퍼에 이미 이벤트가 완성되어 있는지 체크
             if b"\n\n" in self._buf:
                 raw_event, _sep, rest = self._buf.partition(b"\n\n")
                 self._buf = bytearray(rest)
                 return raw_event.decode("utf-8") + "\n\n"
-
             while True:
                 chunk = await self._read_next_chunk()
                 if not chunk:
@@ -66,5 +78,10 @@ class SSEReader:
                     self._buf = bytearray(rest)
                     return raw_event.decode("utf-8") + "\n\n"
 
-        raw = await asyncio.wait_for(_read_until_event(), timeout=timeout_s)
+        if timeout_s is None:
+            raw = await _read_until_event()
+        else:
+            with anyio.fail_after(timeout_s):
+                raw = await _read_until_event()
+
         return self._parse_sse_message(raw)

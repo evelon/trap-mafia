@@ -27,7 +27,7 @@ class Room(Base):
         default=uuid.uuid4,
     )
 
-    room_name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
 
     host_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

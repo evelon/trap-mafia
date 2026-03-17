@@ -8,8 +8,11 @@ from httpx import AsyncClient
 
 from app.core.config import JwtConfig
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN
+from app.schemas.auth.response import UserInfoResponse
 from tests._helpers.auth import UserAuth
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator, general_failure_validator
+
+info_resp_validator = RespValidator(UserInfoResponse)
 
 
 def _set_cookie_header(resp) -> str:
@@ -31,7 +34,7 @@ async def test_refresh_issues_new_access_cookie(client: AsyncClient, user_auth: 
     resp = await client.post("/api/v1/auth/refresh")
     assert resp.status_code == 200
 
-    _ = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
+    _ = info_resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
 
     sc = _set_cookie_header(resp)
     assert f"{ACCESS_TOKEN}=" in sc, f"refresh는 access_token Set-Cookie를 포함해야 함. got={sc}"
@@ -55,8 +58,7 @@ async def test_me_rejects_refresh_token_used_as_access(client: AsyncClient, user
     resp = await client.get("/api/v1/auth/me")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert isinstance(env["code"], str) and env["code"]
+    _ = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
 
 
 def _mint_refresh(
@@ -99,8 +101,7 @@ async def test_refresh_rejects_expired_or_invalid_refresh_token(
 
     resp1 = await client.post("/api/v1/auth/refresh")
     assert resp1.status_code == 401
-    env1 = assert_is_envelope(resp1.json(), ok=False, meta_is_null=True)
-    assert isinstance(env1["code"], str) and env1["code"]
+    _ = general_failure_validator.assert_envelope(resp1.json(), ok=False, meta_is_null=True)
 
     # B) invalid signature refresh
     invalid_sig = _mint_refresh(
@@ -114,5 +115,4 @@ async def test_refresh_rejects_expired_or_invalid_refresh_token(
 
     resp2 = await client.post("/api/v1/auth/refresh")
     assert resp2.status_code == 401
-    env2 = assert_is_envelope(resp2.json(), ok=False, meta_is_null=True)
-    assert isinstance(env2["code"], str) and env2["code"]
+    _ = general_failure_validator.assert_envelope(resp2.json(), ok=False, meta_is_null=True)

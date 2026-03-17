@@ -3,9 +3,9 @@ from typing import Annotated, AsyncIterator
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from app.infra.pubsub.base import PubSub
+from app.infra.pubsub.topics import ConnTopic, RoomTopic, Topic, UserTopic
+from app.infra.pubsub.transport.base import PubSub
 from app.infra.redis.client import RedisClientDep
-from app.realtime.topics import ConnTopic, RoomTopic, Topic, UserTopic
 
 
 class RedisPubSub(PubSub):
@@ -23,10 +23,6 @@ class RedisPubSub(PubSub):
             f"Unsupported topic: {type(topic)!r}"
         )  # MVP: 나중엔 UnsupportedTokenError 만들어서 사용.
 
-    async def publish(self, topic: Topic, message: str) -> int:
-        channel = self._topic_to_channel(topic)
-        return await self._client.publish(channel, message)
-
     def subscribe(self, topic: Topic) -> AsyncIterator[str]:
         async def _gen() -> AsyncIterator[str]:
             channel = self._topic_to_channel(topic)
@@ -38,7 +34,14 @@ class RedisPubSub(PubSub):
                 async for message in pubsub.listen():
                     if message.get("type") != "message":
                         continue
-                    yield message.get("data")
+                    msg = message.get("data")
+
+                    if isinstance(msg, bytes):
+                        msg = msg.decode()
+
+                    assert isinstance(msg, str)
+
+                    yield msg
             finally:
                 try:
                     await pubsub.unsubscribe(channel)
@@ -46,6 +49,11 @@ class RedisPubSub(PubSub):
                     await pubsub.close()
 
         return _gen()
+
+    async def publish(self, topic: Topic, message: str) -> int:
+        channel = self._topic_to_channel(topic)
+        check = await self._client.publish(channel, message)
+        return check
 
 
 def get_redis_pubsub(redis_client: RedisClientDep) -> RedisPubSub:

@@ -9,10 +9,10 @@ from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandlerDep
 from app.schemas.auth.request import GuestLoginRequest
 from app.schemas.auth.response import (
     GuestInfo,
-    GuestInfoResponse,
-    GuestLogoutResponse,
     LoginCode,
     LogoutCode,
+    LogoutResponse,
+    UserInfoResponse,
 )
 from app.schemas.common.envelope import Envelope
 from app.schemas.common.error import AuthErrorCode, AuthTokenErrorCode
@@ -52,7 +52,7 @@ router = APIRouter()
 @router.get(
     "/me",
     summary="me",
-    response_model=GuestInfoResponse,
+    response_model=UserInfoResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_401_TOKEN_AUTH_RESPONSE,
@@ -75,7 +75,7 @@ router = APIRouter()
 )
 async def me(
     user: CurrentUser,
-) -> GuestInfoResponse:
+) -> UserInfoResponse:
     """Return current guest info from access_token cookie.
 
     - Reads `access_token` from cookies.
@@ -91,13 +91,13 @@ async def me(
         in_case=False,
         current_case_id=None,
     )
-    return GuestInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
+    return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
 
 
 @router.post(
     "/guest-login",
     summary="guest_login",
-    response_model=GuestInfoResponse,
+    response_model=UserInfoResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_422_VALIDATION_RESPONSE,
@@ -154,13 +154,13 @@ async def guest_login(
         in_case=False,
         current_case_id=None,
     )
-    return GuestInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
+    return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
 
 
 @router.post(
     "/refresh",
     summary="refresh",
-    response_model=GuestInfoResponse,
+    response_model=UserInfoResponse,
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_401_UNAUTHORIZED: {
@@ -185,7 +185,7 @@ async def refresh(
     response: Response,
     auth_service: AuthServiceDep,
     jwt_handler: JwtHandlerDep,
-) -> GuestInfoResponse:
+) -> UserInfoResponse:
     """
     Refresh access token using refresh_token cookie.
 
@@ -229,13 +229,13 @@ async def refresh(
         in_case=False,
         current_case_id=None,
     )
-    return GuestInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
+    return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
 
 
 @router.post(
     "/logout",
     summary="logout",
-    response_model=GuestLogoutResponse,
+    response_model=LogoutResponse,
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_200_OK: {
@@ -257,7 +257,7 @@ async def refresh(
         },
     },
 )
-async def logout(response: Response) -> GuestLogoutResponse:
+async def logout(response: Response) -> LogoutResponse:
     """
     POST /api/v1/auth/logout
 
@@ -273,4 +273,4 @@ async def logout(response: Response) -> GuestLogoutResponse:
     response.delete_cookie(key=ACCESS_TOKEN, path="/")
     response.delete_cookie(key=REFRESH_TOKEN, path="/")
 
-    return GuestLogoutResponse(ok=True, code=LogoutCode.OK, message=None, data=None, meta=None)
+    return LogoutResponse(ok=True, code=LogoutCode.OK, message=None, data=None, meta=None)

@@ -8,8 +8,11 @@ from fastapi import FastAPI
 from httpx import AsyncClient
 
 from app.core.config import JwtConfig, get_jwt_config
+from app.schemas.auth.response import UserInfoResponse
 from tests._helpers.auth import UserAuth
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator, general_failure_validator
+
+info_resp_validator = RespValidator(UserInfoResponse)
 
 
 @pytest.fixture
@@ -52,16 +55,16 @@ async def test_session_flow_expired_access_then_refresh_then_me_ok(
     # 3) /me -> 401 (expired access)
     me1 = await client.get("/api/v1/auth/me")
     assert me1.status_code == 401
-    env1 = assert_is_envelope(me1.json(), ok=False, meta_is_null=True)
-    assert isinstance(env1["code"], str) and env1["code"]
+    _ = general_failure_validator.assert_envelope(me1.json(), ok=False, meta_is_null=True)
 
     # 4) /refresh -> 200 + 새 access 쿠키
     ref = await client.post("/api/v1/auth/refresh")
     assert ref.status_code == 200
-    assert_is_envelope(ref.json(), ok=True, meta_is_null=True)
+    _ = info_resp_validator.assert_envelope(ref.json(), ok=True, meta_is_null=True)
 
     # 5) 다시 /me -> 200
     me2 = await client.get("/api/v1/auth/me")
     assert me2.status_code == 200
-    env2 = assert_is_envelope(me2.json(), ok=True, meta_is_null=True)
-    assert env2["data"]["username"] == user_auth["username"]
+    env2 = info_resp_validator.assert_envelope(me2.json(), ok=True, meta_is_null=True)
+    assert env2.data is not None
+    assert env2.data.username == user_auth["username"]

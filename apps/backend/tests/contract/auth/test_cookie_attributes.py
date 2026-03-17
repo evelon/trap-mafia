@@ -3,7 +3,10 @@ from __future__ import annotations
 import pytest
 from httpx import AsyncClient
 
-from tests._helpers.envelope_assert import assert_is_envelope
+from app.schemas.auth.response import UserInfoResponse
+from tests._helpers.validators import RespValidator
+
+info_resp_validator = RespValidator(UserInfoResponse)
 
 
 @pytest.mark.contract
@@ -16,7 +19,7 @@ async def test_guest_login_sets_cookie_attributes_minimum(client: AsyncClient):
     url = "/api/v1/auth/guest-login"
     resp = await client.post(url, json={"username": "tester_cookie_attr"})
     assert resp.status_code == 200
-    assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
+    _ = info_resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
 
     sc = resp.headers.get("set-cookie", "")
     assert "HttpOnly" in sc

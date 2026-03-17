@@ -32,6 +32,10 @@ class PermissionErrorCode(BaseErrorCode):
     PERMISSION_DENIED_NOT_IN_ROOM = "PERMISSION_DENIED_NOT_IN_ROOM"
 
 
+class NotFoundErrorCode(BaseErrorCode):
+    NOT_FOUND_ROOM = "NOT_FOUND_ROOM"
+
+
 class CommonErrorCode(BaseErrorCode):
     VALIDATION_ERROR = "VALIDATION_ERROR"
     UNKNOWN_ERROR = "UNKNOWN_ERROR"

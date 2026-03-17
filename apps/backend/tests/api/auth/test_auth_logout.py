@@ -4,8 +4,9 @@ import pytest
 from httpx import AsyncClient
 
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN
+from app.schemas.auth.response import LogoutResponse
 from tests._helpers.auth import UserAuth
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator
 
 
 def _set_cookie_header(resp) -> str:
@@ -25,8 +26,9 @@ async def test_logout_clears_access_and_refresh_cookies(client: AsyncClient, use
     resp = await client.post("/api/v1/auth/logout")
     assert resp.status_code == 200
 
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
-    assert env["data"] is None
+    resp_validator = RespValidator(LogoutResponse)
+    env = resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
+    assert env.data is None
 
     # 3) Set-Cookie로 만료(삭제) 시키는지 확인
     sc = _set_cookie_header(resp)

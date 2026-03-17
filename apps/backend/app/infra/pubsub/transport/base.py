@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import AsyncIterator
 
-from app.realtime.topics import Topic
+from app.infra.pubsub.topics import Topic
 
 
 class PubSub(ABC):

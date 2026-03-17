@@ -1,7 +1,9 @@
-from typing import Literal, MutableMapping, TypedDict
+from typing import Literal, TypedDict
 from uuid import UUID
 
 from httpx import Response
+
+from app.schemas.common.envelope import Envelope
 
 
 class _UserInfo(TypedDict):
@@ -21,9 +23,9 @@ class UserAuthEnvelopeDict(TypedDict):
 
 class UserAuth(TypedDict):
     id: UUID
-    username: Literal["username"]
-    envelope: UserAuthEnvelopeDict | dict
-    cookies: MutableMapping[str, str]
+    username: str
+    envelope: Envelope
+    cookies: dict[str, str]
     access_token: str
     refresh_token: str
     response: Response

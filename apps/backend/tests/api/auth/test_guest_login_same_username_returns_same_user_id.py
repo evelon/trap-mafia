@@ -3,8 +3,14 @@ from __future__ import annotations
 import pytest
 from httpx import AsyncClient
 
+from app.schemas.auth.response import UserInfoResponse
 from tests._helpers.auth import UserAuth, login_url
-from tests._helpers.envelope_assert import assert_is_envelope, assert_set_cookie_has_tokens
+from tests._helpers.validators import (
+    RespValidator,
+    assert_set_cookie_has_tokens,
+)
+
+info_resp_validator = RespValidator(UserInfoResponse)
 
 
 @pytest.mark.api
@@ -28,9 +34,9 @@ async def test_guest_login_same_username_returns_same_user_id_and_sets_cookies(
     resp2 = await client.post(login_url, json={"username": username})
     assert resp2.status_code == 200
 
-    body2 = assert_is_envelope(resp2.json(), ok=True, meta_is_null=True)
-    data2 = body2["data"]
-    assert data2["id"] == str(user_id), "같은 username이면 같은 user id여야 함"
+    env2 = info_resp_validator.assert_envelope(resp2.json(), ok=True, meta_is_null=True)
+    assert env2.data is not None
+    assert str(env2.data.id) == user_id, "같은 username이면 같은 user id여야 함"
 
     set_cookie_2 = resp2.headers.get("set-cookie", "")
     assert_set_cookie_has_tokens(set_cookie_2)

@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import Annotated
-
-from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.infra.db.session import DbSessionDep
+from app.domain.events import RoomEventDelta, RoomSnapshotType
+from app.infra.pubsub.bus.room_event_bus import RoomEventBus
+from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
-from app.repositories.room_member import RoomMemberRepo, RoomMemberRepoDep
-from app.repositories.user import UserRepo, UserRepoDep
+from app.repositories.room_member import RoomMemberRepo
+from app.repositories.user import UserRepo
 from app.schemas.common.ids import RoomId, UserId
 from app.schemas.common.mutation import Subject, Target
 from app.schemas.room.mutation import (
@@ -32,12 +31,14 @@ class RoomService:
     def __init__(
         self,
         db: AsyncSession,
-        member_repo: RoomMemberRepo | None = None,
-        user_repo: UserRepo | None = None,
+        member_repo: RoomMemberRepo,
+        user_repo: UserRepo,
+        room_event_bus: RoomEventBus,
     ) -> None:
-        self.db = db
-        self.member_repo = member_repo or RoomMemberRepo(db)
-        self.user_repo = user_repo or UserRepo(db)
+        self._db = db
+        self._member_repo = member_repo
+        self._user_repo = user_repo
+        self._room_event_bus = room_event_bus
 
     def _normalize_room_id(self, requested_room_id: RoomId) -> RoomId:
         return MVP_ROOM_ID
@@ -50,8 +51,7 @@ class RoomService:
         - active membership이 있고 room_id가 다르면 -> 기존 leave 후 새로 join
         """
         room_id = self._normalize_room_id(room_id)  # MVP
-        active = await self.member_repo.get_active_by_user_id(user_id=user_id)
-
+        active = await self._member_repo.get_active_by_user_id(user_id=user_id)
         if active is not None and active.room_id == room_id:
             # 이미 같은 방에 있음 -> 멱등
             return JoinRoomMutation(
@@ -65,16 +65,29 @@ class RoomService:
 
         # 다른 방에 active가 있으면 먼저 종료
         if active is not None:
-            await self.member_repo.leave_active_by_user_id(user_id=user_id)
+            await self._member_repo.leave_active_by_user_id(user_id=user_id)
 
         # 새 멤버십 생성
-        member = await self.member_repo.upsert_membership(user_id=user_id, room_id=room_id)
+        member = await self._member_repo.upsert_membership(user_id=user_id, room_id=room_id)
 
         # 트랜잭션 확정
-        await self.db.commit()
+        await self._db.commit()
         # server_default(joined_at) 반영
-        await self.db.refresh(member)
-
+        await self._db.refresh(member)
+        # Redis pubsub에는 snapshot이 아니라 event delta만 publish한다.
+        # 이미 가입된 상태(ALREADY_JOINED)처럼 상태 변화가 없는 경우에는 emit하지 않는다.
+        try:
+            await self._room_event_bus.publish(
+                RoomTopic(room_id),
+                RoomEventDelta(
+                    type=RoomSnapshotType.MEMBER_JOINED,
+                    user_id=user_id,
+                ),  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
+            )
+        except Exception:
+            # MVP: join 응답 자체는 성공시켜야 하므로 event emit 실패는 삼킨다.
+            # (원하면 추후 로깅/리트라이/에러 정책으로 강화)
+            pass
         return JoinRoomMutation(
             target=Target.ROOM,
             subject=Subject.ME,
@@ -84,16 +97,16 @@ class RoomService:
             reason=JoinRoomReason.JOINED,
         )
 
-    async def leave_current_room(self, *, user_id: UserId) -> LeaveRoomMutation:
+    async def leave_room(self, *, user_id: UserId) -> LeaveRoomMutation:
         """
         정책:
         - active membership이 있으면 종료 (changed=True)
         - 없으면 멱등 처리 (changed=False)
         """
-        updated = await self.member_repo.leave_active_by_user_id(user_id=user_id)
-        await self.db.commit()
+        left_member = await self._member_repo.leave_active_by_user_id(user_id=user_id)
+        await self._db.commit()
 
-        if updated == 0:
+        if left_member is None:
             return LeaveRoomMutation(
                 target=Target.ROOM,
                 subject=Subject.ME,
@@ -103,6 +116,18 @@ class RoomService:
                 reason=LeaveRoomReason.ALREADY_LEFT,
             )
 
+        try:
+            await self._room_event_bus.publish(
+                RoomTopic(left_member.room_id),
+                RoomEventDelta(
+                    type=RoomSnapshotType.MEMBER_LEFT,
+                    user_id=user_id,
+                ),  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
+            )
+        except Exception:
+            # MVP: join 응답 자체는 성공시켜야 하므로 event emit 실패는 삼킨다.
+            # (원하면 추후 로깅/리트라이/에러 정책으로 강화)
+            pass
         return LeaveRoomMutation(
             target=Target.ROOM,
             subject=Subject.ME,
@@ -115,21 +140,22 @@ class RoomService:
     async def kick_user(
         self,
         *,
+        room_id: RoomId,
         actor_user_id: UserId,
         target_user_id: UserId,
     ) -> KickUserMutation:
         """
         정책 (MVP):
-        - 누구나 누구나 kick 가능 (권한 체크 없음)
+        - 누구나 누구를 kick 가능 (권한 체크 없음)
         - target이 현재 room에 없으면 멱등 처리
         - DB 효과는 leave와 동일 (left_at 채움)
         """
 
         # 1. target user 존재 확인 (없으면 EntityNotFoundError)
-        await self.user_repo.ensure_exists(target_user_id)
+        await self._user_repo.ensure_exists(target_user_id)
 
         # 2. target의 active membership 조회
-        active = await self.member_repo.get_active_by_user_id(user_id=target_user_id)
+        active = await self._member_repo.get_active_by_user_id(user_id=target_user_id)
 
         # 3. 방에 없는 경우 (멱등)
         if active is None:
@@ -140,23 +166,24 @@ class RoomService:
             )
 
         # 4. 실제 kick (leave와 동일한 DB 변경)
-        await self.member_repo.leave_active_by_user_id(user_id=target_user_id)
+        await self._member_repo.leave_active_by_user_id(user_id=target_user_id)
 
-        await self.db.commit()
+        await self._db.commit()
 
+        try:
+            await self._room_event_bus.publish(
+                RoomTopic(room_id),
+                RoomEventDelta(
+                    type=RoomSnapshotType.MEMBER_KICKED,
+                    user_id=target_user_id,
+                ),  # type: ignore[call-arg] # pyright: ignore[reportCallIssue]
+            )
+        except Exception:
+            # MVP: join 응답 자체는 성공시켜야 하므로 event emit 실패는 삼킨다.
+            # (원하면 추후 로깅/리트라이/에러 정책으로 강화)
+            pass
         return KickUserMutation(
             subject_id=target_user_id,
             changed=True,
             reason=KickUserReason.KICKED,
         )
-
-
-def get_room_service(
-    db: DbSessionDep,
-    repo: RoomMemberRepoDep,
-    user_repo: UserRepoDep,
-) -> RoomService:
-    return RoomService(db, member_repo=repo, user_repo=user_repo)
-
-
-RoomServiceDep = Annotated[RoomService, Depends(get_room_service)]

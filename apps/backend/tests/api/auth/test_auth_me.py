@@ -5,8 +5,11 @@ import pytest
 
 from app.core.config import JwtConfig
 from app.core.security.jwt import ACCESS_TOKEN, JwtHandler
+from app.schemas.auth.response import UserInfoResponse
 from app.services.auth import AuthService
-from tests._helpers.envelope_assert import assert_is_envelope
+from tests._helpers.validators import RespValidator, general_failure_validator
+
+info_resp_validator = RespValidator(UserInfoResponse)
 
 
 def _encode_access(jwt_handler: JwtHandler, *, sub: str, exp_seconds: int = 60) -> str:
@@ -46,12 +49,12 @@ async def test_me_accepts_valid_access_jwt_in_cookie(
     resp = await client.get("/api/v1/auth/me")
     assert resp.status_code == 200
 
-    env = assert_is_envelope(resp.json(), ok=True, meta_is_null=True)
-    data = env["data"]
-    assert isinstance(data, dict)
+    env = info_resp_validator.assert_envelope(resp.json(), ok=True, meta_is_null=True)
+    data = env.data
 
     # 현재 SSOT에서 me 응답이 username을 포함하므로 최소로만 강제
-    assert data.get("username") == username
+    assert data is not None
+    assert data.username == username
 
 
 @pytest.mark.api
@@ -79,8 +82,7 @@ async def test_me_rejects_invalid_signature(
     resp = await client.get("/api/v1/auth/me")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert isinstance(env["code"], str) and env["code"]  # code 값은 프로젝트 enum에 맞게 강화 가능
+    _ = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
 
 
 @pytest.mark.api
@@ -95,8 +97,7 @@ async def test_me_rejects_expired_token(client, app, jwt_test_handler: JwtHandle
     resp = await client.get("/api/v1/auth/me")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert isinstance(env["code"], str) and env["code"]
+    _ = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
 
 
 @pytest.mark.api
@@ -126,8 +127,7 @@ async def test_me_rejects_token_missing_required_claims(client, app, jwt_test_co
     resp = await client.get("/api/v1/auth/me")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert isinstance(env["code"], str) and env["code"]
+    _ = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
 
 
 @pytest.mark.api
@@ -155,5 +155,4 @@ async def test_me_rejects_refresh_token_used_as_access(client, app, jwt_test_con
     resp = await client.get("/api/v1/auth/me")
     assert resp.status_code == 401
 
-    env = assert_is_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert isinstance(env["code"], str) and env["code"]
+    _ = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)

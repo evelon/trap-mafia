@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.infra.pubsub.base import PubSub
+from app.infra.pubsub.transport.base import PubSub
 from app.infra.redis.pubsub import RedisPubSubDep
 
 
