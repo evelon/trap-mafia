@@ -4,6 +4,8 @@ from fastapi import Depends
 
 from app.infra.db.session import DbSessionDep
 from app.repositories.case import CaseRepo
+from app.repositories.case_history import CaseSnapshotHistoryRepo
+from app.repositories.case_player import CasePlayerRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo
 from app.repositories.user import UserRepo
@@ -35,3 +37,17 @@ def get_user_repo(db: DbSessionDep) -> UserRepo:
 
 
 UserRepoDep = Annotated[UserRepo, Depends(get_user_repo)]
+
+
+def get_case_player_repo(db: DbSessionDep) -> CasePlayerRepo:
+    return CasePlayerRepo(db)
+
+
+CasePlayerDep = Annotated[CasePlayerRepo, Depends(get_case_player_repo)]
+
+
+def get_case_history_repo(db: DbSessionDep) -> CaseSnapshotHistoryRepo:
+    return CaseSnapshotHistoryRepo(db)
+
+
+CaseHistoryDep = Annotated[CaseSnapshotHistoryRepo, Depends(get_case_history_repo)]

@@ -81,10 +81,9 @@ class RoomMemberRepo:
             select(RoomMember.user_id, User.username, RoomMember.joined_at)
             .join(User, User.id == RoomMember.user_id)
             .where(RoomMember.room_id == room_id, RoomMember.left_at.is_(None))
-            .order_by(RoomMember.joined_at.asc())
+            .order_by(RoomMember.joined_at.asc(), RoomMember.user_id.asc())
         )
         rows = await self._db.execute(q)
-
         return [
             SnapshotRoomMember(user_id, username, joined_at)
             for user_id, username, joined_at in rows.tuples().all()

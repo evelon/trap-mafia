@@ -8,7 +8,7 @@ from app.schemas.common.ids import CaseId, RoomId, UserId
 
 class CaseRepo:
     def __init__(self, db: AsyncSession) -> None:
-        self.db = db
+        self._db = db
 
     async def create(
         self,
@@ -24,16 +24,16 @@ class CaseRepo:
             status=status,
             current_round_no=current_round_no,
         )
-        self.db.add(row)
+        self._db.add(row)
         return row
 
     async def get_by_id(self, *, case_id: CaseId) -> Case | None:
         q = select(Case).where(Case.id == case_id)
-        return (await self.db.execute(q)).scalar_one_or_none()
+        return (await self._db.execute(q)).scalar_one_or_none()
 
     async def get_running_by_room_id(self, *, room_id: RoomId) -> Case | None:
         q = select(Case).where(
             Case.room_id == room_id,
             Case.status == CaseStatus.RUNNING,
         )
-        return (await self.db.execute(q)).scalar_one_or_none()
+        return (await self._db.execute(q)).scalar_one_or_none()

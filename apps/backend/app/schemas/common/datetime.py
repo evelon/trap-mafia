@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-UtcDateTime = Annotated[
+UtcDatetime = Annotated[
     str,
     Field(
         description="UTC datetime string (ISO 8601) with millisecond precision, ends with 'Z'.",

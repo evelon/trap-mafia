@@ -6,7 +6,7 @@ from uuid import UUID
 
 from pydantic import Field
 
-from app.domain.constants import SEAT_NO_MAX_EXCLUSIVE, SEAT_NO_MIN
+from app.domain.constants.case import SEAT_NO_MAX_EXCLUSIVE, SEAT_NO_MIN
 
 """
 도메인 타입 정의 모듈.

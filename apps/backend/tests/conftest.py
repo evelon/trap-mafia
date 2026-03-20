@@ -544,3 +544,17 @@ async def sse_user_auth(sse_client: AsyncClient):
 @pytest_asyncio.fixture
 async def sse_user_auth2(sse_client2: AsyncClient):
     return await _sse_user_auth(sse_client2, "username2")
+
+
+@pytest_asyncio.fixture
+async def sse_user_hosted_room(
+    db_session: AsyncSession,
+    room_repo: RoomRepo,
+    room_member_repo: RoomMemberRepo,
+    sse_user_auth: UserAuth,
+) -> Room:
+    host_id = sse_user_auth["id"]
+    room = await room_repo.create(host_id=host_id, room_name="random_room")
+    _ = await room_member_repo.create_membership(user_id=host_id, room_id=room.id)
+    await db_session.commit()
+    return room
