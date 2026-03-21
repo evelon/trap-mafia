@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { blueVoteApiV1CasesCurrentPhasesCurrentBlueVotePost, caseStartApiV1RoomsCurrentCaseStartPost, forceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPost, guestLoginApiV1AuthGuestLoginPost, healthApiHealthGet, initBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePost, joinRoomApiV1RoomsRoomIdJoinPost, kickUserApiV1RoomsCurrentUsersUserIdKickPost, leaveRoomApiV1RoomsCurrentLeavePost, logoutApiV1AuthLogoutPost, meApiV1AuthMeGet, type Options, redVoteApiV1CasesCurrentPhasesCurrentRedVotePost, refreshApiV1AuthRefreshPost, roomStateSseRtV1SseRoomsCurrentGet } from '../sdk.gen';
-import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostError, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponse, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostError, CaseStartApiV1RoomsCurrentCaseStartPostResponse, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostError, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponse, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostError, GuestLoginApiV1AuthGuestLoginPostResponse, HealthApiHealthGetData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostError, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponse, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostError, JoinRoomApiV1RoomsRoomIdJoinPostResponse, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostError, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponse, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponse, MeApiV1AuthMeGetData, MeApiV1AuthMeGetError, MeApiV1AuthMeGetResponse, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostError, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponse, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostError, RefreshApiV1AuthRefreshPostResponse, RoomStateSseRtV1SseRoomsCurrentGetData, RoomStateSseRtV1SseRoomsCurrentGetError } from '../types.gen';
+import { blueVoteApiV1CasesCurrentPhasesCurrentBlueVotePost, caseStartApiV1RoomsCurrentCaseStartPost, closeRoomStateStreamRtV1SseRoomsCurrentClosePost, forceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPost, guestLoginApiV1AuthGuestLoginPost, healthApiHealthGet, initBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePost, joinRoomApiV1RoomsRoomIdJoinPost, kickUserApiV1RoomsCurrentUsersUserIdKickPost, leaveRoomApiV1RoomsCurrentLeavePost, logoutApiV1AuthLogoutPost, meApiV1AuthMeGet, type Options, redVoteApiV1CasesCurrentPhasesCurrentRedVotePost, refreshApiV1AuthRefreshPost, roomStateSseRtV1SseRoomsCurrentStateGet } from '../sdk.gen';
+import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostError, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponse, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostError, CaseStartApiV1RoomsCurrentCaseStartPostResponse, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostError, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponse, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostError, GuestLoginApiV1AuthGuestLoginPostResponse, HealthApiHealthGetData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostError, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponse, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostError, JoinRoomApiV1RoomsRoomIdJoinPostResponse, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostError, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponse, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponse, MeApiV1AuthMeGetData, MeApiV1AuthMeGetError, MeApiV1AuthMeGetResponse, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostError, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponse, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostError, RefreshApiV1AuthRefreshPostResponse, RoomStateSseRtV1SseRoomsCurrentStateGetData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -279,73 +279,17 @@ export const redVoteApiV1CasesCurrentPhasesCurrentRedVotePostMutation = (options
 };
 
 /**
- * join_room
- *
- * POST /api/rooms/{room_id}/join
- *
- * 의미:
- * - 현재 사용자가 특정 ROOM에 참가를 시도한다.
- * - 성공 시 200 OK + JoinRoomMutation을 반환한다.
- * - 이미 참가 중인 경우에도 200으로 응답하며, changed=False로 표현한다.
- *
- * 비고:
- * - 실제 ROOM_FULL, membership 검증 로직은 추후 구현 예정이다.
- */
-export const joinRoomApiV1RoomsRoomIdJoinPostMutation = (options?: Partial<Options<JoinRoomApiV1RoomsRoomIdJoinPostData>>): UseMutationOptions<JoinRoomApiV1RoomsRoomIdJoinPostResponse, AxiosError<JoinRoomApiV1RoomsRoomIdJoinPostError>, Options<JoinRoomApiV1RoomsRoomIdJoinPostData>> => {
-    const mutationOptions: UseMutationOptions<JoinRoomApiV1RoomsRoomIdJoinPostResponse, AxiosError<JoinRoomApiV1RoomsRoomIdJoinPostError>, Options<JoinRoomApiV1RoomsRoomIdJoinPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await joinRoomApiV1RoomsRoomIdJoinPost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
  * leave_room
  *
- * POST /api/rooms/current/leave
- *
- * 의미:
- * - 현재 사용자가 자신이 속한 ROOM에서 나가기를 시도한다.
- * - 성공 시 200 OK + LeaveRoomMutation을 반환한다.
- * - 이미 방에 속해 있지 않은 경우에도 200으로 응답하며, changed=False로 표현한다.
+ * POST /api/v1/rooms/current/leave
+ * - access_token 쿠키에서 user_id를 추출
+ * - RoomService.leave_current_room 호출
+ * - LeaveRoomResponse(Envelope)로 반환
  */
 export const leaveRoomApiV1RoomsCurrentLeavePostMutation = (options?: Partial<Options<LeaveRoomApiV1RoomsCurrentLeavePostData>>): UseMutationOptions<LeaveRoomApiV1RoomsCurrentLeavePostResponse, AxiosError<DefaultError>, Options<LeaveRoomApiV1RoomsCurrentLeavePostData>> => {
     const mutationOptions: UseMutationOptions<LeaveRoomApiV1RoomsCurrentLeavePostResponse, AxiosError<DefaultError>, Options<LeaveRoomApiV1RoomsCurrentLeavePostData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await leaveRoomApiV1RoomsCurrentLeavePost({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
-};
-
-/**
- * kick_user
- *
- * POST /api/rooms/current/users/{user_id}/kick
- *
- * 의미:
- * - 특정 USER를 현재 ROOM에서 내보내기를 시도한다.
- * - 성공 시 200 OK + KickUserMutation을 반환한다.
- * - 대상이 해당 ROOM에 없더라도 200으로 응답하며, changed=False로 표현한다.
- *
- * 주의:
- * - 이 API는 대상 room에서의 멤버십 제거 여부만 보장한다.
- */
-export const kickUserApiV1RoomsCurrentUsersUserIdKickPostMutation = (options?: Partial<Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData>>): UseMutationOptions<KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, AxiosError<KickUserApiV1RoomsCurrentUsersUserIdKickPostError>, Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData>> => {
-    const mutationOptions: UseMutationOptions<KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, AxiosError<KickUserApiV1RoomsCurrentUsersUserIdKickPostError>, Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await kickUserApiV1RoomsCurrentUsersUserIdKickPost({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -384,6 +328,56 @@ export const caseStartApiV1RoomsCurrentCaseStartPostMutation = (options?: Partia
     return mutationOptions;
 };
 
+/**
+ * kick_user
+ *
+ * POST /api/v1/rooms/current/users/{user_id}/kick
+ *
+ * 의미:
+ * - 특정 USER를 현재 ROOM에서 내보내기를 시도한다.
+ * - 성공 시 200 OK + KickUserMutation을 반환한다.
+ * - 대상이 해당 ROOM에 없더라도 200으로 응답하며, changed=False로 표현한다.
+ *
+ * 주의:
+ * - 이 API는 대상 room에서의 멤버십 제거 여부만 보장한다.
+ * - MVP: room 상관 없이 멱등 kick
+ */
+export const kickUserApiV1RoomsCurrentUsersUserIdKickPostMutation = (options?: Partial<Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData>>): UseMutationOptions<KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, AxiosError<KickUserApiV1RoomsCurrentUsersUserIdKickPostError>, Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData>> => {
+    const mutationOptions: UseMutationOptions<KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, AxiosError<KickUserApiV1RoomsCurrentUsersUserIdKickPostError>, Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await kickUserApiV1RoomsCurrentUsersUserIdKickPost({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+/**
+ * join_room
+ *
+ * POST /api/v1/rooms/{room_id}/join
+ * - access_token 쿠키에서 user_id를 추출
+ * - RoomService.join_room 호출
+ * - JoinRoomResponse(Envelope)로 반환
+ */
+export const joinRoomApiV1RoomsRoomIdJoinPostMutation = (options?: Partial<Options<JoinRoomApiV1RoomsRoomIdJoinPostData>>): UseMutationOptions<JoinRoomApiV1RoomsRoomIdJoinPostResponse, AxiosError<JoinRoomApiV1RoomsRoomIdJoinPostError>, Options<JoinRoomApiV1RoomsRoomIdJoinPostData>> => {
+    const mutationOptions: UseMutationOptions<JoinRoomApiV1RoomsRoomIdJoinPostResponse, AxiosError<JoinRoomApiV1RoomsRoomIdJoinPostError>, Options<JoinRoomApiV1RoomsRoomIdJoinPostData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await joinRoomApiV1RoomsRoomIdJoinPost({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
 export const healthApiHealthGetQueryKey = (options?: Options<HealthApiHealthGetData>) => createQueryKey('healthApiHealthGet', options);
 
 /**
@@ -402,16 +396,33 @@ export const healthApiHealthGetOptions = (options?: Options<HealthApiHealthGetDa
     queryKey: healthApiHealthGetQueryKey(options)
 });
 
-export const roomStateSseRtV1SseRoomsCurrentGetQueryKey = (options?: Options<RoomStateSseRtV1SseRoomsCurrentGetData>) => createQueryKey('roomStateSseRtV1SseRoomsCurrentGet', options);
+/**
+ * Close Room State Stream
+ */
+export const closeRoomStateStreamRtV1SseRoomsCurrentClosePostMutation = (options?: Partial<Options<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData>>): UseMutationOptions<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse, AxiosError<DefaultError>, Options<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData>> => {
+    const mutationOptions: UseMutationOptions<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse, AxiosError<DefaultError>, Options<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await closeRoomStateStreamRtV1SseRoomsCurrentClosePost({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const roomStateSseRtV1SseRoomsCurrentStateGetQueryKey = (options?: Options<RoomStateSseRtV1SseRoomsCurrentStateGetData>) => createQueryKey('roomStateSseRtV1SseRoomsCurrentStateGet', options);
 
 /**
  * Room State Sse
  *
- * GET /rt/v1/sse/rooms/current
+ * GET /rt/v1/sse/rooms/current/state
  *
  * Notion: room_state
- * - Auth: User (MVP: X-User-Id 헤더, 추후 JWT로 대체)
- * - Permission: In Room (MVP: X-Room-Id 헤더로 대체)
+ * - Auth: User
+ * - Permission: In Room
  *
  * Response (SSE)
  * - event: room_state
@@ -421,9 +432,9 @@ export const roomStateSseRtV1SseRoomsCurrentGetQueryKey = (options?: Options<Roo
  * Response (REST)
  * - 403: PERMISSION_DENIED_NOT_IN_ROOM
  */
-export const roomStateSseRtV1SseRoomsCurrentGetOptions = (options?: Options<RoomStateSseRtV1SseRoomsCurrentGetData>) => queryOptions<unknown, AxiosError<RoomStateSseRtV1SseRoomsCurrentGetError>, unknown, ReturnType<typeof roomStateSseRtV1SseRoomsCurrentGetQueryKey>>({
+export const roomStateSseRtV1SseRoomsCurrentStateGetOptions = (options?: Options<RoomStateSseRtV1SseRoomsCurrentStateGetData>) => queryOptions<unknown, AxiosError<DefaultError>, unknown, ReturnType<typeof roomStateSseRtV1SseRoomsCurrentStateGetQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await roomStateSseRtV1SseRoomsCurrentGet({
+        const { data } = await roomStateSseRtV1SseRoomsCurrentStateGet({
             ...options,
             ...queryKey[0],
             signal,
@@ -431,5 +442,5 @@ export const roomStateSseRtV1SseRoomsCurrentGetOptions = (options?: Options<Room
         });
         return data;
     },
-    queryKey: roomStateSseRtV1SseRoomsCurrentGetQueryKey(options)
+    queryKey: roomStateSseRtV1SseRoomsCurrentStateGetQueryKey(options)
 });

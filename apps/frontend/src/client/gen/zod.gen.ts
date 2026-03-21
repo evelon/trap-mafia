@@ -45,15 +45,16 @@ export const zActionReceipt = z.object({
 /**
  * AuthErrorCode
  */
-export const zAuthErrorCode = z.enum([
-    'AUTH_USER_NOT_FOUND',
-    'AUTH_USERNAME_NOT_FOUND',
-    'AUTH_WRONG_PW',
+export const zAuthErrorCode = z.enum(['AUTH_UNAUTHORIZED']);
+
+/**
+ * AuthTokenErrorCode
+ */
+export const zAuthTokenErrorCode = z.enum([
     'AUTH_TOKEN_NOT_INCLUDED',
     'AUTH_TOKEN_INVALID',
     'AUTH_TOKEN_EXPIRED',
-    'AUTH_TOKEN_PAYLOAD_INVALID',
-    'AUTH_UNAUTHORIZED'
+    'AUTH_TOKEN_PAYLOAD_INVALID'
 ]);
 
 /**
@@ -123,9 +124,26 @@ export const zCaseStartRequest = z.object({
 export const zCaseStartSuccessCode = z.enum(['OK']);
 
 /**
+ * CaseStatus
+ */
+export const zCaseStatus = z.enum([
+    'RUNNING',
+    'ENDED',
+    'INTERRUPTED'
+]);
+
+/**
  * CommonErrorCode
  */
-export const zCommonErrorCode = z.enum(['VALIDATION_ERROR']);
+export const zCommonErrorCode = z.enum([
+    'VALIDATION_ERROR',
+    'UNKNOWN_ERROR',
+    'PERMISSION_DENIED',
+    'NOT_FOUND',
+    'CONFLICT',
+    'ALREADY_EXISTS',
+    'INTERNAL_SERVER_ERROR'
+]);
 
 /**
  * Envelope[ActionReceipt, BlueVoteSuccessCode]
@@ -137,10 +155,10 @@ export const zEnvelopeActionReceiptBlueVoteSuccessCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zActionReceipt,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -157,7 +175,7 @@ export const zEnvelopeNoneTypeActionConflictCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -174,7 +192,7 @@ export const zEnvelopeNoneTypeActionForbiddenCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -191,7 +209,24 @@ export const zEnvelopeNoneTypeAuthErrorCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
+    meta: z.optional(z.union([
+        z.record(z.string(), z.unknown()),
+        z.null()
+    ]))
+});
+
+/**
+ * Envelope[NoneType, AuthTokenErrorCode]
+ */
+export const zEnvelopeNoneTypeAuthTokenErrorCode = z.object({
+    ok: z.boolean(),
+    code: zAuthTokenErrorCode,
+    message: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -208,7 +243,7 @@ export const zEnvelopeNoneTypeCaseStartConflictCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -225,24 +260,7 @@ export const zEnvelopeNoneTypeCaseStartForbiddenCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
-    meta: z.optional(z.union([
-        z.record(z.string(), z.unknown()),
-        z.null()
-    ]))
-});
-
-/**
- * Envelope[NoneType, CommonErrorCode]
- */
-export const zEnvelopeNoneTypeCommonErrorCode = z.object({
-    ok: z.boolean(),
-    code: zCommonErrorCode,
-    message: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -262,7 +280,7 @@ export const zEnvelopeNoneTypeUnionActionConflictCodeBlueVoteConflictCode = z.ob
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -284,10 +302,10 @@ export const zEnvelopeActionReceiptForceSkipDiscussSuccessCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zActionReceipt,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -331,7 +349,7 @@ export const zEnvelopeNoneTypeInitBlueVoteBadRequestCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -356,7 +374,7 @@ export const zEnvelopeNoneTypeUnionActionConflictCodeInitBlueVoteConflictCode = 
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -378,7 +396,7 @@ export const zEnvelopeNoneTypeInitBlueVoteNotFoundCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -415,10 +433,10 @@ export const zEnvelopeActionReceiptInitBlueVoteSuccessCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zActionReceipt,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -470,10 +488,10 @@ export const zEnvelopeGuestInfoLoginCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zGuestInfo,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -495,7 +513,7 @@ export const zEnvelopeNoneTypeLogoutCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -517,7 +535,7 @@ export const zEnvelopeNoneTypeRedVoteBadRequestCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -542,7 +560,7 @@ export const zEnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode = z.obj
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -564,7 +582,7 @@ export const zEnvelopeNoneTypeRedVoteNotFoundCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.null()),
+    data: z.null(),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -605,10 +623,179 @@ export const zEnvelopeActionReceiptRedVoteSuccessCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zActionReceipt,
         z.null()
+    ]),
+    meta: z.optional(z.union([
+        z.record(z.string(), z.unknown()),
+        z.null()
+    ]))
+});
+
+/**
+ * RoomCaseInfo
+ *
+ * Purpose
+ * - 현재 방에서 진행 중이거나 과거의 케이스(게임 한 판)의 최소 상태를 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.current_case 블록에 해당합니다.
+ *
+ * Field interpretation
+ * - case_id가 null이면 아직 케이스가 없으며 status도 null이어야 합니다.
+ * - case_id가 존재하면 status는 RUNNING 또는 ENDED가 될 수 있습니다.
+ * - MVP 단순화: status는 RUNNING 또는 null로만 사용해도 됩니다.
+ */
+export const zRoomCaseInfo = z.object({
+    case_id: z.optional(z.union([
+        z.uuid(),
+        z.null()
     ])),
+    status: z.optional(z.union([
+        zCaseStatus,
+        z.null()
+    ]))
+});
+
+/**
+ * RoomInfo
+ *
+ * Purpose
+ * - 방 자체 메타 정보를 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.room 블록에 해당합니다.
+ *
+ * Field interpretation
+ * - id: MVP에서는 1로 고정해서 사용할 수 있습니다.
+ * - room_name: MVP에서는 "test_room"처럼 고정 문자열을 사용할 수 있습니다.
+ * - host_user_id: 방장 유저의 UUID입니다.
+ * - created_at: ISO-8601 UTC 문자열(예: 2026-01-31T09:12:34.567Z)입니다.
+ */
+export const zRoomInfo = z.object({
+    id: z.optional(z.uuid()).default('ffffffff-ffff-ffff-ffff-ffffffffffff'),
+    room_name: z.string().min(4).max(255),
+    host_user_id: z.optional(z.union([
+        z.uuid(),
+        z.null()
+    ])),
+    created_at: z.string()
+});
+
+/**
+ * RoomMember
+ *
+ * Purpose
+ * - 방에 active한(퇴장하지 않은) 멤버의 최소 정보를 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.members[] 항목입니다.
+ *
+ * Field interpretation
+ * - members에는 left_at이 null인 active 멤버만 포함합니다(실제 구현 규칙).
+ * - members의 정렬은 joined_at ASC(입장 순)입니다(실제 구현 규칙).
+ */
+export const zRoomMember = z.object({
+    user_id: z.uuid(),
+    username: z.string().min(4).max(255),
+    joined_at: z.string()
+});
+
+/**
+ * RoomSettings
+ *
+ * Purpose
+ * - 방 설정(플레이 규칙/제한)을 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.settings 블록에 해당합니다.
+ *
+ * Field interpretation
+ * - discuss_duration_sec이 0이면 시간 제한이 없음을 뜻합니다.
+ * - MVP에서는 아래 기본값을 고정해서 사용할 수 있습니다.
+ */
+export const zRoomSettings = z.object({
+    max_players: z.optional(z.int().gte(4).lte(8)).default(8),
+    team_policy: z.optional(z.enum(['RANDOM', 'FIXED'])),
+    full_life: z.optional(z.int().gte(1).lte(4)).default(2),
+    max_vote_phases_per_round: z.optional(z.int().gte(1)).default(2),
+    night_duration_sec: z.optional(z.int().gte(1)).default(30),
+    vote_duration_sec: z.optional(z.int().gte(1)).default(30),
+    discuss_duration_sec: z.optional(z.int().gte(0)).default(120)
+});
+
+/**
+ * RoomSnapshotType
+ */
+export const zRoomSnapshotType = z.enum([
+    'room.connected',
+    'room.member.joined',
+    'room.member.left',
+    'room.member.kicked',
+    'room.member.readied',
+    'room.member.unreadied',
+    'room.case.started',
+    'room.case.ended',
+    'room.stream_close'
+]);
+
+/**
+ * RoomSnapshot
+ *
+ * Purpose
+ * - 방 상태를 SSE/REST에서 한 번에 전달하기 위한 스냅샷입니다.
+ *
+ * Meaning
+ * - Notion의 room_snapshot 전체 구조에 해당합니다.
+ *
+ * Field interpretation
+ * - room/settings/current_case/members를 포함합니다.
+ * - MVP 목업에서는 기본값들을 그대로 사용해도 스냅샷을 만들 수 있습니다.
+ */
+export const zRoomSnapshot = z.object({
+    room: zRoomInfo,
+    settings: z.optional(zRoomSettings),
+    current_case: z.optional(z.union([
+        zRoomCaseInfo,
+        z.null()
+    ])),
+    members: z.optional(z.array(zRoomMember)),
+    last_event: z.optional(z.union([
+        zRoomSnapshotType,
+        z.null()
+    ])),
+    logs: z.optional(z.array(z.string()))
+});
+
+/**
+ * SSEEnvelopeCode
+ *
+ * SSE의 Envelope 유형을 나타냄
+ */
+export const zSseEnvelopeCode = z.enum([
+    'ROOM_STATE',
+    'CASE_STATE',
+    'ROOM_LEAVE',
+    'ROOM_KICKED',
+    'ROOM_MEMBERSHIP_INVALID',
+    'STREAM_CLOSE'
+]);
+
+/**
+ * Envelope[RoomSnapshot, SSEEnvelopeCode]
+ */
+export const zEnvelopeRoomSnapshotSseEnvelopeCode = z.object({
+    ok: z.boolean(),
+    code: zSseEnvelopeCode,
+    message: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    data: z.union([
+        zRoomSnapshot,
+        z.null()
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -661,10 +848,10 @@ export const zEnvelopeCaseStartMutationCaseStartSuccessCode = z.object({
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zCaseStartMutation,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -698,19 +885,19 @@ export const zJoinRoomMutation = z.object({
 });
 
 /**
- * Envelope[JoinRoomMutation, JoinRoomCode]
+ * JoinRoomResponse
  */
-export const zEnvelopeJoinRoomMutationJoinRoomCode = z.object({
+export const zJoinRoomResponse = z.object({
     ok: z.boolean(),
     code: zJoinRoomCode,
     message: z.optional(z.union([
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zJoinRoomMutation,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -746,19 +933,19 @@ export const zKickUserMutation = z.object({
 });
 
 /**
- * Envelope[KickUserMutation, KickUserCode]
+ * KickUserResponse
  */
-export const zEnvelopeKickUserMutationKickUserCode = z.object({
+export const zKickUserResponse = z.object({
     ok: z.boolean(),
     code: zKickUserCode,
     message: z.optional(z.union([
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zKickUserMutation,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -792,19 +979,19 @@ export const zLeaveRoomMutation = z.object({
 });
 
 /**
- * Envelope[LeaveRoomMutation, LeaveRoomCode]
+ * LeaveRoomResponse
  */
-export const zEnvelopeLeaveRoomMutationLeaveRoomCode = z.object({
+export const zLeaveRoomResponse = z.object({
     ok: z.boolean(),
     code: zLeaveRoomCode,
     message: z.optional(z.union([
         z.string(),
         z.null()
     ])),
-    data: z.optional(z.union([
+    data: z.union([
         zLeaveRoomMutation,
         z.null()
-    ])),
+    ]),
     meta: z.optional(z.union([
         z.record(z.string(), z.unknown()),
         z.null()
@@ -825,6 +1012,42 @@ export const zValidationError = z.object({
  */
 export const zHttpValidationError = z.object({
     detail: z.optional(z.array(zValidationError))
+});
+
+/**
+ * _ValidationFieldError
+ */
+export const zValidationFieldError = z.object({
+    field: z.string(),
+    message: z.string(),
+    type: z.string()
+});
+
+/**
+ * _ValidationErrorData
+ */
+export const zValidationErrorData = z.object({
+    fields: z.array(zValidationFieldError)
+});
+
+/**
+ * ValidationErrorResponse
+ */
+export const zValidationErrorResponse = z.object({
+    ok: z.boolean(),
+    code: zCommonErrorCode,
+    message: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    data: z.union([
+        zValidationErrorData,
+        z.null()
+    ]),
+    meta: z.optional(z.union([
+        z.record(z.string(), z.unknown()),
+        z.null()
+    ]))
 });
 
 export const zMeApiV1AuthMeGetData = z.object({
@@ -945,19 +1168,6 @@ export const zRedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponse = z.union
     zEnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode
 ]);
 
-export const zJoinRoomApiV1RoomsRoomIdJoinPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        room_id: z.uuid()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * Successful Response
- */
-export const zJoinRoomApiV1RoomsRoomIdJoinPostResponse = zEnvelopeJoinRoomMutationJoinRoomCode;
-
 export const zLeaveRoomApiV1RoomsCurrentLeavePostData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
@@ -967,20 +1177,7 @@ export const zLeaveRoomApiV1RoomsCurrentLeavePostData = z.object({
 /**
  * Successful Response
  */
-export const zLeaveRoomApiV1RoomsCurrentLeavePostResponse = zEnvelopeLeaveRoomMutationLeaveRoomCode;
-
-export const zKickUserApiV1RoomsCurrentUsersUserIdKickPostData = z.object({
-    body: z.optional(z.never()),
-    path: z.object({
-        user_id: z.uuid()
-    }),
-    query: z.optional(z.never())
-});
-
-/**
- * Successful Response
- */
-export const zKickUserApiV1RoomsCurrentUsersUserIdKickPostResponse = zEnvelopeKickUserMutationKickUserCode;
+export const zLeaveRoomApiV1RoomsCurrentLeavePostResponse = zLeaveRoomResponse;
 
 export const zCaseStartApiV1RoomsCurrentCaseStartPostData = z.object({
     body: zCaseStartRequest,
@@ -993,24 +1190,51 @@ export const zCaseStartApiV1RoomsCurrentCaseStartPostData = z.object({
  */
 export const zCaseStartApiV1RoomsCurrentCaseStartPostResponse = zEnvelopeCaseStartMutationCaseStartSuccessCode;
 
+export const zKickUserApiV1RoomsCurrentUsersUserIdKickPostData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        user_id: z.uuid()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zKickUserApiV1RoomsCurrentUsersUserIdKickPostResponse = zKickUserResponse;
+
+export const zJoinRoomApiV1RoomsRoomIdJoinPostData = z.object({
+    body: z.optional(z.never()),
+    path: z.object({
+        room_id: z.uuid()
+    }),
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zJoinRoomApiV1RoomsRoomIdJoinPostResponse = zJoinRoomResponse;
+
 export const zHealthApiHealthGetData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.never())
 });
 
-export const zRoomStateSseRtV1SseRoomsCurrentGetData = z.object({
+export const zCloseRoomStateStreamRtV1SseRoomsCurrentClosePostData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
-    query: z.optional(z.never()),
-    headers: z.optional(z.object({
-        'X-User-Id': z.optional(z.union([
-            z.string(),
-            z.null()
-        ])),
-        'X-Room-Id': z.optional(z.union([
-            z.string(),
-            z.null()
-        ]))
-    }))
+    query: z.optional(z.never())
+});
+
+/**
+ * Successful Response
+ */
+export const zCloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse = zEnvelopeRoomSnapshotSseEnvelopeCode;
+
+export const zRoomStateSseRtV1SseRoomsCurrentStateGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.never())
 });
