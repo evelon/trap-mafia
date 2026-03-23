@@ -5,27 +5,27 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  guestLoginApiV1AuthGuestLoginPostMutation,
-  meApiV1AuthMeGetQueryKey,
-} from "@/client/gen";
-import type { GuestInfo } from "@/client/gen";
 import { toast } from "sonner";
 import {
   LoginFormValues,
   loginSchema,
   LOGIN_DEFAULT_VALUES,
 } from "./login-schema";
+import {
+  guestLoginApiV1AuthGuestLoginPostMutation,
+  meApiV1AuthMeGetQueryKey,
+} from "@/client/gen/@tanstack/react-query.gen";
+import { GuestInfo } from "@/client/gen/types.gen";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/shadcn-ui/ui/card";
+import { Field, FieldError, FieldGroup } from "@/shadcn-ui/ui/field";
+import { Input } from "@/shadcn-ui/ui/input";
+import { Button } from "@/shadcn-ui/ui/button";
 
 function getPostLoginPath(user: GuestInfo) {
   switch (user.in_case) {

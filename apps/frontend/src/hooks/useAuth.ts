@@ -1,11 +1,11 @@
 "use client";
 
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import {
   meApiV1AuthMeGetOptions,
   logoutApiV1AuthLogoutPostMutation,
-} from "@/client/gen";
+} from "@/client/gen/@tanstack/react-query.gen";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 export function useAuth() {
   const queryClient = useQueryClient();
