@@ -88,7 +88,6 @@ async def me(
     data = GuestInfo(
         id=user.id,
         username=user.username,
-        in_case=False,
         current_case_id=None,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
@@ -151,7 +150,6 @@ async def guest_login(
     data = GuestInfo(
         id=user.id,
         username=user.username,
-        in_case=False,
         current_case_id=None,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
@@ -226,7 +224,6 @@ async def refresh(
     data = GuestInfo(
         id=UUID(user_id),
         username=username,
-        in_case=False,
         current_case_id=None,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)

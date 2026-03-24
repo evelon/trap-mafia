@@ -2,13 +2,13 @@
 from __future__ import annotations
 
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from typing import Callable
 
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.events import RoomSnapshotType
-from app.infra.db.engine import get_sessionmaker
+from app.domain.events.room import RoomSnapshotType
 from app.models.room import Room
 
 MVP_ROOM_ID = uuid.UUID("ffffffff-ffff-ffff-ffff-ffffffffffff")
@@ -26,14 +26,17 @@ async def ensure_singleton_room(db: AsyncSession) -> None:
         await db.commit()
 
 
-@asynccontextmanager
-async def mvp_lifespan(app: FastAPI):
-    # startup
-    async with get_sessionmaker()() as db:
-        await ensure_singleton_room(db)
+SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
 
-    yield
-    # shutdown: nothing
+
+def create_mvp_lifespan(session_factory: SessionFactory):
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        async with session_factory() as db:
+            await ensure_singleton_room(db)
+        yield
+
+    return lifespan
 
 
 # NOTE: MVP mock 구현

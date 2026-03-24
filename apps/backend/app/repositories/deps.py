@@ -6,6 +6,7 @@ from app.infra.db.session import DbSessionDep
 from app.repositories.case import CaseRepo
 from app.repositories.case_history import CaseSnapshotHistoryRepo
 from app.repositories.case_player import CasePlayerRepo
+from app.repositories.phase import PhaseRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo
 from app.repositories.user import UserRepo
@@ -43,11 +44,18 @@ def get_case_player_repo(db: DbSessionDep) -> CasePlayerRepo:
     return CasePlayerRepo(db)
 
 
-CasePlayerDep = Annotated[CasePlayerRepo, Depends(get_case_player_repo)]
+CasePlayerRepoDep = Annotated[CasePlayerRepo, Depends(get_case_player_repo)]
 
 
 def get_case_history_repo(db: DbSessionDep) -> CaseSnapshotHistoryRepo:
     return CaseSnapshotHistoryRepo(db)
 
 
-CaseHistoryDep = Annotated[CaseSnapshotHistoryRepo, Depends(get_case_history_repo)]
+CaseHistoryRepoDep = Annotated[CaseSnapshotHistoryRepo, Depends(get_case_history_repo)]
+
+
+def get_phase_repo(db: DbSessionDep) -> PhaseRepo:
+    return PhaseRepo(db)
+
+
+PhaseRepoDep = Annotated[PhaseRepo, Depends(get_phase_repo)]

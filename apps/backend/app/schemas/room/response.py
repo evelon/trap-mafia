@@ -43,9 +43,6 @@ class CaseStartSuccessCode(str, Enum):
     OK = "OK"
 
 
-CaseStartSuccessResponse = Envelope[CaseStartMutation, CaseStartSuccessCode]
-
-
 class CaseStartResponse(Envelope[CaseStartMutation, CaseStartSuccessCode]):
     @classmethod
     def default_ok_code(cls) -> CaseStartSuccessCode:

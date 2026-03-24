@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.schemas.common.ids import ConnId, RoomId, UserId
+from app.schemas.common.ids import CaseId, ConnId, RoomId, UserId
 
 
 class Topic:
@@ -22,6 +22,11 @@ class RoomTopic(Topic):
 @dataclass(frozen=True)
 class UserTopic(Topic):
     user_id: UserId
+
+
+@dataclass(frozen=True)
+class CaseTopic(Topic):
+    case_id: CaseId
 
 
 # 확장 대비 (특정 연결)

@@ -1,18 +1,16 @@
 from fastapi import APIRouter, status
 
+from app.core.deps.require_in_room import CurrentRoomId
 from app.core.security.auth import CurrentUser
 from app.schemas.common.response import COMMON_422_VALIDATION_RESPONSE
 from app.schemas.room.action import CaseStartRequest
-from app.schemas.room.mutation import (
-    CaseStartMutation,
-)
 from app.schemas.room.response import (
     CaseStartConflictResponse,
     CaseStartForbiddenResponse,
-    CaseStartSuccessResponse,
+    CaseStartResponse,
     LeaveRoomResponse,
 )
-from app.services.deps import RoomServiceDep
+from app.services.deps import CaseServiceDep, RoomServiceDep
 
 router = APIRouter()
 
@@ -41,7 +39,7 @@ async def leave_room(
 @router.post(
     "/case-start",
     summary="case_start",
-    response_model=CaseStartSuccessResponse,
+    response_model=CaseStartResponse,
     status_code=status.HTTP_200_OK,
     responses={
         **COMMON_422_VALIDATION_RESPONSE,
@@ -49,7 +47,9 @@ async def leave_room(
         status.HTTP_409_CONFLICT: {"model": CaseStartConflictResponse},
     },
 )
-async def case_start(body: CaseStartRequest):
+async def case_start(
+    user: CurrentUser, room_id: CurrentRoomId, body: CaseStartRequest, case_service: CaseServiceDep
+):
     """
     POST /api/rooms/current/case-start
 
@@ -62,8 +62,8 @@ async def case_start(body: CaseStartRequest):
     - 403: room에 속해 있지 않거나 시작 권한이 없는 경우
     - 409: room 상태가 case 시작 조건을 만족하지 않는 경우
     """
-    mut = CaseStartMutation()
-    return CaseStartSuccessResponse.success(data=mut)
+    mut = await case_service.start_case(room_id)
+    return CaseStartResponse.success(data=mut)
 
 
 # POST /current/force-skip

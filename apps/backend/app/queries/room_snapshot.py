@@ -3,7 +3,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from app.core.exceptions import raise_not_found
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.repositories.case import CaseRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo

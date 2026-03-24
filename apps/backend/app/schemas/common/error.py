@@ -36,6 +36,11 @@ class NotFoundErrorCode(BaseErrorCode):
     NOT_FOUND_ROOM = "NOT_FOUND_ROOM"
 
 
+class ConflictErrorCode(BaseErrorCode):
+    CONFLICT_ALREADY_IN_CASE = "CONFLICT_ALREADY_IN_CASE"
+    CONFLICT_PHASE_NOT_FOUND = "CONFLICT_PHASE_NOT_FOUND"
+
+
 class CommonErrorCode(BaseErrorCode):
     VALIDATION_ERROR = "VALIDATION_ERROR"
     UNKNOWN_ERROR = "UNKNOWN_ERROR"

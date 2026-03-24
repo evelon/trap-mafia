@@ -22,7 +22,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from app.domain.enum import CaseStatus
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
 
 

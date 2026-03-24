@@ -23,7 +23,7 @@ async def test_kick_user_403_not_in_room(
     client2: AsyncClient,
     user_auth: UserAuth,
     user_auth2: UserAuth,
-    fake_bus: FakeRoomEventBus,
+    fake_room_bus: FakeRoomEventBus,
 ) -> None:
     user_id1 = user_auth["id"]
     user_id2 = user_auth2["id"]
@@ -52,13 +52,13 @@ async def test_kick_user_403_not_in_room(
 async def test_kick_user_self_emit_event(
     client: AsyncClient,
     user_auth: UserAuth,
-    fake_bus: FakeRoomEventBus,
+    fake_room_bus: FakeRoomEventBus,
 ) -> None:
     room_id = MVP_ROOM_ID
     user_id = user_auth["id"]
 
     _ = await join_room(client, room_id)
-    assert len(fake_bus.calls) == 1
+    assert len(fake_room_bus.calls) == 1
 
     r1 = await client.post(f"/api/v1/rooms/current/users/{user_id}/kick")
     assert r1.status_code == status.HTTP_200_OK
@@ -77,7 +77,7 @@ async def test_kick_user_self_emit_event(
     assert mutation.reason == KickUserReason.KICKED
 
     # 상태 변화가 있었다면 publish 되어야 함
-    assert len(fake_bus.calls) == 2
+    assert len(fake_room_bus.calls) == 2
 
     # 다시 kick을 시도하면 not in room 403
     r2 = await client.post(f"/api/v1/rooms/current/users/{user_id}/kick")
@@ -87,7 +87,7 @@ async def test_kick_user_self_emit_event(
     assert envelope2["ok"] is False
     assert envelope2["code"] == PermissionErrorCode.PERMISSION_DENIED_NOT_IN_ROOM
 
-    assert len(fake_bus.calls) == 2
+    assert len(fake_room_bus.calls) == 2
 
 
 @pytest.mark.anyio
@@ -96,7 +96,7 @@ async def test_kick_other_user(
     user_auth: UserAuth,
     client2: AsyncClient,
     user_auth2: UserAuth,
-    fake_bus: FakeRoomEventBus,
+    fake_room_bus: FakeRoomEventBus,
 ) -> None:
     room_id = MVP_ROOM_ID
     user_id2 = user_auth2["id"]
@@ -104,7 +104,7 @@ async def test_kick_other_user(
     _ = await join_room(client, room_id)
     _ = await join_room(client2, room_id)
 
-    assert len(fake_bus.calls) == 2
+    assert len(fake_room_bus.calls) == 2
 
     r1 = await client.post(f"/api/v1/rooms/current/users/{user_id2}/kick")
     assert r1.status_code == status.HTTP_200_OK
@@ -122,7 +122,7 @@ async def test_kick_other_user(
     assert mutation1.changed is True
     assert mutation1.reason == KickUserReason.KICKED
 
-    assert len(fake_bus.calls) == 3
+    assert len(fake_room_bus.calls) == 3
 
     r2 = await client.post(f"/api/v1/rooms/current/users/{user_id2}/kick")
     assert r2.status_code == status.HTTP_200_OK
@@ -140,4 +140,4 @@ async def test_kick_other_user(
     assert mutation2.changed is False
     assert mutation2.reason == KickUserReason.NOT_IN_ROOM
 
-    assert len(fake_bus.calls) == 3
+    assert len(fake_room_bus.calls) == 3

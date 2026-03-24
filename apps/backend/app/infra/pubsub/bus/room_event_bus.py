@@ -1,7 +1,7 @@
 import json
 from typing import AsyncIterator
 
-from app.domain.events import RoomEventDelta, RoomSnapshotType
+from app.domain.events.room import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.topics import RoomTopic
 from app.infra.pubsub.transport.base import PubSub
 

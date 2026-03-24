@@ -1,8 +1,8 @@
 from enum import Enum
-from uuid import UUID
 
 from pydantic import Field
 
+from app.schemas.common.ids import CaseId, UserId
 from app.schemas.common.mutation import BaseMutation, Subject, Target
 
 
@@ -121,7 +121,7 @@ class LeaveRoomMutation(BaseMutation[LeaveRoomReason, None]):
     )
 
 
-class KickUserMutation(BaseMutation[KickUserReason, UUID]):
+class KickUserMutation(BaseMutation[KickUserReason, UserId]):
     """
     POST /api/rooms/current/users/{user_id}/kick 성공(200) 시 반환되는 mutation 데이터.
 
@@ -150,7 +150,7 @@ class KickUserMutation(BaseMutation[KickUserReason, UUID]):
         frozen=True,
         json_schema_extra={"const": Subject.USER},
     )
-    subject_id: UUID = Field(
+    subject_id: UserId = Field(
         description="Target user's id.",
         examples=["00000000-0000-0000-0000-000000000000"],
     )
@@ -170,7 +170,7 @@ class KickUserMutation(BaseMutation[KickUserReason, UUID]):
     )
 
 
-class CaseStartMutation(BaseMutation[CaseStartReason, None]):
+class CaseStartMutation(BaseMutation[CaseStartReason, CaseId]):
     """
     POST /api/rooms/current/case-start 성공(200) 시 반환되는 mutation 데이터.
 
@@ -193,12 +193,11 @@ class CaseStartMutation(BaseMutation[CaseStartReason, None]):
         json_schema_extra={"const": Target.ROOM},
     )
     subject: Subject = Field(
-        default=Subject.ME,
+        default=Subject.CASE,
         frozen=True,
-        json_schema_extra={"const": Subject.ME},
+        json_schema_extra={"const": Subject.CASE},
     )
-    subject_id: None = Field(
-        default=None,
+    subject_id: CaseId = Field(
         frozen=True,
         description="Always null for subject=ME.",
     )

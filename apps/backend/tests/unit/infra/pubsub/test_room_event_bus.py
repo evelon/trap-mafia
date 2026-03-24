@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 
-from app.domain.events import RoomEventDelta, RoomSnapshotType
+from app.domain.events.room import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID

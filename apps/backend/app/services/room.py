@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.events import RoomEventDelta, RoomSnapshotType
+from app.domain.events.room import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
@@ -26,6 +26,7 @@ class RoomService:
 
     규칙:
     - commit/rollback은 여기서 한다. (repo는 순수 DB 접근만)
+    MVP에 host 이전 로직 누락
     """
 
     def __init__(

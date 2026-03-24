@@ -23,8 +23,10 @@ kick_resp_validator = RespValidator(KickUserResponse)
 async def _add_active_membership(
     db: AsyncSession, *, room_id: uuid.UUID, user_id: uuid.UUID
 ) -> None:
-    db.add(RoomMember(room_id=room_id, user_id=user_id))
-    await db.commit()
+    existing = await db.get(RoomMember, {"room_id": room_id, "user_id": user_id})
+    if existing is None:
+        db.add(RoomMember(room_id=room_id, user_id=user_id))
+        await db.commit()
 
 
 @pytest.mark.api

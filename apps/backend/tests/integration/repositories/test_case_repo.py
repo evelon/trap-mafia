@@ -31,15 +31,19 @@ async def _create_room(
     host_id: UUID,
     room_name: str = "test-room",
 ) -> Room:
-    room = Room(
-        id=UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"),
-        name=room_name,
-        host_id=host_id,
-    )
-    db_session.add(room)
-    await db_session.commit()
-    await db_session.refresh(room)
+    # MVP
+    room = await db_session.get(Room, UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"))
+    assert room
     return room
+    # room = Room(
+    #     id=UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"),
+    #     name=room_name,
+    #     host_id=host_id,
+    # )
+    # db_session.add(room)
+    # await db_session.commit()
+    # await db_session.refresh(room)
+    # return room
 
 
 async def _create_case_row(

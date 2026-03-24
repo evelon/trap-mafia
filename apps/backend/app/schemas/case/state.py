@@ -28,6 +28,7 @@ class PhaseState(BaseModel):
 
 
 class Player(BaseModel):
+    user_id: UUID
     username: str  # only in MVP
     seat_no: SeatNo
     life_left: Annotated[int, Field(ge=0)]

@@ -3,7 +3,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
 from app.schemas.common.error import PermissionErrorCode
 from app.schemas.sse.response import SSEEnvelopeCode, SSEEventType

@@ -3,11 +3,12 @@ from typing import Annotated
 from fastapi import Depends
 
 from app.infra.db.session import DbSessionDep
-from app.infra.pubsub.bus.deps import RoomEventBusDep
+from app.infra.pubsub.bus.deps import CaseEventBusDep, RoomEventBusDep
 from app.repositories.deps import (
-    CaseHistoryDep,
-    CasePlayerDep,
+    CaseHistoryRepoDep,
+    CasePlayerRepoDep,
     CaseRepoDep,
+    PhaseRepoDep,
     RoomMemberRepoDep,
     RoomRepoDep,
     UserRepoDep,
@@ -31,10 +32,13 @@ RoomServiceDep = Annotated[RoomService, Depends(get_room_service)]
 def get_case_service(
     db: DbSessionDep,
     case_repo: CaseRepoDep,
-    case_player_repo: CasePlayerDep,
-    case_history_repo: CaseHistoryDep,
+    case_player_repo: CasePlayerRepoDep,
+    case_history_repo: CaseHistoryRepoDep,
     room_member_repo: RoomMemberRepoDep,
     room_repo: RoomRepoDep,
+    phase_repo: PhaseRepoDep,
+    room_event_bus: RoomEventBusDep,
+    case_event_bus: CaseEventBusDep,
 ) -> CaseService:
     case_service = CaseService(
         db,
@@ -43,6 +47,9 @@ def get_case_service(
         case_history_repo=case_history_repo,
         room_member_repo=room_member_repo,
         room_repo=room_repo,
+        phase_repo=phase_repo,
+        room_event_bus=room_event_bus,
+        case_event_bus=case_event_bus,
     )
     return case_service
 

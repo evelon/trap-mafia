@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.domain.enum import CaseStatus
+from app.domain.enum import CaseStatus, PhaseType
 from app.models.base import Base
 
 
@@ -106,4 +106,29 @@ class CasePlayer(Base):
         CheckConstraint(
             "vote_tokens >= 0 AND vote_tokens <= 4", name="ck_case_players_vote_tokens_range"
         ),
+    )
+
+
+class Phase(Base):
+    __tablename__ = "phases"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    case_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("cases.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    round_no: Mapped[int] = mapped_column(nullable=False)
+    seq_in_round: Mapped[int] = mapped_column(nullable=False)
+    phase_type: Mapped[PhaseType] = mapped_column(
+        Enum(PhaseType, name="phase_type"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    closed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("case_id", "round_no", "seq_in_round", name="uq_case_round_seq"),
     )

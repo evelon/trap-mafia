@@ -12,6 +12,7 @@ class Target(str, Enum):
 class Subject(str, Enum):
     ME = "ME"
     USER = "USER"
+    CASE = "CASE"
 
 
 class BaseMutation[ReasonT: Enum, SubjectIdT](BaseModel):

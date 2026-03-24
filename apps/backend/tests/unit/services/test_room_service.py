@@ -37,7 +37,9 @@ async def _get_active(db, *, user_id: UUID) -> RoomMember | None:
 
 
 @pytest.mark.unit
-async def test_service_join_room_first_time_and_idempotent(db_session, room_service: RoomService):
+async def test_service_join_room_first_time_and_idempotent(
+    db_session, client, room_service: RoomService
+):
     """
     Service 스펙(join):
     - 유저가 방에 없으면:

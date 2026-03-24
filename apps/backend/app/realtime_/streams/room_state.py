@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import mvp_logs_mapper
