@@ -4,11 +4,12 @@ from typing import Annotated
 
 from fastapi import Depends
 
+# test
+from app.core.error_codes import PermissionErrorCode
 from app.core.exceptions import raise_forbidden
 from app.core.security.auth import CurrentUser
 from app.mvp import MVP_ROOM_ID
 from app.repositories.deps import RoomMemberRepoDep
-from app.schemas.common.error import PermissionErrorCode
 from app.schemas.common.ids import RoomId
 
 

@@ -7,8 +7,8 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.core.error_codes import CommonErrorCode
 from app.models.room import Room, RoomMember
-from app.schemas.common.error import CommonErrorCode
 from app.schemas.common.mutation import Subject, Target
 from app.schemas.room.mutation import KickUserReason
 from app.schemas.room.response import KickUserResponse

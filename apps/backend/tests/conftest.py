@@ -27,16 +27,24 @@ from sqlalchemy.ext.asyncio import (
 from app.core.config import JwtConfig, Settings, get_jwt_config, get_settings
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandler
 from app.infra.db.session import get_db
+from app.infra.pubsub.bus.case_event_bus import CaseEventBus
+from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
 from app.infra.pubsub.transport.deps import get_pubsub
-from app.infra.redis.client import get_redis_client
+from app.infra.redis.client import Redis, get_redis_client
+from app.infra.redis.pubsub import RedisPubSub
 from app.models.auth import User
 from app.models.room import Room
 from app.mvp import create_mvp_lifespan
+from app.repositories.case import CaseRepo
+from app.repositories.case_history import CaseSnapshotHistoryRepo
+from app.repositories.case_player import CasePlayerRepo
+from app.repositories.phase import PhaseRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo
 from app.repositories.user import UserRepo
 from app.schemas.auth.response import UserInfoResponse
+from app.services.case import CaseService
 from main import create_app
 from tests._helpers.auth import UserAuth, login_url
 from tests._helpers.validators import RespValidator
@@ -234,24 +242,6 @@ async def user_auth2(client2: AsyncClient) -> UserAuth:
     return await _user_auth(client2, "username2")
 
 
-@pytest.fixture
-async def user_repo(db_session: AsyncSession) -> UserRepo:
-    user_repo = UserRepo(db_session)
-    return user_repo
-
-
-@pytest.fixture
-def room_repo(db_session: AsyncSession) -> RoomRepo:
-    room_repo = RoomRepo(db_session)
-    return room_repo
-
-
-@pytest_asyncio.fixture
-async def room_member_repo(db_session: AsyncSession) -> RoomMemberRepo:
-    room_member_repo = RoomMemberRepo(db_session)
-    return room_member_repo
-
-
 @pytest_asyncio.fixture
 async def random_user(db_session: AsyncSession, user_repo: UserRepo) -> User:
     user = await user_repo.create(username="random_user")
@@ -343,12 +333,6 @@ async def user_hosted_room(
     _ = await room_member_repo.create_membership(user_id=host_id, room_id=room.id)
     await db_session.commit()
     return room
-
-
-# @pytest_asyncio.fixture
-# async def add_players_to_room(
-#     room_member_repo: RoomMemberRepo
-# ) -> Callable[[Room, list[User]]]
 
 
 @pytest_asyncio.fixture
@@ -477,6 +461,19 @@ async def live_async_engine(
             pass
         except PermissionError:
             pass
+
+
+@pytest_asyncio.fixture
+async def live_db_session(live_async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
+    """Provide an AsyncSession bound to the per-test engine."""
+    SessionMaker = async_sessionmaker(
+        bind=live_async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async with SessionMaker() as session:
+        yield session
 
 
 @pytest.fixture(autouse=True)
@@ -660,3 +657,79 @@ async def sse_user_hosted_room(
     _ = await room_member_repo.create_membership(user_id=host_id, room_id=room.id)
     await db_session.commit()
     return room
+
+
+###############################################################################
+###### layer object fixtures
+###############################################################################
+
+
+@pytest.fixture
+def room_event_bus() -> RoomEventBus:
+    return RoomEventBus(RedisPubSub(Redis()))
+
+
+@pytest.fixture
+def case_event_bus() -> CaseEventBus:
+    return CaseEventBus(RedisPubSub(Redis()))
+
+
+@pytest.fixture
+async def user_repo(db_session: AsyncSession) -> UserRepo:
+    user_repo = UserRepo(db_session)
+    return user_repo
+
+
+@pytest.fixture
+def case_repo(db_session: AsyncSession) -> CaseRepo:
+    return CaseRepo(db_session)
+
+
+@pytest.fixture
+def case_player_repo(db_session: AsyncSession) -> CasePlayerRepo:
+    return CasePlayerRepo(db_session)
+
+
+@pytest.fixture
+def case_history_repo(db_session: AsyncSession) -> CaseSnapshotHistoryRepo:
+    return CaseSnapshotHistoryRepo(db_session)
+
+
+@pytest.fixture
+def room_member_repo(db_session: AsyncSession) -> RoomMemberRepo:
+    return RoomMemberRepo(db_session)
+
+
+@pytest.fixture
+def room_repo(db_session: AsyncSession) -> RoomRepo:
+    return RoomRepo(db_session)
+
+
+@pytest.fixture
+def phase_repo(db_session: AsyncSession) -> PhaseRepo:
+    return PhaseRepo(db_session)
+
+
+@pytest.fixture
+def case_service(
+    db_session: AsyncSession,
+    case_repo: CaseRepo,
+    case_player_repo: CasePlayerRepo,
+    case_history_repo: CaseSnapshotHistoryRepo,
+    room_member_repo: RoomMemberRepo,
+    room_repo: RoomRepo,
+    phase_repo: PhaseRepo,
+    room_event_bus: RoomEventBus,
+    case_event_bus: CaseEventBus,
+) -> CaseService:
+    return CaseService(
+        db=db_session,
+        case_repo=case_repo,
+        case_player_repo=case_player_repo,
+        case_history_repo=case_history_repo,
+        room_member_repo=room_member_repo,
+        room_repo=room_repo,
+        phase_repo=phase_repo,
+        room_event_bus=room_event_bus,
+        case_event_bus=case_event_bus,
+    )

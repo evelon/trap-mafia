@@ -5,8 +5,8 @@ from typing import Any
 from fastapi import status
 from pydantic import BaseModel
 
+from app.core.error_codes import AuthTokenErrorCode, CommonErrorCode
 from app.schemas.common.envelope import Envelope
-from app.schemas.common.error import AuthTokenErrorCode, CommonErrorCode
 
 
 class _ValidationFieldError(BaseModel):

@@ -8,12 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.error_codes import AuthCommonErrorCode, AuthUserErrorCode
 from app.core.exceptions import EnvelopeHTTPException
 from app.infra.db.session import DbSessionDep
 from app.models.auth import User
 from app.repositories.deps import UserRepoDep
 from app.repositories.user import UserRepo
-from app.schemas.common.error import AuthErrorCode, AuthUserErrorCode
 
 
 class AuthService:
@@ -54,7 +54,7 @@ class AuthService:
                 # Invalid UUID in token/session payload -> treat as unauthorized.
                 raise EnvelopeHTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    code=AuthErrorCode.AUTH_UNAUTHORIZED,
+                    code=AuthCommonErrorCode.AUTH_UNAUTHORIZED,
                 )
 
         query = select(User).where(User.id == user_id)

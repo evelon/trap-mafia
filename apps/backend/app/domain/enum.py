@@ -27,3 +27,10 @@ class VoteFailReason(str, Enum):
     TIE = "TIE"
     SOLO_VOTE = "SOLO_VOTE"
     NO_VOTE = "NO_VOTE"
+
+
+class PhaseTransitType(str, Enum):
+    NIGHT_END = "NIGHT_END"
+    INIT_BLUE_VOTE = "INIT_BLUE_VOTE"
+    BLUE_VOTE_END = "BLUE_VOTE_END"
+    DISCUSS_END = "DISCUSS_END"

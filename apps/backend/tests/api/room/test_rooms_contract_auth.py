@@ -8,7 +8,7 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from app.schemas.common.error import AuthErrorCode
+from app.core.error_codes import AuthCommonErrorCode
 from app.schemas.room.response import JoinRoomResponse
 from tests._helpers.validators import RespValidator, general_failure_validator
 
@@ -21,7 +21,7 @@ async def test_rooms_join_requires_auth(db_session: AsyncSession, client: AsyncC
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
     env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env.code == AuthErrorCode.AUTH_UNAUTHORIZED
+    assert env.code == AuthCommonErrorCode.AUTH_UNAUTHORIZED
 
 
 @pytest.mark.api
@@ -30,4 +30,4 @@ async def test_rooms_kick_requires_auth(client: AsyncClient):
     assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
     env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env.code == AuthErrorCode.AUTH_UNAUTHORIZED
+    assert env.code == AuthCommonErrorCode.AUTH_UNAUTHORIZED

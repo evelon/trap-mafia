@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.core.error_codes import ConflictErrorCode
 from app.core.exceptions import raise_conflict
 from app.core.utils.datetime import now_utc_iso
 from app.domain.constants import case as case_const
@@ -28,7 +29,6 @@ from app.schemas.case.state import (
 )
 from app.schemas.common.ids import RoomId, UserId
 from app.schemas.room.mutation import CaseStartMutation
-from app.schemas.room.response import CaseStartConflictCode
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,6 @@ class CaseService:
             ),
             phase_state=PhaseState(
                 phase_id=uuid4(),
-                history_id=1,
                 phase_type=PhaseType.NIGHT,
                 seq_in_round=case_const.INITIAL_SEQ_IN_ROUND,
                 phase_no_in_round=case_const.INITIAL_PHASE_NO_IN_ROUND,
@@ -100,7 +99,7 @@ class CaseService:
     async def start_case(self, room_id: RoomId) -> CaseStartMutation:
         case = await self._case_repo.get_running_by_room_id(room_id=room_id)
         if case is not None:
-            raise_conflict(code=CaseStartConflictCode.ROOM_CASE_RUNNING)
+            raise_conflict(code=ConflictErrorCode.CONFLICT_ROOM_CASE_RUNNING)
 
         room = await self._room_repo.get_by_id(room_id=room_id)
         if room is None:
@@ -119,7 +118,7 @@ class CaseService:
         await self._db.flush()
 
         # case record로 phase 생성
-        phase = await self._phase_repo.create(case.id)
+        phase = await self._phase_repo.create(case_id=case.id)
 
         # case record와 user record로 case_player 생성
         case_players = await self._case_player_repo.create_many(case_id=case.id, user_ids=user_ids)

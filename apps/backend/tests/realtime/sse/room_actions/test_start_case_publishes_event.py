@@ -7,6 +7,7 @@ from fastapi import status
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.core.error_codes import ConflictErrorCode
 from app.domain.events.case import CaseSnapshotType
 from app.infra.pubsub.topics import CaseTopic
 from app.models.auth import User
@@ -14,7 +15,6 @@ from app.models.room import Room
 from app.schemas.common.mutation import Subject, Target
 from app.schemas.room.mutation import CaseStartReason
 from app.schemas.room.response import (
-    CaseStartConflictCode,
     CaseStartConflictResponse,
     CaseStartResponse,
     CaseStartSuccessCode,
@@ -88,9 +88,8 @@ async def test_case_start_does_not_emit_when_already_started(
     r = await client.post("/api/v1/rooms/current/case-start", json={"red_player_count": None})
     assert r.status_code == status.HTTP_409_CONFLICT, r.text
 
-    print(r.json())
     envelope = CaseStartConflictResponse.model_validate(r.json())
     assert envelope.ok is False
-    assert envelope.code == CaseStartConflictCode.ROOM_CASE_RUNNING
+    assert envelope.code == ConflictErrorCode.CONFLICT_ROOM_CASE_RUNNING
     assert envelope.data is None
     assert len(fake_case_bus.calls) == 1

@@ -1,5 +1,8 @@
+from app.schemas.case.sse_response import CaseStateEnvelope
 from app.schemas.room.sse_response import RoomStateEnvelope
 from app.schemas.sse.response import SSEEventType
+
+type StateEnvelope = RoomStateEnvelope | CaseStateEnvelope
 
 
 def build_sse_frame(*, event: SSEEventType, data: str, id_: int | None = None) -> str:
@@ -18,7 +21,7 @@ def build_sse_frame(*, event: SSEEventType, data: str, id_: int | None = None) -
 
 
 def build_envelope_sse_frame(
-    *, event: SSEEventType, data: RoomStateEnvelope, id_: int | None = None
+    *, event: SSEEventType, data: StateEnvelope, id_: int | None = None
 ) -> str:
     payload = data.model_dump_json(ensure_ascii=False)
     return build_sse_frame(event=event, data=payload, id_=id_)

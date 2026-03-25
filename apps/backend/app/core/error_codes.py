@@ -5,7 +5,7 @@ class BaseErrorCode(str, Enum):
     pass
 
 
-class AuthErrorCode(BaseErrorCode):
+class AuthCommonErrorCode(BaseErrorCode):
     AUTH_UNAUTHORIZED = (
         "AUTH_UNAUTHORIZED"  # 401 unauthorized의 일반적인 code. 보안상 이유를 노출하지 않을 경우
     )
@@ -28,8 +28,12 @@ class AuthTokenErrorCode(BaseErrorCode):
     AUTH_TOKEN_PAYLOAD_INVALID = "AUTH_TOKEN_PAYLOAD_INVALID"  # 토큰 payload가 유효하지 않음
 
 
+type AuthErrorCode = AuthCommonErrorCode | AuthTokenErrorCode | AuthUserErrorCode
+
+
 class PermissionErrorCode(BaseErrorCode):
     PERMISSION_DENIED_NOT_IN_ROOM = "PERMISSION_DENIED_NOT_IN_ROOM"
+    PERMISSION_DENIED_NOT_HOST = "PERMISSION_DENIED_NOT_HOST"
 
 
 class NotFoundErrorCode(BaseErrorCode):
@@ -38,7 +42,14 @@ class NotFoundErrorCode(BaseErrorCode):
 
 class ConflictErrorCode(BaseErrorCode):
     CONFLICT_ALREADY_IN_CASE = "CONFLICT_ALREADY_IN_CASE"
+    CONFLICT_NOT_ON_CASE = "CONFLICT_NOT_ON_CASE"
     CONFLICT_PHASE_NOT_FOUND = "CONFLICT_PHASE_NOT_FOUND"
+    CONFLICT_SNAPSHOT_NOT_FOUND = "CONFLICT_SNAPSHOT_NOT_FOUND"
+
+    CONFLICT_ROOM_CASE_RUNNING = "ROOM_CASE_RUNNING"
+    CONFLICT_ROOM_NOT_ENOUGH_PLAYERS = "ROOM_NOT_ENOUGH_PLAYERS"
+    CONFLICT_ROOM_NOT_ALL_READY = "ROOM_NOT_ALL_READY"
+    CONFLICT_ROOM_DELETED = "ROOM_DELETED"
 
 
 class CommonErrorCode(BaseErrorCode):

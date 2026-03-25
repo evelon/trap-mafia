@@ -20,7 +20,6 @@ class CaseState(BaseModel):
 
 class PhaseState(BaseModel):
     phase_id: UUID
-    history_id: Annotated[int, Field(ge=1)] = 1
     phase_type: PhaseType
     seq_in_round: Annotated[int, Field(ge=1)]
     phase_no_in_round: Annotated[int, Field(ge=1)]
@@ -53,6 +52,7 @@ class DiscussPhaseInfo(BaseModel):
 
 class CaseSnapshot(BaseModel):
     schema_version: Annotated[int, Field(ge=1, default=1)]
+    snapshot_no: Annotated[int, Field(ge=1)] = 1
     case_state: CaseState
     phase_state: PhaseState
     players: Annotated[list[Player], Field(min_length=SEAT_MIN, max_length=SEAT_MAX_EXCLUSIVE)]

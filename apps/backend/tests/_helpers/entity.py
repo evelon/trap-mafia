@@ -44,10 +44,10 @@ async def _create_room_with_members(db: AsyncSession, user_ids: list[UserId]) ->
     await db.commit()
     # await db.refresh(room)
     room_id = await create_room(db, host_id=user_ids[0])
-    print(user_ids)
     members = [RoomMember(user_id=user.id, room_id=room_id) for user in users]
     db.add_all(members)
     await db.commit()
+
     return room_id
 
 

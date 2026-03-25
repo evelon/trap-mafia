@@ -6,12 +6,12 @@ from uuid import UUID
 from fastapi import Depends, Request, status
 from sqlalchemy import select
 
+from app.core.error_codes import AuthCommonErrorCode, AuthUserErrorCode
 from app.core.exceptions import EnvelopeHTTPException
 from app.core.security.jwt import ACCESS_TOKEN, JwtHandlerDep
 from app.domain.types import AuthUser
 from app.infra.db.session import DbSessionDep
 from app.models.auth import User
-from app.schemas.common.error import AuthErrorCode, AuthUserErrorCode
 
 
 async def get_current_user(
@@ -23,7 +23,7 @@ async def get_current_user(
     if not token:
         raise EnvelopeHTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            code=AuthErrorCode.AUTH_UNAUTHORIZED,
+            code=AuthCommonErrorCode.AUTH_UNAUTHORIZED,
         )
 
     claims = jwt_handler.decode_and_verify(token)
@@ -36,7 +36,7 @@ async def get_current_user(
         # Invalid UUID in token/session payload -> treat as unauthorized.
         raise EnvelopeHTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            code=AuthErrorCode.AUTH_UNAUTHORIZED,
+            code=AuthCommonErrorCode.AUTH_UNAUTHORIZED,
         )
 
     query = select(User).where(User.id == user_id)

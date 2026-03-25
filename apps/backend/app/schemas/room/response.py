@@ -1,5 +1,6 @@
 from enum import Enum
 
+from app.core.error_codes import ConflictErrorCode, PermissionErrorCode
 from app.schemas.common.envelope import Envelope
 from app.schemas.room.mutation import (
     CaseStartMutation,
@@ -49,19 +50,7 @@ class CaseStartResponse(Envelope[CaseStartMutation, CaseStartSuccessCode]):
         return CaseStartSuccessCode.OK
 
 
-class CaseStartForbiddenCode(str, Enum):
-    PERMISSION_DENIED_NOT_IN_ROOM = "PERMISSION_DENIED_NOT_IN_ROOM"
-    PERMISSION_DENIED_NOT_HOST = "PERMISSION_DENIED_NOT_HOST"
+CaseStartForbiddenResponse = Envelope[None, PermissionErrorCode]
 
 
-CaseStartForbiddenResponse = Envelope[None, CaseStartForbiddenCode]
-
-
-class CaseStartConflictCode(str, Enum):
-    ROOM_CASE_RUNNING = "ROOM_CASE_RUNNING"
-    ROOM_NOT_ENOUGH_PLAYERS = "ROOM_NOT_ENOUGH_PLAYERS"
-    ROOM_NOT_ALL_READY = "ROOM_NOT_ALL_READY"
-    ROOM_DELETED = "ROOM_DELETED"
-
-
-CaseStartConflictResponse = Envelope[None, CaseStartConflictCode]
+CaseStartConflictResponse = Envelope[None, ConflictErrorCode]

@@ -3,7 +3,7 @@ from typing import Annotated, AsyncIterator
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from app.infra.pubsub.topics import ConnTopic, RoomTopic, Topic, UserTopic
+from app.infra.pubsub.topics import CaseTopic, ConnTopic, RoomTopic, Topic, UserTopic
 from app.infra.pubsub.transport.base import PubSub
 from app.infra.redis.client import RedisClientDep
 
@@ -15,6 +15,8 @@ class RedisPubSub(PubSub):
     def _topic_to_channel(self, topic: Topic) -> str:
         if isinstance(topic, RoomTopic):
             return f"room:{topic.room_id}"
+        if isinstance(topic, CaseTopic):
+            return f"room:{topic.case_id}"
         if isinstance(topic, UserTopic):
             return f"user:{topic.user_id}"
         if isinstance(topic, ConnTopic):

@@ -4,8 +4,8 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
+from app.core.error_codes import PermissionErrorCode
 from app.mvp import MVP_ROOM_ID
-from app.schemas.common.error import PermissionErrorCode
 from app.schemas.common.mutation import Subject, Target
 from app.schemas.room.mutation import KickUserReason
 from app.schemas.room.response import (

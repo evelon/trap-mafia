@@ -5,7 +5,9 @@ from typing import Any, Never
 
 from fastapi import HTTPException, status
 
-from app.schemas.common.error import CommonErrorCode
+from app.core.error_codes import (
+    CommonErrorCode,
+)
 
 
 class EnvelopeHTTPException(HTTPException):

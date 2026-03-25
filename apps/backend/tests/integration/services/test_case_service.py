@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.domain.enum import CaseStatus, PhaseType
 from app.models.auth import User
+from app.models.case import Phase
 from app.models.case_snapshot import CaseSnapshotHistory
 from app.models.room import Room
 from app.repositories.case import CaseRepo
@@ -155,8 +156,29 @@ async def test_start_case_snapshot_matches_schema(
 
     # --- phase ---
     assert validated.phase_state.phase_type == PhaseType.NIGHT
-    assert validated.phase_state.history_id >= 1
 
     # --- logs ---
     assert isinstance(validated.logs, list)
     assert all(isinstance(log, str) for log in validated.logs)
+
+
+@pytest.mark.anyio
+async def test_start_case_creates_initial_phase(
+    db_session: AsyncSession,
+    case_service: CaseService,
+):
+    room_id, _user_ids = await room_with_members(db_session)
+
+    mut = await case_service.start_case(room_id=room_id)
+    await db_session.flush()
+    case_id = mut.subject_id
+
+    result = await db_session.execute(select(Phase).where(Phase.case_id == case_id))
+    phases = result.scalars().all()
+    assert len(phases) == 1
+
+    phase = phases[0]
+    assert phase.case_id == case_id
+    assert phase.phase_type == PhaseType.NIGHT
+    assert phase.round_no == 1
+    assert phase.seq_in_round == 1
