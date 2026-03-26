@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from uuid import UUID, uuid4
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.core.error_codes import ConflictErrorCode
@@ -29,7 +30,7 @@ from app.schemas.case.state import (
     PhaseType,
     Player,
 )
-from app.schemas.common.ids import RoomId, UserId
+from app.schemas.common.ids import CaseId, RoomId, UserId
 from app.schemas.room.mutation import CaseStartMutation
 
 logger = logging.getLogger(__name__)
@@ -97,6 +98,11 @@ class CaseService:
             discuss_phase_info=None,
             logs=[],
         )
+
+    async def get_by_id(self, *, case_id: CaseId) -> Case | None:
+        query = select(Case).where(Case.id == case_id)
+        res = await self._db.execute(query)
+        return res.scalar_one_or_none()
 
     async def start_case(self, room_id: RoomId) -> CaseStartMutation:
         case = await self._case_repo.get_running_by_room_id(room_id=room_id)

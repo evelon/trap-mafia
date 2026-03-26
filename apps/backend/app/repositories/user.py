@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.auth import User
+from app.schemas.common.ids import UserId
 
 
 class UserRepo:
@@ -20,6 +21,11 @@ class UserRepo:
         query = select(User).where(User.id == user_id)
         res = await self.db.execute(query)
         return res.scalar_one_or_none()
+
+    async def get_list_by_ids(self, user_ids: list[UserId]) -> list[User]:
+        query = select(User).where(User.id.in_(user_ids))
+        res = await self.db.execute(query)
+        return list(res.scalars().all())
 
     async def ensure_exists(self, user_id) -> None:
         """Ensure user exists, otherwise raise EntityNotFoundError."""

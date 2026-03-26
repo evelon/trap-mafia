@@ -34,6 +34,7 @@ from app.infra.pubsub.transport.deps import get_pubsub
 from app.infra.redis.client import Redis, get_redis_client
 from app.infra.redis.pubsub import RedisPubSub
 from app.models.auth import User
+from app.models.case import Case, CasePlayer
 from app.models.room import Room
 from app.mvp import create_mvp_lifespan
 from app.repositories.case import CaseRepo
@@ -47,6 +48,7 @@ from app.schemas.auth.response import UserInfoResponse
 from app.services.case import CaseService
 from main import create_app
 from tests._helpers.auth import UserAuth, login_url
+from tests._helpers.entity import room_with_members
 from tests._helpers.validators import RespValidator
 
 
@@ -733,3 +735,19 @@ def case_service(
         room_event_bus=room_event_bus,
         case_event_bus=case_event_bus,
     )
+
+
+@pytest_asyncio.fixture
+async def started_case_with_players(
+    db_session: AsyncSession,
+    case_player_repo: CasePlayerRepo,
+    case_service: CaseService,
+) -> tuple[Case, list[CasePlayer]]:
+    usernames = ["host", "player2", "player3", "player4"]
+    room_id, _ = await room_with_members(db_session, usernames)
+    mut = await case_service.start_case(room_id=room_id)
+    case_id = mut.subject_id
+    case = await case_service.get_by_id(case_id=case_id)
+    assert case
+    players = await case_player_repo.list_by_case_id(case_id=case_id)
+    return case, players
