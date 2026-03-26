@@ -1,6 +1,8 @@
+# 개개 player의 seat_no
 SEAT_NO_MAX_EXCLUSIVE = 8
 SEAT_NO_MIN = 0
 
+# seat의 개수
 SEAT_MIN = 4
 SEAT_MAX_EXCLUSIVE = 8
 
