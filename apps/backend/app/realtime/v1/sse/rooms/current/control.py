@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter
 
 from app.core.security.auth import CurrentUser
-from app.domain.events import RoomEventDelta, RoomSnapshotType
+from app.domain.events.room import RoomEventDelta, RoomSnapshotType
 from app.infra.pubsub.bus.deps import RoomEventBusDep
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID

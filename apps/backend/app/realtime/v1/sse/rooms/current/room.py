@@ -21,8 +21,8 @@ async def room_state_sse(
     - Permission: In Room
 
     Response (SSE)
-    - event: room_state
-    - id: 단조증가(연결 단위, MVP)
+    - event: ROOM_EVENT
+    - id: 단조증가(연결 단위, MVP에서 1로 고정)
     - data: RoomStateResponse(JSON)
 
     Response (REST)

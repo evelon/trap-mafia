@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
 from tests._helpers.auth import UserAuth
 from tests._helpers.room_actions import (

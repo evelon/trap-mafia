@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from starlette import status as http_status
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.core.error_codes import AuthCommonErrorCode, BaseErrorCode, CommonErrorCode
 from app.core.exceptions import EnvelopeHTTPException
 from app.domain.exceptions import (
     ConcurrencyError,
@@ -16,7 +17,6 @@ from app.domain.exceptions import (
     PermissionDeniedError,
 )
 from app.schemas.common.envelope import Envelope
-from app.schemas.common.error import AuthErrorCode, BaseErrorCode, CommonErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def _common_code_for_http_exception(status_code: int) -> BaseErrorCode:
 
     # Prefer explicit codes if your enum defines them.
     if status_code == http_status.HTTP_401_UNAUTHORIZED:
-        return AuthErrorCode.AUTH_UNAUTHORIZED
+        return AuthCommonErrorCode.AUTH_UNAUTHORIZED
 
     if status_code == http_status.HTTP_403_FORBIDDEN:
         return CommonErrorCode.PERMISSION_DENIED

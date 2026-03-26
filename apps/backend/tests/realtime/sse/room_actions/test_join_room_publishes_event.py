@@ -4,7 +4,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.infra.pubsub.topics import RoomTopic
 from app.mvp import MVP_ROOM_ID
 from app.schemas.common.mutation import Subject, Target
@@ -17,7 +17,7 @@ from tests.realtime.sse.room_actions.conftest import FakeRoomEventBus
 
 @pytest.mark.anyio
 async def test_join_room_emits_member_joined_event(
-    client: AsyncClient, user_auth: UserAuth, fake_bus: FakeRoomEventBus
+    client: AsyncClient, user_auth: UserAuth, fake_room_bus: FakeRoomEventBus
 ) -> None:
     """
     join_room에서 실제로 join이 발생하면, Redis pubsub에는 snapshot이 아니라
@@ -41,8 +41,8 @@ async def test_join_room_emits_member_joined_event(
     assert mutation.reason == JoinRoomReason.JOINED
 
     # 상태 변화가 있었다면 publish 되어야 함
-    assert len(fake_bus.calls) == 1
-    call = fake_bus.calls[0]
+    assert len(fake_room_bus.calls) == 1
+    call = fake_room_bus.calls[0]
     assert call.topic == RoomTopic(room_id)
     assert call.event.type == RoomSnapshotType.MEMBER_JOINED
     assert call.event.user_id == user_auth["id"]
@@ -50,7 +50,7 @@ async def test_join_room_emits_member_joined_event(
 
 @pytest.mark.anyio
 async def test_join_room_does_not_emit_when_already_joined(
-    client: AsyncClient, user_auth: UserAuth, fake_bus: FakeRoomEventBus
+    client: AsyncClient, user_auth: UserAuth, fake_room_bus: FakeRoomEventBus
 ) -> None:
     """
     이미 방에 들어가 있는 경우(JoinRoomReason.ALREADY_JOINED)에는 상태 변화가 없으므로
@@ -59,7 +59,7 @@ async def test_join_room_does_not_emit_when_already_joined(
     room_id = MVP_ROOM_ID
     # 첫 join: join 발생 -> publish 1회
     _ = await join_room(client, room_id)
-    assert len(fake_bus.calls) == 1
+    assert len(fake_room_bus.calls) == 1
 
     # 두 번째 join: already joined -> publish 증가 없음
     r = await client.post(f"/api/v1/rooms/{room_id}/join")
@@ -78,4 +78,4 @@ async def test_join_room_does_not_emit_when_already_joined(
     assert mutation.changed is False
     assert mutation.reason == JoinRoomReason.ALREADY_JOINED
 
-    assert len(fake_bus.calls) == 1
+    assert len(fake_room_bus.calls) == 1

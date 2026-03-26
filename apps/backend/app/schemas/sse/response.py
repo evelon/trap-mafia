@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+class CaseRESTRespType(str, Enum):
+    """SSE를 시도했는데 모종의 이유로 인해 Rest response를 보낼 때."""
+
+    SNAPSHOT_NOT_CREATED = "SNAPSHOT_NOT_CREATED"
+
+
 class SSEEventType(str, Enum):
     """Purpose
     - SSE payload의 code 필드에 사용됩니다.

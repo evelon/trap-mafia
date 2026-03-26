@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Annotated
-from uuid import UUID
 
 from pydantic import BaseModel, Field
+
+from app.schemas.common.ids import UserId
 
 
 class RoomSnapshotType(str, Enum):
@@ -20,6 +21,6 @@ class RoomSnapshotType(str, Enum):
 
 class RoomEventDelta(BaseModel):
     type: RoomSnapshotType
-    user_id: UUID | None = None
+    user_id: UserId | None = None
     ts: Annotated[datetime, Field(default_factory=lambda: datetime.now(timezone.utc))]
     version: int | None = None

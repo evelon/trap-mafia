@@ -10,7 +10,8 @@ from app.api.v1.cases.phases.actions.common import (
     _PHASE,
     _SELF_SEAT_NO,
 )
-from app.domain.constants import SEAT_NO_MAX_EXCLUSIVE, SEAT_NO_MIN
+from app.core.deps.require_in_case import CurrentCase
+from app.domain.constants.case import SEAT_NO_MAX_EXCLUSIVE, SEAT_NO_MIN
 from app.schemas.case.action_responses.common_action import ActionConflictCode, ActionForbiddenCode
 from app.schemas.case.action_responses.red_vote import (
     RedVoteBadRequestCode,
@@ -47,7 +48,7 @@ router = APIRouter()
         status.HTTP_409_CONFLICT: {"model": RedVoteConflictResponse},
     },
 )
-async def red_vote(body: RedVoteRequest):
+async def red_vote(body: RedVoteRequest, case: CurrentCase):
     """
     POST /api/cases/current/red-vote
 

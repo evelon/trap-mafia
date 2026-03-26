@@ -8,8 +8,8 @@ import jwt  # PyJWT
 from fastapi import Depends, status
 
 from app.core.config import JwtConfig, get_jwt_config
+from app.core.error_codes import AuthTokenErrorCode
 from app.core.exceptions import EnvelopeHTTPException
-from app.schemas.common.error import AuthTokenErrorCode
 
 ACCESS_TOKEN: Literal["access_token"] = "access_token"
 REFRESH_TOKEN: Literal["refresh_token"] = "refresh_token"

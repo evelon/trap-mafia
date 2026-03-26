@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from app.core.error_codes import NotFoundErrorCode
 from app.core.exceptions import raise_not_found
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.repositories.case import CaseRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo
-from app.schemas.common.error import NotFoundErrorCode
 from app.schemas.room.state import (
     RoomCaseInfo,
     RoomInfo,

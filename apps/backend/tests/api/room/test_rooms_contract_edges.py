@@ -6,8 +6,8 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 
+from app.core.error_codes import AuthCommonErrorCode, CommonErrorCode
 from app.models.room import Room
-from app.schemas.common.error import AuthErrorCode, CommonErrorCode
 from app.schemas.room.response import JoinRoomResponse
 from tests._helpers.auth import UserAuth
 from tests._helpers.validators import RespValidator, general_failure_validator
@@ -25,7 +25,7 @@ async def test_rooms_join_requires_auth(client: AsyncClient):
     assert resp.status_code == 401
 
     env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env.code == AuthErrorCode.AUTH_UNAUTHORIZED
+    assert env.code == AuthCommonErrorCode.AUTH_UNAUTHORIZED
 
 
 @pytest.mark.api
@@ -34,7 +34,7 @@ async def test_rooms_kick_requires_auth(client: AsyncClient):
     assert resp.status_code == 401
 
     env = general_failure_validator.assert_envelope(resp.json(), ok=False, meta_is_null=True)
-    assert env.code == AuthErrorCode.AUTH_UNAUTHORIZED
+    assert env.code == AuthCommonErrorCode.AUTH_UNAUTHORIZED
 
 
 @pytest.mark.api

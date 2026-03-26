@@ -21,8 +21,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.domain.constants.case import SEAT_MAX_EXCLUSIVE, SEAT_MIN
 from app.domain.enum import CaseStatus
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
 
 
@@ -61,7 +62,7 @@ class RoomSettings(BaseModel):
     - MVP에서는 아래 기본값을 고정해서 사용할 수 있습니다.
     """
 
-    max_players: Annotated[int, Field(ge=4, le=8)] = 8
+    max_players: Annotated[int, Field(ge=SEAT_MIN, le=SEAT_MAX_EXCLUSIVE)] = SEAT_MAX_EXCLUSIVE
     team_policy: Literal["RANDOM", "FIXED"] = "RANDOM"
     full_life: Annotated[int, Field(ge=1, le=4)] = 2
     max_vote_phases_per_round: Annotated[int, Field(ge=1)] = 2

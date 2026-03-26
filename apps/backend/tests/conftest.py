@@ -8,7 +8,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncGenerator, AsyncIterator, Iterator
+from typing import AsyncGenerator, AsyncIterator, Awaitable, Callable, Iterator
 
 import fakeredis
 import httpx
@@ -27,24 +27,27 @@ from sqlalchemy.ext.asyncio import (
 from app.core.config import JwtConfig, Settings, get_jwt_config, get_settings
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandler
 from app.infra.db.session import get_db
+from app.infra.pubsub.bus.case_event_bus import CaseEventBus
+from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
-from app.infra.redis.client import get_redis_client
+from app.infra.pubsub.transport.deps import get_pubsub
+from app.infra.redis.client import Redis, get_redis_client
+from app.infra.redis.pubsub import RedisPubSub
 from app.models.auth import User
 from app.models.room import Room
+from app.mvp import create_mvp_lifespan
+from app.repositories.case import CaseRepo
+from app.repositories.case_history import CaseSnapshotHistoryRepo
+from app.repositories.case_player import CasePlayerRepo
+from app.repositories.phase import PhaseRepo
 from app.repositories.room import RoomRepo
 from app.repositories.room_member import RoomMemberRepo
 from app.repositories.user import UserRepo
 from app.schemas.auth.response import UserInfoResponse
+from app.services.case import CaseService
+from main import create_app
 from tests._helpers.auth import UserAuth, login_url
 from tests._helpers.validators import RespValidator
-
-
-@pytest.fixture
-def app():
-    from main import api
-
-    yield api
-    api.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -92,7 +95,7 @@ async def prepare_database(async_engine: AsyncEngine):
 
 
 @pytest_asyncio.fixture
-async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
+async def db_session_(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
     """Provide an AsyncSession bound to the per-test engine."""
     SessionMaker = async_sessionmaker(
         bind=async_engine,
@@ -105,30 +108,63 @@ async def db_session(async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, 
 
 
 @pytest_asyncio.fixture
-async def client(app: FastAPI, db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def mvp_app(async_engine: AsyncEngine):
+    """Provide an AsyncSession bound to the per-test engine."""
+    SessionMaker = async_sessionmaker(
+        bind=async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    mvp_lifespan = create_mvp_lifespan(SessionMaker)
+    app = create_app(lifespan=mvp_lifespan)
+    yield app
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def app(mvp_app):
+    yield mvp_app
+
+
+@pytest_asyncio.fixture
+async def client(app: FastAPI, db_session_: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
-        yield db_session
+        yield db_session_
 
     app.dependency_overrides[get_db] = override_get_db
-
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="https://test",
-    ) as ac:
-        yield ac
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="https://test",
+        ) as ac:
+            yield ac
 
     app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
+async def db_session(client, db_session_: AsyncSession) -> AsyncSession:
+    return db_session_
+
+
+@pytest_asyncio.fixture
+async def init_lifespan(client):
+    return None
+
+
+@pytest_asyncio.fixture
 async def client2(
-    client, app: FastAPI, db_session: AsyncSession
+    client,
+    app: FastAPI,
+    db_session: AsyncSession,
 ) -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="https://test",
-    ) as ac:
-        yield ac
+    async with app.router.lifespan_context(app):
+        async with AsyncClient(
+            transport=ASGITransport(app=app),
+            base_url="https://test",
+        ) as ac:
+            yield ac
 
 
 @pytest.fixture
@@ -206,29 +242,27 @@ async def user_auth2(client2: AsyncClient) -> UserAuth:
     return await _user_auth(client2, "username2")
 
 
-@pytest.fixture
-async def user_repo(db_session: AsyncSession) -> UserRepo:
-    user_repo = UserRepo(db_session)
-    return user_repo
-
-
-@pytest.fixture
-def room_repo(db_session: AsyncSession) -> RoomRepo:
-    room_repo = RoomRepo(db_session)
-    return room_repo
-
-
-@pytest_asyncio.fixture
-async def room_member_repo(db_session: AsyncSession) -> RoomMemberRepo:
-    room_member_repo = RoomMemberRepo(db_session)
-    return room_member_repo
-
-
 @pytest_asyncio.fixture
 async def random_user(db_session: AsyncSession, user_repo: UserRepo) -> User:
     user = await user_repo.create(username="random_user")
     await db_session.commit()
     return user
+
+
+@pytest_asyncio.fixture
+async def create_user(
+    db_session: AsyncSession, user_repo: UserRepo
+) -> Callable[[], Awaitable[User]]:
+    counter = 0
+
+    async def create_user_() -> User:
+        nonlocal counter
+        user = await user_repo.create(username=f"random_user_{counter}")
+        await db_session.commit()
+        counter += 1
+        return user
+
+    return create_user_
 
 
 @pytest_asyncio.fixture
@@ -242,6 +276,49 @@ async def random_room(
     await room_member_repo.create_membership(user_id=random_user.id, room_id=room.id)
     await db_session.commit()
     return room
+
+
+@pytest_asyncio.fixture
+async def create_room(
+    db_session: AsyncSession,
+    room_repo: RoomRepo,
+    room_member_repo: RoomMemberRepo,
+) -> Callable[[User], Awaitable[Room]]:
+    counter = 0
+
+    async def create_room_(user: User) -> Room:
+        nonlocal counter
+        room = await room_repo.create(host_id=user.id, room_name=f"random_room_{counter}")
+        await room_member_repo.create_membership(user_id=user.id, room_id=room.id)
+        await db_session.commit()
+        counter += 1
+        return room
+
+    return create_room_
+
+
+@pytest_asyncio.fixture
+async def add_user_to_room(
+    db_session: AsyncSession, room_member_repo: RoomMemberRepo
+) -> Callable[[Room, User], Awaitable[None]]:
+    async def add_user_(room: Room, user: User) -> None:
+        await room_member_repo.create_membership(user_id=user.id, room_id=room.id)
+        await db_session.commit()
+
+    return add_user_
+
+
+@pytest_asyncio.fixture
+async def add_new_user_to_room(
+    create_user: Callable[[], Awaitable[User]],
+    add_user_to_room: Callable[[Room, User], Awaitable[None]],
+) -> Callable[[Room], Awaitable[User]]:
+    async def add_new_user_to_room_(room: Room) -> User:
+        user = await create_user()
+        await add_user_to_room(room, user)
+        return user
+
+    return add_new_user_to_room_
 
 
 @pytest_asyncio.fixture
@@ -302,8 +379,17 @@ class FakePubSub:
 
 
 @pytest.fixture
-def fake_pubsub():
-    return FakePubSub()
+def fake_pubsub(app: FastAPI):
+    fake_pubsub = FakePubSub()
+
+    async def override_get_pubsub():
+        yield fake_pubsub
+
+    app.dependency_overrides[get_pubsub] = override_get_pubsub
+
+    yield fake_pubsub
+
+    app.dependency_overrides.clear()
 
 
 ###############################################################################
@@ -375,6 +461,19 @@ async def live_async_engine(
             pass
         except PermissionError:
             pass
+
+
+@pytest_asyncio.fixture
+async def live_db_session(live_async_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
+    """Provide an AsyncSession bound to the per-test engine."""
+    SessionMaker = async_sessionmaker(
+        bind=live_async_engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+
+    async with SessionMaker() as session:
+        yield session
 
 
 @pytest.fixture(autouse=True)
@@ -544,3 +643,93 @@ async def sse_user_auth(sse_client: AsyncClient):
 @pytest_asyncio.fixture
 async def sse_user_auth2(sse_client2: AsyncClient):
     return await _sse_user_auth(sse_client2, "username2")
+
+
+@pytest_asyncio.fixture
+async def sse_user_hosted_room(
+    db_session: AsyncSession,
+    room_repo: RoomRepo,
+    room_member_repo: RoomMemberRepo,
+    sse_user_auth: UserAuth,
+) -> Room:
+    host_id = sse_user_auth["id"]
+    room = await room_repo.create(host_id=host_id, room_name="random_room")
+    _ = await room_member_repo.create_membership(user_id=host_id, room_id=room.id)
+    await db_session.commit()
+    return room
+
+
+###############################################################################
+###### layer object fixtures
+###############################################################################
+
+
+@pytest.fixture
+def room_event_bus() -> RoomEventBus:
+    return RoomEventBus(RedisPubSub(Redis()))
+
+
+@pytest.fixture
+def case_event_bus() -> CaseEventBus:
+    return CaseEventBus(RedisPubSub(Redis()))
+
+
+@pytest.fixture
+async def user_repo(db_session: AsyncSession) -> UserRepo:
+    user_repo = UserRepo(db_session)
+    return user_repo
+
+
+@pytest.fixture
+def case_repo(db_session: AsyncSession) -> CaseRepo:
+    return CaseRepo(db_session)
+
+
+@pytest.fixture
+def case_player_repo(db_session: AsyncSession) -> CasePlayerRepo:
+    return CasePlayerRepo(db_session)
+
+
+@pytest.fixture
+def case_history_repo(db_session: AsyncSession) -> CaseSnapshotHistoryRepo:
+    return CaseSnapshotHistoryRepo(db_session)
+
+
+@pytest.fixture
+def room_member_repo(db_session: AsyncSession) -> RoomMemberRepo:
+    return RoomMemberRepo(db_session)
+
+
+@pytest.fixture
+def room_repo(db_session: AsyncSession) -> RoomRepo:
+    return RoomRepo(db_session)
+
+
+@pytest.fixture
+def phase_repo(db_session: AsyncSession) -> PhaseRepo:
+    return PhaseRepo(db_session)
+
+
+@pytest.fixture
+def case_service(
+    db_session: AsyncSession,
+    case_repo: CaseRepo,
+    case_player_repo: CasePlayerRepo,
+    case_history_repo: CaseSnapshotHistoryRepo,
+    room_member_repo: RoomMemberRepo,
+    room_repo: RoomRepo,
+    phase_repo: PhaseRepo,
+    room_event_bus: RoomEventBus,
+    case_event_bus: CaseEventBus,
+) -> CaseService:
+    return CaseService(
+        db=db_session,
+        case_repo=case_repo,
+        case_player_repo=case_player_repo,
+        case_history_repo=case_history_repo,
+        room_member_repo=room_member_repo,
+        room_repo=room_repo,
+        phase_repo=phase_repo,
+        room_event_bus=room_event_bus,
+        case_event_bus=case_event_bus,
+    )

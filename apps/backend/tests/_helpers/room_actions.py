@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import status
 from httpx import AsyncClient, Response
 
-from app.domain.events import RoomSnapshotType
+from app.domain.events.room import RoomSnapshotType
 from app.schemas.common.ids import RoomId, UserId
 from app.schemas.room.sse_response import RoomStateEnvelope
 from app.schemas.room.state import RoomSnapshot

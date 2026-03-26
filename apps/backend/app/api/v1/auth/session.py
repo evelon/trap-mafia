@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Request, Response, status
 
 from app.core.config import JwtConfig
+from app.core.error_codes import AuthCommonErrorCode, AuthTokenErrorCode
 from app.core.exceptions import EnvelopeHTTPException
 from app.core.security.auth import CurrentUser
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandlerDep
@@ -15,7 +16,6 @@ from app.schemas.auth.response import (
     UserInfoResponse,
 )
 from app.schemas.common.envelope import Envelope
-from app.schemas.common.error import AuthErrorCode, AuthTokenErrorCode
 from app.schemas.common.response import (
     COMMON_401_TOKEN_AUTH_RESPONSE,
     COMMON_422_VALIDATION_RESPONSE,
@@ -58,12 +58,12 @@ router = APIRouter()
         **COMMON_401_TOKEN_AUTH_RESPONSE,
         status.HTTP_401_UNAUTHORIZED: {
             "description": "No access token attached in cookie.",
-            "model": Envelope[None, AuthErrorCode],
+            "model": Envelope[None, AuthCommonErrorCode],
             "content": {
                 "application/json": {
                     "example": {
                         "ok": False,
-                        "code": AuthErrorCode.AUTH_UNAUTHORIZED,
+                        "code": AuthCommonErrorCode.AUTH_UNAUTHORIZED,
                         "message": None,
                         "data": None,
                         "meta": None,
@@ -88,7 +88,6 @@ async def me(
     data = GuestInfo(
         id=user.id,
         username=user.username,
-        in_case=False,
         current_case_id=None,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
@@ -151,7 +150,6 @@ async def guest_login(
     data = GuestInfo(
         id=user.id,
         username=user.username,
-        in_case=False,
         current_case_id=None,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
@@ -170,7 +168,7 @@ async def guest_login(
                 "application/json": {
                     "example": {
                         "ok": False,
-                        "code": AuthErrorCode.AUTH_UNAUTHORIZED,
+                        "code": AuthCommonErrorCode.AUTH_UNAUTHORIZED,
                         "message": None,
                         "data": None,
                         "meta": None,
@@ -226,7 +224,6 @@ async def refresh(
     data = GuestInfo(
         id=UUID(user_id),
         username=username,
-        in_case=False,
         current_case_id=None,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
