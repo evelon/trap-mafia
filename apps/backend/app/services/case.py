@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
@@ -7,12 +9,12 @@ from app.core.error_codes import ConflictErrorCode
 from app.core.exceptions import raise_conflict
 from app.core.utils.datetime import now_utc_iso
 from app.domain.constants import case as case_const
-from app.domain.enum import CaseStatus
+from app.domain.enum import ActionType, CaseStatus
 from app.domain.events.case import CaseEventDelta, CaseSnapshotType
 from app.infra.pubsub.bus.case_event_bus import CaseEventBus
 from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import CaseTopic
-from app.models.case import Case, CasePlayer
+from app.models.case import Case, CaseAction, CasePlayer, Phase
 from app.repositories.case import CaseRepo
 from app.repositories.case_history import CaseSnapshotHistoryRepo
 from app.repositories.case_player import CasePlayerRepo
@@ -151,3 +153,99 @@ class CaseService:
         except Exception:
             pass
         return CaseStartMutation(subject_id=case.id)
+
+    async def red_vote(
+        self,
+        *,
+        case_id: UUID,
+        actor_player_id: UUID,
+        target_seat_no: int | None,  # None이면 skip
+    ) -> None:
+        """NIGHT phase에서 red vote / skip 수행"""
+        raise NotImplementedError
+
+    # =========================
+    # Private - 공통
+    # =========================
+
+    async def _get_current_phase(self, *, case_id: UUID) -> Phase:
+        """현재 활성 phase 조회"""
+        raise NotImplementedError
+
+    async def _build_snapshot(
+        self,
+        *,
+        case: Case,
+        phase: Phase,
+    ) -> CaseSnapshot:
+        """현재 상태로 snapshot 생성"""
+        raise NotImplementedError
+
+    async def _persist_snapshot(
+        self,
+        *,
+        case_id: UUID,
+        snapshot: CaseSnapshot,
+    ) -> int:
+        """snapshot 저장 후 snapshot_no 반환"""
+        raise NotImplementedError
+
+    async def _emit_snapshot(
+        self,
+        *,
+        case_id: UUID,
+        snapshot_no: int,
+    ) -> None:
+        """pubsub emit"""
+        raise NotImplementedError
+
+    # =========================
+    # Private - Action (공통)
+    # =========================
+
+    async def _create_case_action(
+        self,
+        *,
+        case_id: UUID,
+        phase_id: UUID,
+        actor_player_id: UUID,
+        action_type: ActionType,
+        night_target_seat_no: int | None,
+    ) -> CaseAction:
+        """CaseAction 생성"""
+        raise NotImplementedError
+
+    async def _has_actor_already_acted(
+        self,
+        *,
+        phase_id: UUID,
+        actor_player_id: UUID,
+    ) -> bool:
+        """해당 phase에서 actor가 이미 action 했는지"""
+        raise NotImplementedError
+
+    async def _count_actions(
+        self,
+        *,
+        phase_id: UUID,
+    ) -> int:
+        """해당 phase의 action 개수"""
+        raise NotImplementedError
+
+    # =========================
+    # Private - NIGHT
+    # =========================
+
+    async def _resolve_night(
+        self,
+        *,
+        case: Case,
+        phase: Phase,
+    ) -> None:
+        """
+        NIGHT 종료 처리:
+        - 다음 phase 생성
+        - snapshot 생성
+        - emit
+        """
+        raise NotImplementedError
