@@ -8,7 +8,7 @@ import {
   type Locale,
 } from "react-day-picker"
 
-import { cn } from "@/lib/tailwind"
+import { cn } from "@/shadcn-ui/lib/utils"
 import { Button, buttonVariants } from "@/shadcn-ui/ui/button"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
 

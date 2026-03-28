@@ -3,7 +3,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/tailwind"
+import { cn } from "@/shadcn-ui/lib/utils"
 import { Button } from "@/shadcn-ui/ui/button"
 import { Input } from "@/shadcn-ui/ui/input"
 import { Textarea } from "@/shadcn-ui/ui/textarea"

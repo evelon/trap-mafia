@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
 import { useIsMobile } from "@/shadcn-ui/hooks/use-mobile"
-import { cn } from "@/lib/tailwind"
+import { cn } from "@/shadcn-ui/lib/utils"
 import { Button } from "@/shadcn-ui/ui/button"
 import { Input } from "@/shadcn-ui/ui/input"
 import { Separator } from "@/shadcn-ui/ui/separator"

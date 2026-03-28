@@ -1,5 +1,5 @@
 import { zGuestLoginRequest } from "@/client/gen/zod.gen";
-import { refineField } from "@/lib/zod";
+import { refineField } from "@/shared/lib/zod";
 import z from "zod";
 
 export const loginSchema = refineField(zGuestLoginRequest, {

@@ -13,10 +13,10 @@
   "iconLibrary": "lucide",
   "rtl": false,
   "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/tailwind",
+    "components": "@/shadcn-ui/components",
+    "utils": "@/shadcn-ui/lib/utils",
     "ui": "@/shadcn-ui/ui",
-    "lib": "@/lib",
+    "lib": "@/shadcn-ui/lib",
     "hooks": "@/shadcn-ui/hooks"
   },
   "registries": {}
