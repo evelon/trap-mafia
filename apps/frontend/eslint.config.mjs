@@ -13,8 +13,9 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
 
-    // NOTE: openapi-ts로 생성된 코드
-    "src/client/",
+    // NOTE: 생성 코드
+    "src/client/gen",
+    "src/shadcn-ui/",
   ]),
 ]);
 

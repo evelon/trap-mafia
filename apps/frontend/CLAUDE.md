@@ -43,3 +43,5 @@ src/
 ## 컨벤션
 
 - 공통 UI 컴포넌트는 `src/shadcn-ui/ui`에 동일/유사 컴포넌트가 있는지 먼저 확인하고, 있으면 해당 컴포넌트를 우선 사용한다.
+- 컴포넌트의 prop 타입은 인라인으로 작성하지 않고, 별도로 분리해 작성한다. 기본은 `interface Props`를 사용하고, 불가피한 경우(유니온 등)에만 `type Props`를 사용한다.
+- `src/app/*`(Next Page 파일)을 제외한 컴포넌트는 default export를 쓰지 않고 named export를 사용한다.

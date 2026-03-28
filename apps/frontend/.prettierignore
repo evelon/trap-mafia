@@ -1,4 +1,6 @@
 .next/
 node_modules/
-**/gen/
-**/shadcn-ui/
+
+# 생성 코드
+src/client/gen/
+src/shadcn-ui/

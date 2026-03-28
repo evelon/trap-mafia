@@ -4,18 +4,16 @@ import { useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   LoginFormValues,
   loginSchema,
   LOGIN_DEFAULT_VALUES,
 } from "./login-schema";
-import {
-  guestLoginApiV1AuthGuestLoginPostMutation,
-  meApiV1AuthMeGetQueryKey,
-} from "@/client/gen/@tanstack/react-query.gen";
+import { guestLoginApiV1AuthGuestLoginPostMutation } from "@/client/gen/@tanstack/react-query.gen";
 import { GuestInfo } from "@/client/gen/types.gen";
+import { ROUTES } from "@/shared/routes";
 import {
   Card,
   CardHeader,
@@ -30,15 +28,14 @@ import { Button } from "@/shadcn-ui/ui/button";
 function getPostLoginPath(user: GuestInfo) {
   switch (user.in_case) {
     case true:
-      return `/case/${user.current_case_id}`;
+      return ROUTES.CASE(user.current_case_id!);
     default:
-      return "/rooms";
+      return ROUTES.ROOMS;
   }
 }
 
 export function LoginForm() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [isNavigating, startTransition] = useTransition();
 
   const { control, handleSubmit } = useForm<LoginFormValues>({
@@ -49,8 +46,6 @@ export function LoginForm() {
   const { mutate, isPending } = useMutation({
     ...guestLoginApiV1AuthGuestLoginPostMutation(),
     onSuccess: (data) => {
-      queryClient.setQueryData(meApiV1AuthMeGetQueryKey(), data);
-
       startTransition(() => {
         router.push(getPostLoginPath(data.data!));
       });

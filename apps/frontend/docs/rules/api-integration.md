@@ -49,7 +49,8 @@ mutation.mutate({ body: { ... } });
 - Axios 인스턴스에 `withCredentials: true` 설정 (`src/client/axios-config.ts`)
 - 401 응답 시 자동 토큰 리프레시 + 원래 요청 재시도 (`src/client/axios-interceptor.ts`)
 - 리프레시 실패 시 `/login`으로 리다이렉트
-- 인증 상태 조회는 `useAuth()` 훅 사용 (`src/hooks/useAuth.ts`)
+- 인증 상태 조회는 `useAuthSuspense()` 또는 `useAuth()` 훅 사용 (`src/features/login/`)
+- Suspense/Error Boundary 패턴은 `docs/rules/data-fetching-and-error-handling.md` 참조
 
 ## SSE (Server-Sent Events)
 
