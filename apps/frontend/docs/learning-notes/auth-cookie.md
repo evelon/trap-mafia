@@ -5,16 +5,20 @@
 쿠키에는 두 종류가 있다.
 
 ### 일반 쿠키
+
 ```
 Set-Cookie: token=abc123
 ```
+
 - JavaScript에서 `document.cookie`로 읽을 수 있음
 - XSS 공격으로 토큰 탈취 가능
 
 ### http-only 쿠키
+
 ```
 Set-Cookie: access_token=abc123; HttpOnly
 ```
+
 - JavaScript에서 **읽을 수 없음** (브라우저가 차단)
 - HTTP 요청/응답에서만 오고감
 - XSS 공격으로 탈취 불가 → 보안상 안전
@@ -165,10 +169,10 @@ API 요청 → 서버 응답 확인
        └─ 이 과정을 axios interceptor로 자동화
 ```
 
-| 상황 | 대응 | 사용자 경험 |
-|------|------|------------|
-| access token 만료 | refresh 요청 → 자동 재발급 | 사용자는 모름 (투명하게 처리) |
-| refresh token도 만료 | /login으로 이동 | 다시 로그인 필요 |
+| 상황                 | 대응                       | 사용자 경험                   |
+| -------------------- | -------------------------- | ----------------------------- |
+| access token 만료    | refresh 요청 → 자동 재발급 | 사용자는 모름 (투명하게 처리) |
+| refresh token도 만료 | /login으로 이동            | 다시 로그인 필요              |
 
 > **핵심**: 401을 받으면 refresh를 먼저 시도하고, 그것도 실패하면 로그인으로 보낸다.
 > 이 로직은 axios response interceptor에서 처리하며, 우리 프로젝트에서는 다음 PR에서 구현 예정.
