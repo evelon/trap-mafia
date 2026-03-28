@@ -8,6 +8,10 @@
 # Host 환경(호스트에서 FE/BE가 직접 실행 중)용
 # DOMAIN 환경변수 없으면 localhost로 동작
 {$DOMAIN:localhost} {
+	# mkcert로 발급한 로컬 인증서 사용 (개발 환경)
+	# Caddy auto-TLS 대신 직접 지정해 Node.js SSR에서도 신뢰 가능하게 함
+	tls /certs/localhost.pem /certs/localhost-key.pem
+
 	# ---- maintenance mode (가장 먼저 처리) ----
 	@maintenanceModeActive file /app/maintenance/maintenance.on {
 		root /

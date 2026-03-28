@@ -32,6 +32,9 @@ services:
       # FE export 결과물을 Caddy가 서빙
       - fe_dist:/srv:ro
 
+      # mkcert 로컬 인증서 (개발 환경 전용)
+      - ../../../infra/edge/caddy/certs:/certs:ro
+
       # Caddy 자동 HTTPS/설정 저장소(반드시 영구 볼륨)
       - caddy_data:/data
       - caddy_config:/config
