@@ -8,7 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.error_codes import AuthCommonErrorCode, BaseErrorCode, CommonErrorCode
 from app.core.exceptions import EnvelopeHTTPException
-from app.domain.exceptions import (
+from app.domain.exceptions.common import (
     ConcurrencyError,
     DomainError,
     EntityAlreadyExistsError,

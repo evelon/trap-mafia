@@ -23,7 +23,7 @@ class PhaseState(BaseModel):
     phase_type: PhaseType
     seq_in_round: Annotated[int, Field(ge=1)]
     phase_no_in_round: Annotated[int, Field(ge=1)]
-    opened_at: UtcDatetime
+    created_at: UtcDatetime
 
 
 class Player(BaseModel):

@@ -1,10 +1,9 @@
 from sqlalchemy import desc, func, select, update
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from app.core.error_codes import ConflictErrorCode
-from app.core.exceptions import raise_conflict
-from app.domain.enum import PhaseTransitType, PhaseType
-from app.models.case import Phase
+from app.domain.enum import CaseStatus, PhaseTransitType, PhaseType
+from app.domain.exceptions.common import EntityNotFoundError, InvalidStateError
+from app.models.case import Case, Phase
 from app.schemas.common.ids import CaseId, PhaseId
 
 INITIAL_ROUND_NO = 1
@@ -15,13 +14,27 @@ class PhaseRepo:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def _get_latest_phase(self, case_id):
+    async def _get_latest_phase(self, case_id: CaseId) -> Phase:
         q = select(Phase).where(Phase.case_id == case_id).order_by(desc(Phase.created_at)).limit(1)
         res = await self._db.execute(q)
         phase = res.scalar_one_or_none()
         if phase is None:
-            raise_conflict(code=ConflictErrorCode.CONFLICT_PHASE_NOT_FOUND)
+            raise EntityNotFoundError("LatestPhase", {"case_id": case_id})
         return phase
+
+    async def get_current_by_case_id(self, case_id: CaseId) -> Phase | None:
+        q = (
+            select(Phase)
+            .join(Case, Phase.case_id == Case.id)
+            .where(
+                Phase.case_id == case_id,
+                Case.status == CaseStatus.RUNNING,
+                Phase.closed_at.is_(None),
+            )
+            .limit(1)
+        )
+        res = await self._db.execute(q)
+        return res.scalar_one_or_none()
 
     async def _set_next_phase(self, prev_phase: Phase, transit_type: PhaseTransitType):
         ...
@@ -49,7 +62,7 @@ class PhaseRepo:
         q = update(Phase).where(where_clause).values(closed_at=func.now())
         result = await self._db.execute(q)
         if result.row_count != 1:  # type: ignore[attr-defined]
-            raise_conflict(code=ConflictErrorCode.CONFLICT_ROOM_CASE_RUNNING)
+            raise InvalidStateError("Expected exactly one phase to be closed")
         return result.scalar_one()
 
     async def close_by_phase_id(self, phase_id: PhaseId) -> Phase:

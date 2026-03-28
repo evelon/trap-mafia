@@ -1,10 +1,21 @@
 from __future__ import annotations
 
+from enum import Enum
 from uuid import UUID
 
 
+class NightRuleViolationReason(str, Enum):
+    NOT_NIGHT_PHASE = "NOT_NIGHT_PHASE"
+    NOT_ALIVE = "NOT_ALIVE"
+    ALREADY_ACTED = "ALREADY_ACTED"
+    INVALID_TARGET_SEAT = "INVALID_TARGET_SEAT"
+    SELF_VOTE = "SELF_VOTE"
+
+
 class NightRuleViolationError(ValueError):
-    """NIGHT phase game rule violation."""
+    def __init__(self, reason: NightRuleViolationReason, message: str | None = None) -> None:
+        super().__init__(message)
+        self.reason = reason
 
 
 def validate_red_vote(
@@ -45,28 +56,28 @@ def validate_red_vote(
         self vote인 경우 발생한다.
     """
     if not is_night_phase:
-        raise NightRuleViolationError("Not in NIGHT phase")
+        raise NightRuleViolationError(reason=NightRuleViolationReason.NOT_NIGHT_PHASE)
 
     if actor_player_id not in alive_player_ids:
-        raise NightRuleViolationError("Player is not alive")
+        raise NightRuleViolationError(reason=NightRuleViolationReason.NOT_ALIVE)
 
     if already_acted:
-        raise NightRuleViolationError("Player already acted in this NIGHT phase")
+        raise NightRuleViolationError(reason=NightRuleViolationReason.ALREADY_ACTED)
 
     # target_seat_no is None -> skip
     if target_seat_no is None:
         return
 
     if target_seat_no < 0 or target_seat_no >= max_seat_no:
-        raise NightRuleViolationError("Invalid target seat")
+        raise NightRuleViolationError(reason=NightRuleViolationReason.INVALID_TARGET_SEAT)
 
     if target_seat_no == actor_seat_no:
-        raise NightRuleViolationError("Cannot vote self")
+        raise NightRuleViolationError(reason=NightRuleViolationReason.SELF_VOTE)
 
 
 def should_end_night(
     *,
-    total_player_count: int,
+    alive_player_count: int,
     action_count: int,
 ) -> bool:
     """
@@ -87,4 +98,4 @@ def should_end_night(
     bool
         모든 플레이어가 의사 표시를 마쳤으면 True, 아니면 False.
     """
-    return action_count >= total_player_count
+    return action_count >= alive_player_count

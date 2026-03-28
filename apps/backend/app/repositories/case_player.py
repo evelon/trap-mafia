@@ -30,3 +30,10 @@ class CasePlayerRepo:
         q = select(CasePlayer).where(CasePlayer.case_id == case_id).order_by(CasePlayer.seat_no)
         result = await self._db.execute(q)
         return list(result.scalars().all())
+
+    async def get_by_case_id_and_user_id(
+        self, *, case_id: CaseId, user_id: UserId
+    ) -> CasePlayer | None:
+        q = select(CasePlayer).where(CasePlayer.case_id == case_id, CasePlayer.user_id == user_id)
+        result = await self._db.execute(q)
+        return result.scalar_one_or_none()

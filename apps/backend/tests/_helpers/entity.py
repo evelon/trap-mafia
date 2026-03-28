@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import uuid
 from uuid import UUID, uuid4
 
@@ -69,6 +70,7 @@ async def room_with_members(
     for username in usernames:
         try:
             user = await _create_user(db, username)
+            await asyncio.sleep(0.5)
             user_ids.append(user.id)
         except IntegrityError:
             await db.rollback()

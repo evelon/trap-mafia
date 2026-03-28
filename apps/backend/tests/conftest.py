@@ -15,6 +15,7 @@ import httpx
 import pytest
 import pytest_asyncio
 import redis.asyncio as redis
+from _pytest.fixtures import FixtureRequest
 from fastapi import FastAPI, status
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -32,7 +33,7 @@ from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import RoomTopic
 from app.infra.pubsub.transport.deps import get_pubsub
 from app.infra.redis.client import Redis, get_redis_client
-from app.infra.redis.pubsub import RedisPubSub
+from app.infra.redis.pubsub import RedisPubSub, RedisPubSubDep
 from app.models.auth import User
 from app.models.case import Case, CasePlayer
 from app.models.room import Room
@@ -365,7 +366,7 @@ class FakePubSub:
     - subscribe(topic): yields enqueued messages for that topic, then completes.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *_, **__) -> None:
         self.published: list[_Published] = []
         self._queues: dict[RoomTopic, deque[str]] = defaultdict(deque)
 
@@ -384,7 +385,7 @@ class FakePubSub:
 def fake_pubsub(app: FastAPI):
     fake_pubsub = FakePubSub()
 
-    async def override_get_pubsub():
+    async def override_get_pubsub(redis_pubsub: RedisPubSubDep):
         yield fake_pubsub
 
     app.dependency_overrides[get_pubsub] = override_get_pubsub
@@ -667,13 +668,21 @@ async def sse_user_hosted_room(
 
 
 @pytest.fixture
-def room_event_bus() -> RoomEventBus:
-    return RoomEventBus(RedisPubSub(Redis()))
+def pubsub(request: FixtureRequest) -> FakePubSub | RedisPubSub:
+    if "fake_pubsub" in request.fixturenames:
+        return request.getfixturevalue("fake_pubsub")
+
+    return RedisPubSub(Redis())
 
 
 @pytest.fixture
-def case_event_bus() -> CaseEventBus:
-    return CaseEventBus(RedisPubSub(Redis()))
+def room_event_bus(app: FastAPI, pubsub) -> RoomEventBus:
+    return RoomEventBus(pubsub)
+
+
+@pytest.fixture
+def case_event_bus(app: FastAPI, pubsub) -> CaseEventBus:
+    return CaseEventBus(pubsub)
 
 
 @pytest.fixture
@@ -742,12 +751,13 @@ async def started_case_with_players(
     db_session: AsyncSession,
     case_player_repo: CasePlayerRepo,
     case_service: CaseService,
+    case_repo: CaseRepo,
 ) -> tuple[Case, list[CasePlayer]]:
     usernames = ["host", "player2", "player3", "player4"]
     room_id, _ = await room_with_members(db_session, usernames)
     mut = await case_service.start_case(room_id=room_id)
     case_id = mut.subject_id
-    case = await case_service.get_by_id(case_id=case_id)
+    case = await case_repo.get_by_id(case_id=case_id)
     assert case
     players = await case_player_repo.list_by_case_id(case_id=case_id)
     return case, players

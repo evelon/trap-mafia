@@ -123,8 +123,8 @@ def test_validate_red_vote_self_vote():
 
 
 def test_should_end_night_true():
-    assert should_end_night(total_player_count=4, action_count=4) is True
+    assert should_end_night(alive_player_count=4, action_count=4) is True
 
 
 def test_should_end_night_false():
-    assert should_end_night(total_player_count=4, action_count=3) is False
+    assert should_end_night(alive_player_count=4, action_count=3) is False

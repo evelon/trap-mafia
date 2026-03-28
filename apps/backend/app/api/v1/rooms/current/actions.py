@@ -1,7 +1,12 @@
+from typing import Never
+
 from fastapi import APIRouter, status
 
 from app.core.deps.require_in_room import CurrentRoomId
+from app.core.error_codes import ConflictErrorCode
+from app.core.exceptions import raise_conflict
 from app.core.security.auth import CurrentUser
+from app.domain.exceptions.common import InvalidStateError
 from app.schemas.common.response import COMMON_422_VALIDATION_RESPONSE
 from app.schemas.room.action import CaseStartRequest
 from app.schemas.room.response import (
@@ -36,6 +41,13 @@ async def leave_room(
     return LeaveRoomResponse.success(data=mut)
 
 
+def _raise_case_start_api_error(e: Exception) -> Never:
+    if isinstance(e, InvalidStateError):
+        raise_conflict(code=ConflictErrorCode.CONFLICT_ROOM_CASE_RUNNING, message=str(e))
+
+    raise e
+
+
 @router.post(
     "/case-start",
     summary="case_start",
@@ -62,8 +74,11 @@ async def case_start(
     - 403: room에 속해 있지 않거나 시작 권한이 없는 경우
     - 409: room 상태가 case 시작 조건을 만족하지 않는 경우
     """
-    mut = await case_service.start_case(room_id)
-    return CaseStartResponse.success(data=mut)
+    try:
+        mut = await case_service.start_case(room_id)
+        return CaseStartResponse.success(data=mut)
+    except Exception as e:
+        _raise_case_start_api_error(e)
 
 
 # POST /current/force-skip
