@@ -72,7 +72,11 @@ class RoomService:
         member = await self._member_repo.upsert_membership(user_id=user_id, room_id=room_id)
 
         # 트랜잭션 확정
-        await self._db.commit()
+        try:
+            await self._db.commit()
+        except Exception:
+            await self._db.rollback()
+            raise
         # server_default(joined_at) 반영
         await self._db.refresh(member)
         # Redis pubsub에는 snapshot이 아니라 event delta만 publish한다.
@@ -105,7 +109,11 @@ class RoomService:
         - 없으면 멱등 처리 (changed=False)
         """
         left_member = await self._member_repo.leave_active_by_user_id(user_id=user_id)
-        await self._db.commit()
+        try:
+            await self._db.commit()
+        except Exception:
+            await self._db.rollback()
+            raise
 
         if left_member is None:
             return LeaveRoomMutation(
@@ -169,7 +177,11 @@ class RoomService:
         # 4. 실제 kick (leave와 동일한 DB 변경)
         await self._member_repo.leave_active_by_user_id(user_id=target_user_id)
 
-        await self._db.commit()
+        try:
+            await self._db.commit()
+        except:
+            await self._db.rollback()
+            raise
 
         try:
             await self._room_event_bus.publish(

@@ -11,12 +11,7 @@ from app.infra.db.engine import get_sessionmaker
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with get_sessionmaker()() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+        yield session
 
 
 DbSessionDep = Annotated[AsyncSession, Depends(get_db)]

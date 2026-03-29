@@ -142,7 +142,11 @@ class CaseService:
             schema_version=schema_version,
             snapshot_json=snapshot.model_dump(mode="json"),
         )
-        await self._db.commit()
+        try:
+            await self._db.commit()
+        except Exception:
+            await self._db.rollback()
+            raise
         try:
             await self._case_event_bus.publish(
                 CaseTopic(case.id),

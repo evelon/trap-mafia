@@ -23,7 +23,11 @@ async def ensure_singleton_room(db: AsyncSession) -> None:
     if room is None:
         # TODO: Room.host_id가 NOT NULL이면 실제 존재하는 user_id로 채워야 함
         db.add(Room(id=MVP_ROOM_ID, host_id=None, name="test_room_name"))  # 예시: 임시값(권장X)
-        await db.commit()
+        try:
+            await db.commit()
+        except Exception:
+            await db.rollback()
+            raise
 
 
 SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]

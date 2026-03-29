@@ -37,6 +37,9 @@ class AuthService:
             user = await self.repo.get_by_username(username)
             assert user is not None
             return user
+        except Exception:
+            await self.db.rollback()
+            raise
 
         await self.db.refresh(user)
         return user

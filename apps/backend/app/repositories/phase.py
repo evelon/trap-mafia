@@ -54,7 +54,11 @@ class PhaseRepo:
             latest_phase = await self._get_latest_phase(case_id)
             phase = await self._set_next_phase(latest_phase, transit_type)
         self._db.add(phase)
-        await self._db.commit()
+        try:
+            await self._db.commit()
+        except Exception:
+            await self._db.rollback()
+            raise
         await self._db.refresh(phase)
         return phase
 
