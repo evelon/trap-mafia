@@ -57,6 +57,14 @@ class InvalidStateError(DomainError):
         super().__init__(message)
 
 
+class RoomCaseAlreadyRunningError(InvalidStateError):
+    """방에 이미 진행 중인 case가 있어 새 case를 시작할 수 없을 때."""
+
+    def __init__(self, room_id: object) -> None:
+        self.room_id = room_id
+        super().__init__(f"Room already has a running case: room_id={room_id}")
+
+
 class InvariantViolationError(DomainError):
     """개발자 실수/버그에 가까운 도메인 불변식 위반."""
 

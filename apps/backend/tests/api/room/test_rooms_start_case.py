@@ -4,6 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.core.error_codes import ConflictErrorCode
 from app.domain.events.case import CaseEventDelta, CaseSnapshotType
 from app.infra.pubsub.topics import CaseTopic
 from app.models.case import Case
@@ -116,6 +117,7 @@ async def test_start_case_fails_when_already_running(
 
     # then
     assert response2.status_code == status.HTTP_409_CONFLICT
+    assert response2.json()["code"] == ConflictErrorCode.CONFLICT_ROOM_CASE_RUNNING
 
 
 @pytest.mark.anyio
@@ -167,5 +169,5 @@ async def test_start_case_publishes_case_event(
     assert published.topic == CaseTopic(case_id)
 
     case_event_delta = CaseEventDelta.model_validate_json(published.message)
-    assert case_event_delta.type == CaseSnapshotType.STARTED
+    assert case_event_delta.type == CaseSnapshotType.NIGHT
     assert case_event_delta.snapshot_no == 1

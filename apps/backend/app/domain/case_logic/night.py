@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID
 
+from app.domain.exceptions.common import DomainError
+
 
 class NightRuleViolationReason(str, Enum):
     NOT_NIGHT_PHASE = "NOT_NIGHT_PHASE"
@@ -12,10 +14,10 @@ class NightRuleViolationReason(str, Enum):
     SELF_VOTE = "SELF_VOTE"
 
 
-class NightRuleViolationError(ValueError):
+class NightRuleViolationError(DomainError):
     def __init__(self, reason: NightRuleViolationReason, message: str | None = None) -> None:
-        super().__init__(message)
         self.reason = reason
+        super().__init__(message)
 
 
 def validate_red_vote(

@@ -12,7 +12,7 @@ from app.domain.case_logic.night import should_end_night, validate_red_vote
 from app.domain.constants import case as case_const
 from app.domain.enum import ActionType, CaseStatus
 from app.domain.events.case import CaseEventDelta, CaseSnapshotType
-from app.domain.exceptions.common import EntityNotFoundError, InvalidStateError
+from app.domain.exceptions.common import EntityNotFoundError, RoomCaseAlreadyRunningError
 from app.infra.pubsub.bus.case_event_bus import CaseEventBus
 from app.infra.pubsub.bus.room_event_bus import RoomEventBus
 from app.infra.pubsub.topics import CaseTopic
@@ -103,7 +103,7 @@ class CaseService:
     async def start_case(self, room_id: RoomId) -> CaseStartMutation:
         case = await self._case_repo.get_running_by_room_id(room_id=room_id)
         if case is not None:
-            raise InvalidStateError(f"Room already has a running case: room_id={room_id}")
+            raise RoomCaseAlreadyRunningError(room_id)
 
         room = await self._room_repo.get_by_id(room_id=room_id)
         if room is None:

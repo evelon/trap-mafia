@@ -9,7 +9,6 @@ from app.schemas.common.ids import PhaseId
 
 class CaseSnapshotType(str, Enum):
     ON_CONNECT = "case.connected"
-    STARTED = "case.start"
     NIGHT = "case.night"
     DISCUSS_AFTER_NIGHT = "case.discuss.after_night"
     VOTE = "case.vote"

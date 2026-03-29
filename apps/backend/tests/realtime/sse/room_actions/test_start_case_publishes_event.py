@@ -63,7 +63,7 @@ async def test_case_start_emits_member_joined_event(
     assert len(fake_case_bus.calls) == 1
     call = fake_case_bus.calls[0]
     assert call.topic == CaseTopic(mutation.subject_id)
-    assert call.event.type == CaseSnapshotType.STARTED
+    assert call.event.type == CaseSnapshotType.NIGHT
 
 
 @pytest.mark.anyio

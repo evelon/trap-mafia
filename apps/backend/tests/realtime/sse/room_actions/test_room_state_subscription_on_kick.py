@@ -92,11 +92,9 @@ async def test_kick_room_emits_snapshot_to_remaining_member(
         # idempotency test
         _ = await kick_user(sse_client, room_id, kicked_user_id)
 
-        with anyio.move_on_after(1) as scope:
-            _ = await reader.read_one(timeout_s=None)
+        with pytest.raises(TimeoutError):
+            _ = await reader.read_one(timeout_s=0.5)
             pytest.fail("unexpected event after idempotent kick")
-
-        assert scope.cancel_called
 
 
 @pytest.mark.anyio
@@ -117,9 +115,9 @@ async def test_kicked_member_receives_last_envelope(
         _ = await kick_user(sse_client2, room_id, kicked_user_id)
 
         # kick user snapshot
-        payload = await reader.read_one(timeout_s=2.0)
+        payload = await reader.read_one(timeout_s=0.5)
         with pytest.raises(StopAsyncIteration):
-            _ = await reader.read_one(timeout_s=2.0)
+            _ = await reader.read_one(timeout_s=0.5)
 
     body = assert_room_envelope_from_sse(payload)
     envelope = room_sse_validator.assert_envelope(body)

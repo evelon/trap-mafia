@@ -4,6 +4,7 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.core.error_codes import BadRequestErrorCode, ConflictErrorCode
 from app.domain.enum import PhaseType
 from app.models.case import Phase
 from app.models.case_snapshot import CaseSnapshotHistory
@@ -122,6 +123,7 @@ async def test_red_vote_fails_on_self_vote(
     )
 
     assert res.status_code == status.HTTP_409_CONFLICT
+    assert res.json()["code"] == ConflictErrorCode.CONFLICT_NIGHT_REJECTED_SELF_VOTE
 
     result = await db_session.execute(select(CaseSnapshotHistory))
     after_count = len(result.scalars().all())
@@ -158,6 +160,7 @@ async def test_red_vote_fails_on_invalid_target_seat(
     )
 
     assert res.status_code == status.HTTP_400_BAD_REQUEST
+    assert res.json()["code"] == BadRequestErrorCode.BAD_REQUEST_INVALID_TARGET_SEAT
 
     result = await db_session.execute(select(CaseSnapshotHistory))
     after_count = len(result.scalars().all())
@@ -204,6 +207,7 @@ async def test_red_vote_fails_on_duplicate_action(
 
     # then
     assert second.status_code == status.HTTP_409_CONFLICT
+    assert second.json()["code"] == ConflictErrorCode.CONFLICT_PHASE_REJECTED_ALREADY_DECIDED
 
     result = await db_session.execute(select(CaseSnapshotHistory))
     after_count = len(result.scalars().all())
@@ -244,6 +248,7 @@ async def test_red_vote_fails_when_actor_is_not_alive(
     )
 
     assert res.status_code == status.HTTP_409_CONFLICT
+    assert res.json()["code"] == ConflictErrorCode.CONFLICT_PLAYER_NOT_ALIVE
 
     result = await db_session.execute(select(CaseSnapshotHistory))
     after_count = len(result.scalars().all())
@@ -283,6 +288,7 @@ async def test_red_vote_fails_when_not_night_phase(
     )
 
     assert res.status_code == status.HTTP_409_CONFLICT
+    assert res.json()["code"] == ConflictErrorCode.CONFLICT_PHASE_REJECTED_CONFLICT_ACTION
 
     result = await db_session.execute(select(CaseSnapshotHistory))
     after_count = len(result.scalars().all())

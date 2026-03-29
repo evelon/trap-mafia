@@ -25,12 +25,12 @@ async def test_red_vote_creates_case_action(
     target = players[1]
 
     # when
+
     await case_service.red_vote(
         case_id=case.id,
         actor_player_id=actor.id,
         target_seat_no=target.seat_no,
     )
-
     # then
     result = await db_session.execute(select(CaseAction))
     actions = result.scalars().all()

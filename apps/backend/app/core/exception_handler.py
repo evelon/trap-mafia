@@ -1,4 +1,6 @@
 import logging
+from dataclasses import dataclass
+from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -6,8 +8,16 @@ from fastapi.responses import JSONResponse
 from starlette import status as http_status
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.core.error_codes import AuthCommonErrorCode, BaseErrorCode, CommonErrorCode
+from app.core.error_codes import (
+    AuthCommonErrorCode,
+    BadRequestErrorCode,
+    BaseErrorCode,
+    CommonErrorCode,
+    ConflictErrorCode,
+    NotFoundErrorCode,
+)
 from app.core.exceptions import EnvelopeHTTPException
+from app.domain.case_logic.night import NightRuleViolationError, NightRuleViolationReason
 from app.domain.exceptions.common import (
     ConcurrencyError,
     DomainError,
@@ -15,10 +25,20 @@ from app.domain.exceptions.common import (
     EntityNotFoundError,
     InvalidStateError,
     PermissionDeniedError,
+    RoomCaseAlreadyRunningError,
 )
 from app.schemas.common.envelope import Envelope
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True, slots=True)
+class ErrorEnvelopeSpec:
+    status_code: int
+    code: BaseErrorCode
+    message: str | None = None
+    data: dict[str, Any] | None = None
+    meta: dict[str, Any] | None = None
 
 
 def _common_code_for_http_exception(status_code: int) -> BaseErrorCode:
@@ -65,6 +85,117 @@ def _common_code_for_domain_error(exc: DomainError) -> BaseErrorCode:
         return _maybe("CONFLICT") or CommonErrorCode.UNKNOWN_ERROR
 
     return CommonErrorCode.UNKNOWN_ERROR
+
+
+def _spec_for_domain_error(exc: DomainError) -> ErrorEnvelopeSpec:
+    if isinstance(exc, NightRuleViolationError):
+        if exc.reason == NightRuleViolationReason.INVALID_TARGET_SEAT:
+            return ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_400_BAD_REQUEST,
+                code=BadRequestErrorCode.BAD_REQUEST_INVALID_TARGET_SEAT,
+                message=str(exc) or None,
+            )
+
+        if exc.reason == NightRuleViolationReason.SELF_VOTE:
+            return ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_409_CONFLICT,
+                code=ConflictErrorCode.CONFLICT_NIGHT_REJECTED_SELF_VOTE,
+                message=str(exc) or None,
+            )
+
+        if exc.reason == NightRuleViolationReason.ALREADY_ACTED:
+            return ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_409_CONFLICT,
+                code=ConflictErrorCode.CONFLICT_PHASE_REJECTED_ALREADY_DECIDED,
+                message=str(exc) or None,
+            )
+
+        if exc.reason == NightRuleViolationReason.NOT_ALIVE:
+            return ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_409_CONFLICT,
+                code=ConflictErrorCode.CONFLICT_PLAYER_NOT_ALIVE,
+                message=str(exc) or None,
+            )
+
+        return ErrorEnvelopeSpec(
+            status_code=http_status.HTTP_409_CONFLICT,
+            code=ConflictErrorCode.CONFLICT_PHASE_REJECTED_CONFLICT_ACTION,
+            message=str(exc) or None,
+        )
+
+    if isinstance(exc, EntityNotFoundError):
+        entity_specs: dict[str, ErrorEnvelopeSpec] = {
+            "Room": ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                code=NotFoundErrorCode.NOT_FOUND_ROOM,
+                message=str(exc),
+                data={"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)},
+            ),
+            "CurrentPhase": ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_409_CONFLICT,
+                code=ConflictErrorCode.CONFLICT_PHASE_NOT_FOUND,
+                message=str(exc),
+                data={"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)},
+            ),
+            "Case": ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_409_CONFLICT,
+                code=ConflictErrorCode.CONFLICT_CASE_NOT_FOUND,
+                message=str(exc),
+                data={"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)},
+            ),
+            "Actor": ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_409_CONFLICT,
+                code=ConflictErrorCode.CONFLICT_ACTOR_NOT_FOUND,
+                message=str(exc),
+                data={"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)},
+            ),
+        }
+        return entity_specs.get(
+            exc.ref.entity,
+            ErrorEnvelopeSpec(
+                status_code=http_status.HTTP_404_NOT_FOUND,
+                code=_common_code_for_domain_error(exc),
+                message=str(exc),
+                data={"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)},
+            ),
+        )
+
+    if isinstance(exc, EntityAlreadyExistsError):
+        return ErrorEnvelopeSpec(
+            status_code=http_status.HTTP_409_CONFLICT,
+            code=_common_code_for_domain_error(exc),
+            message=str(exc),
+            data={"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)},
+        )
+
+    if isinstance(exc, RoomCaseAlreadyRunningError):
+        return ErrorEnvelopeSpec(
+            status_code=http_status.HTTP_409_CONFLICT,
+            code=ConflictErrorCode.CONFLICT_ROOM_CASE_RUNNING,
+            message=str(exc),
+        )
+
+    if isinstance(exc, PermissionDeniedError):
+        return ErrorEnvelopeSpec(
+            status_code=http_status.HTTP_403_FORBIDDEN,
+            code=_common_code_for_domain_error(exc),
+            message=str(exc) or None,
+        )
+
+    if isinstance(exc, (InvalidStateError, ConcurrencyError)):
+        return ErrorEnvelopeSpec(
+            status_code=http_status.HTTP_409_CONFLICT,
+            code=_common_code_for_domain_error(exc),
+            message=str(exc) or None,
+            meta=getattr(exc, "meta", None),
+        )
+
+    return ErrorEnvelopeSpec(
+        status_code=http_status.HTTP_400_BAD_REQUEST,
+        code=_common_code_for_domain_error(exc),
+        message=str(exc) or None,
+        meta=getattr(exc, "meta", None),
+    )
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -132,33 +263,16 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(DomainError)
     async def domain_error_handler(request: Request, exc: DomainError):
-        # NOTE: DomainError는 HTTP와 무관한 계층에서 올라온 예외이므로,
-        # 여기서 공통적으로 Envelope + HTTP status로 매핑한다.
-        status_code = http_status.HTTP_400_BAD_REQUEST
-        data = None
-
-        if isinstance(exc, EntityNotFoundError):
-            status_code = http_status.HTTP_404_NOT_FOUND
-            data = {"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)}
-
-        elif isinstance(exc, EntityAlreadyExistsError):
-            status_code = http_status.HTTP_409_CONFLICT
-            data = {"entity": exc.ref.entity, "identifier": str(exc.ref.identifier)}
-
-        elif isinstance(exc, PermissionDeniedError):
-            status_code = http_status.HTTP_403_FORBIDDEN
-
-        elif isinstance(exc, (InvalidStateError, ConcurrencyError)):
-            status_code = http_status.HTTP_409_CONFLICT
+        spec = _spec_for_domain_error(exc)
 
         return JSONResponse(
-            status_code=status_code,
+            status_code=spec.status_code,
             content=Envelope[dict, BaseErrorCode](
                 ok=False,
-                code=_common_code_for_domain_error(exc),
-                message=str(exc) if str(exc) else None,
-                data=data,
-                meta=getattr(exc, "meta", None),
+                code=spec.code,
+                message=spec.message,
+                data=spec.data,
+                meta=spec.meta,
             ).model_dump(),
         )
 

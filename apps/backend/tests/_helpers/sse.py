@@ -19,6 +19,10 @@ class SSEReader:
 
     - 한 chunk 안에 여러 이벤트가 들어와도 _rest를 버리지 않음
     - read_one을 여러 번 호출해도 안전
+
+    - timeout_s=None 은 "반드시 다음 이벤트가 와야 하는" 양성(assert-positive) 검증에만 사용
+    - live SSE 스트림에서 "아무 이벤트도 오지 않아야 한다"를 검증할 때는 read_one 대기 대신
+      publish/bus 레벨 검증을 우선
     """
 
     r: Response
@@ -57,6 +61,15 @@ class SSEReader:
             elif line.startswith("data: "):
                 msg["data"] = json.loads(line.removeprefix("data: ").strip())
         return msg
+
+    """
+    다음 SSE 이벤트 1개를 읽는다.
+
+    주의:
+    - timeout_s=None 은 다음 이벤트가 반드시 와야 하는 경우에만 사용한다.
+    - live stream 에서 "추가 이벤트가 없어야 함"을 검증하기 위해 무기한 대기하거나,
+      바깥 cancel scope 에 의존하는 방식은 transport / httpx 구현에 따라 flaky 할 수 있다.
+    """
 
     async def read_one(self, *, timeout_s: float | None = 1.0) -> SSEPayload:
         async def _read_until_event() -> str:

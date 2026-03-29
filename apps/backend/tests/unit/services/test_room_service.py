@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
-from app.domain.exceptions import EntityNotFoundError
+from app.domain.exceptions.common import EntityNotFoundError
 from app.models.room import RoomMember
 from app.mvp import MVP_ROOM_ID
 from app.schemas.common.mutation import BaseMutation, Subject, Target

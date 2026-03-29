@@ -538,7 +538,6 @@ def live_server(live_db_url: str, live_redis_url: str) -> Iterator[LiveServer]:
     try:
         _wait_until_ready(base_url, timeout_s=10.0)
         yield LiveServer(base_url=base_url, port=port)
-
     finally:
         # graceful shutdown 시도
         if proc.poll() is None:
@@ -753,6 +752,7 @@ async def started_case_with_players(
     case_service: CaseService,
     case_repo: CaseRepo,
 ) -> tuple[Case, list[CasePlayer]]:
+
     usernames = ["host", "player2", "player3", "player4"]
     room_id, _ = await room_with_members(db_session, usernames)
     mut = await case_service.start_case(room_id=room_id)
