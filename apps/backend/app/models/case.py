@@ -4,6 +4,7 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
+    Boolean,
     CheckConstraint,
     DateTime,
     Enum,
@@ -191,6 +192,8 @@ class CaseAction(Base):
 
     night_target_seat_no: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
+    is_timeout_auto: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -200,6 +203,14 @@ class CaseAction(Base):
         CheckConstraint(
             f"night_target_seat_no >= 0 AND night_target_seat_no < {SEAT_NO_MAX_EXCLUSIVE}",
             name="ck_case_actions_night_target_seat_no_range",
+        ),
+        CheckConstraint(
+            "(action_type = 'NIGHT_ACTION_RED_VOTE' AND night_target_seat_no IS NOT NULL) "
+            "OR "
+            "(action_type = 'NIGHT_ACTION_SKIP' AND night_target_seat_no IS NULL) "
+            "OR "
+            "(action_type NOT IN ('NIGHT_ACTION_RED_VOTE', 'NIGHT_ACTION_SKIP'))",
+            name="ck_case_actions_action_type_target_consistency",
         ),
         UniqueConstraint("phase_id", "actor_player_id", name="uq_case_actions_phase_actor"),
     )
