@@ -5,7 +5,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.schemas.common.envelope import Envelope
-from app.schemas.common.ids import CaseId, UserId
+from app.schemas.common.ids import CaseId, RoomId, UserId
 
 
 class LoginCode(str, Enum):
@@ -15,10 +15,8 @@ class LoginCode(str, Enum):
 class GuestInfo(BaseModel):
     id: UserId = Field(description="User ID (UUID)")
     username: str = Field(description="Username")
-    current_case_id: CaseId | None = Field(
-        default=None,
-        description="Current case id if in_case is true",
-    )
+    current_room_id: RoomId | None = Field(default=None)
+    current_case_id: CaseId | None = Field(default=None)
 
 
 _GuestInfoResponse = Envelope[GuestInfo, LoginCode]
