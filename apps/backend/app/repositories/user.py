@@ -3,6 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.domain.exceptions import EntityNotFoundError
 from app.models.auth import User
 
 
@@ -23,7 +24,6 @@ class UserRepo:
 
     async def ensure_exists(self, user_id) -> None:
         """Ensure user exists, otherwise raise EntityNotFoundError."""
-        from app.domain.exceptions import EntityNotFoundError
 
         user = await self.get_by_id(user_id)
         if user is None:
