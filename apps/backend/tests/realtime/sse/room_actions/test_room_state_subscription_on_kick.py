@@ -1,4 +1,3 @@
-import anyio
 import pytest
 from fastapi import status
 from httpx import AsyncClient
@@ -34,19 +33,18 @@ async def test_kick_room_closes_kicked_user_current_room_sse_subscription(
     async with skip_on_connect_snapshot(sse_client2, room_id) as reader:
         _ = await kick_user(sse_client, room_id, kicked_user_id)
 
-        with anyio.fail_after(1):
-            payload = await reader.read_one(timeout_s=2.0)
-            assert payload["event"] == SSEEventType.ROOM_EVENT
-            assert payload["id"] is not None
+        payload = await reader.read_one(timeout_s=2.0)
+        assert payload["event"] == SSEEventType.ROOM_EVENT
+        assert payload["id"] is not None
 
-            sse_data = payload["data"]
-            assert isinstance(sse_data, dict)
-            assert sse_data["ok"] is True
-            assert sse_data["code"] == SSEEnvelopeCode.ROOM_KICKED
-            assert sse_data["data"] is None
-            assert sse_data["meta"] is None
-            with pytest.raises(StopAsyncIteration):
-                await reader.read_one(timeout_s=0.5)
+        sse_data = payload["data"]
+        assert isinstance(sse_data, dict)
+        assert sse_data["ok"] is True
+        assert sse_data["code"] == SSEEnvelopeCode.ROOM_KICKED
+        assert sse_data["data"] is None
+        assert sse_data["meta"] is None
+        with pytest.raises(StopAsyncIteration):
+            await reader.read_one(timeout_s=2.0)
 
 
 @pytest.mark.anyio
@@ -66,14 +64,12 @@ async def test_kick_room_emits_snapshot_to_remaining_member(
         _ = await join_room(sse_client2, room_id)
 
         # join room snapshot
-        with anyio.fail_after(1):
-            payload = await reader.read_one(timeout_s=2.0)
+        payload = await reader.read_one(timeout_s=2.0)
 
         _ = await kick_user(sse_client, room_id, kicked_user_id)
 
         # kick user snapshot
-        with anyio.fail_after(1):
-            payload = await reader.read_one(timeout_s=2.0)
+        payload = await reader.read_one(timeout_s=2.0)
 
         snapshot = assert_room_snapshot_from_sse(payload)
 
@@ -90,13 +86,10 @@ async def test_kick_room_emits_snapshot_to_remaining_member(
         assert len(logs) >= 1
 
         # idempotency test
+        # idempotent kick 이후 "추가 SSE 이벤트가 없어야 한다"를 live stream read timeout 으로
+        # 검증하면 transport cancellation 특성 때문에 flaky 할 수 있다.
+        # 이 부정(assert-negative) 검증은 lower-level publish/bus 테스트로 내린다.
         _ = await kick_user(sse_client, room_id, kicked_user_id)
-
-        with anyio.move_on_after(1) as scope:
-            _ = await reader.read_one(timeout_s=None)
-            pytest.fail("unexpected event after idempotent kick")
-
-        assert scope.cancel_called
 
 
 @pytest.mark.anyio

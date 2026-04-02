@@ -8,7 +8,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import AsyncGenerator, AsyncIterator, Awaitable, Callable, Iterator
+from typing import AsyncGenerator, AsyncIterator, Awaitable, Callable
 
 import fakeredis
 import httpx
@@ -416,6 +416,15 @@ class LiveServer:
     port: int
 
 
+def _read_proc_output_tail(proc: subprocess.Popen[str], *, max_chars: int = 4000) -> str:
+    if proc.stdout is None:
+        return ""
+    out = proc.stdout.read()
+    if not out:
+        return ""
+    return out[-max_chars:]
+
+
 def _wait_until_ready(base_url: str, *, timeout_s: float = 8.0) -> None:
     deadline = time.time() + timeout_s
     last_err: Exception | None = None
@@ -476,7 +485,7 @@ async def live_db_session(live_async_engine: AsyncEngine) -> AsyncGenerator[Asyn
         yield session
 
 
-@pytest.fixture(autouse=True)
+@pytest_asyncio.fixture(autouse=True)
 async def prepare_live_db(live_async_engine: AsyncEngine):
     """Create/drop tables for each test."""
     # Import Base lazily to avoid import-time side effects.
@@ -504,8 +513,8 @@ async def live_redis_url() -> AsyncGenerator[str, None]:
         await client.aclose()  # type: ignore[attr-defined] # pyright: ignore[reportAttributeAccessIssue]
 
 
-@pytest.fixture
-def live_server(live_db_url: str, live_redis_url: str) -> Iterator[LiveServer]:
+@pytest_asyncio.fixture
+async def live_server(live_db_url: str, live_redis_url: str) -> AsyncIterator[LiveServer]:
     port = _get_free_port()
     base_url = f"http://127.0.0.1:{port}"
 
@@ -527,8 +536,8 @@ def live_server(live_db_url: str, live_redis_url: str) -> Iterator[LiveServer]:
             "warning",
         ],
         env=env,
-        stdout=None,
-        stderr=None,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
     )
 
@@ -537,36 +546,36 @@ def live_server(live_db_url: str, live_redis_url: str) -> Iterator[LiveServer]:
         yield LiveServer(base_url=base_url, port=port)
 
     finally:
-        # graceful shutdown 시도
+        shutdown_hung = False
+
         if proc.poll() is None:
             try:
-                proc.terminate()  # SIGTERM on unix, TerminateProcess on win
+                proc.terminate()
             except Exception:
                 pass
 
-        try:
-            proc.wait(timeout=3.0)
-        except subprocess.TimeoutExpired:
-            # fallback kill
             try:
-                proc.kill()
-            except Exception:
-                pass
-            proc.wait(timeout=3.0)
+                proc.wait(timeout=3.0)
+            except subprocess.TimeoutExpired:
+                shutdown_hung = True
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+                proc.wait(timeout=3.0)
 
-        # 서버가 부팅 실패했을 때 로그를 보여주면 디버깅 쉬움
-        if proc.stdout is not None:
-            out = proc.stdout.read()
+        # 종료가 매끄럽지 않았을 때만 subprocess 로그를 보여준다.
+        if shutdown_hung:
+            out = _read_proc_output_tail(proc)
             if out:
-                # 너무 길면 잘라서
-                print("\n[uvicorn subprocess output]\n" + out[-4000:])
+                print("\n[uvicorn subprocess output]\n" + out)
 
 
 @pytest_asyncio.fixture
 async def sse_client(live_server: LiveServer) -> AsyncGenerator[AsyncClient, None]:
     async with httpx.AsyncClient(
         base_url=live_server.base_url,
-        timeout=None,
+        timeout=5.0,
         follow_redirects=True,
     ) as client:
         yield client
@@ -576,7 +585,7 @@ async def sse_client(live_server: LiveServer) -> AsyncGenerator[AsyncClient, Non
 async def sse_client2(live_server: LiveServer) -> AsyncGenerator[AsyncClient, None]:
     async with httpx.AsyncClient(
         base_url=live_server.base_url,
-        timeout=None,
+        timeout=5.0,
         follow_redirects=True,
     ) as client:
         yield client

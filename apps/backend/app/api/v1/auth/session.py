@@ -7,6 +7,7 @@ from app.core.error_codes import AuthCommonErrorCode, AuthTokenErrorCode
 from app.core.exceptions import EnvelopeHTTPException
 from app.core.security.auth import CurrentUser
 from app.core.security.jwt import ACCESS_TOKEN, REFRESH_TOKEN, JwtHandlerDep
+from app.repositories.deps import CaseRepoDep, RoomMemberRepoDep
 from app.schemas.auth.request import GuestLoginRequest
 from app.schemas.auth.response import (
     GuestInfo,
@@ -75,6 +76,8 @@ router = APIRouter()
 )
 async def me(
     user: CurrentUser,
+    room_member_repo: RoomMemberRepoDep,
+    case_repo: CaseRepoDep,
 ) -> UserInfoResponse:
     """Return current guest info from access_token cookie.
 
@@ -84,11 +87,21 @@ async def me(
     """
 
     # DB에서 실제 user 조회
+    room_id = None
+    case_id = None
+    room_member = await room_member_repo.get_active_by_user_id(user_id=user.id)
+    if room_member is not None:
+        room_id = room_member.room_id
+
+    if room_id is not None:
+        case = await case_repo.get_running_by_room_id(room_id=room_id)
+        case_id = case.id if case else None
 
     data = GuestInfo(
         id=user.id,
         username=user.username,
-        current_case_id=None,
+        current_room_id=room_id,
+        current_case_id=case_id,
     )
     return UserInfoResponse(ok=True, code=LoginCode.OK, message=None, data=data, meta=None)
 
