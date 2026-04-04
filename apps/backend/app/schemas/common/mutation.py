@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Annotated
 
-from pydantic import BaseModel
+from app.schemas.base import RequiredFieldsModel
 
 
 class Target(str, Enum):
@@ -15,7 +15,7 @@ class Subject(str, Enum):
     CASE = "CASE"
 
 
-class BaseMutation[ReasonT: Enum, SubjectIdT](BaseModel):
+class BaseMutation[ReasonT: Enum, SubjectIdT](RequiredFieldsModel):
     """
     공통 Mutation 응답 모델.
 

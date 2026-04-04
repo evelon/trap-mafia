@@ -1,6 +1,8 @@
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import RequiredFieldsModel
 
 
 class BlueVoteChoice(str, Enum):
@@ -9,7 +11,7 @@ class BlueVoteChoice(str, Enum):
     SKIP = "SKIP"
 
 
-class BlueVoteRequest(BaseModel):
+class BlueVoteRequest(RequiredFieldsModel):
     """
     POST /api/cases/current/blue-vote 요청 바디.
 

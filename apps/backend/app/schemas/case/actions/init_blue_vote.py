@@ -1,9 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from app.domain.types import SeatNo
+from app.schemas.base import RequiredFieldsModel
 
 
-class InitBlueVoteRequest(BaseModel):
+class InitBlueVoteRequest(RequiredFieldsModel):
     """
     POST /api/cases/current/init-blue-vote 요청 바디.
 

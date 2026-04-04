@@ -19,15 +19,16 @@ from datetime import datetime, timezone
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from app.domain.constants.case import SEAT_MAX_EXCLUSIVE, SEAT_MIN
 from app.domain.enum import CaseStatus
 from app.domain.events.room import RoomSnapshotType
 from app.mvp import MVP_ROOM_ID
+from app.schemas.base import RequiredFieldsModel
 
 
-class RoomInfo(BaseModel):
+class RoomInfo(RequiredFieldsModel):
     """Purpose
     - 방 자체 메타 정보를 담습니다.
 
@@ -50,7 +51,7 @@ class RoomInfo(BaseModel):
     created_at: Annotated[str, Field(description="ISO-8601 UTC string")]
 
 
-class RoomSettings(BaseModel):
+class RoomSettings(RequiredFieldsModel):
     """Purpose
     - 방 설정(플레이 규칙/제한)을 담습니다.
 
@@ -72,7 +73,7 @@ class RoomSettings(BaseModel):
     discuss_duration_sec: Annotated[int, Field(ge=0)] = 120
 
 
-class RoomCaseInfo(BaseModel):
+class RoomCaseInfo(RequiredFieldsModel):
     """Purpose
     - 현재 방에서 진행 중이거나 과거의 케이스(게임 한 판)의 최소 상태를 담습니다.
 
@@ -89,7 +90,7 @@ class RoomCaseInfo(BaseModel):
     status: CaseStatus | None = None
 
 
-class RoomMember(BaseModel):
+class RoomMember(RequiredFieldsModel):
     """Purpose
     - 방에 active한(퇴장하지 않은) 멤버의 최소 정보를 담습니다.
 
@@ -106,7 +107,7 @@ class RoomMember(BaseModel):
     joined_at: Annotated[str, Field(description="ISO-8601 UTC string")]
 
 
-class RoomSnapshot(BaseModel):
+class RoomSnapshot(RequiredFieldsModel):
     """Purpose
     - 방 상태를 SSE/REST에서 한 번에 전달하기 위한 스냅샷입니다.
 

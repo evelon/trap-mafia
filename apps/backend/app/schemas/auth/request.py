@@ -1,6 +1,8 @@
 from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import RequiredFieldsModel
 
 # Type alias for username
 Username = Annotated[
@@ -14,5 +16,5 @@ Username = Annotated[
 ]
 
 
-class GuestLoginRequest(BaseModel):
+class GuestLoginRequest(RequiredFieldsModel):
     username: Username
