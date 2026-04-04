@@ -18,6 +18,7 @@ type RoomSseState = {
   snapshot: RoomSnapshot | null;
   isConnected: boolean;
   isError: boolean;
+  isKicked: boolean;
 };
 
 export function useRoomSse(userId: string | undefined) {
@@ -25,6 +26,7 @@ export function useRoomSse(userId: string | undefined) {
     snapshot: null,
     isConnected: false,
     isError: false,
+    isKicked: false,
   });
   const abortRef = useRef<AbortController | null>(null);
 
@@ -37,11 +39,23 @@ export function useRoomSse(userId: string | undefined) {
     const onSseEvent = (event: StreamEvent) => {
       if (event.event === "room_state") {
         const envelope = event.data as EnvelopeRoomSnapshotSseEnvelopeCode;
-        if (envelope.ok && envelope.data) {
+        const { code, ok, data } = envelope;
+
+        if (code === "ROOM_KICKED" || code === "ROOM_MEMBERSHIP_INVALID") {
+          setState((prev) => ({
+            ...prev,
+            isKicked: true,
+            isConnected: false,
+          }));
+          return;
+        }
+
+        if (ok && data) {
           setState({
-            snapshot: envelope.data,
+            snapshot: data,
             isConnected: true,
             isError: false,
+            isKicked: false,
           });
         }
       }

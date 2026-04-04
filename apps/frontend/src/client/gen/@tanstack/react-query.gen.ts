@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { blueVoteApiV1CasesCurrentPhasesCurrentBlueVotePost, caseStartApiV1RoomsCurrentCaseStartPost, closeRoomStateStreamRtV1SseRoomsCurrentClosePost, forceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPost, guestLoginApiV1AuthGuestLoginPost, healthApiHealthGet, initBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePost, joinRoomApiV1RoomsRoomIdJoinPost, kickUserApiV1RoomsCurrentUsersUserIdKickPost, leaveRoomApiV1RoomsCurrentLeavePost, logoutApiV1AuthLogoutPost, meApiV1AuthMeGet, type Options, redVoteApiV1CasesCurrentPhasesCurrentRedVotePost, refreshApiV1AuthRefreshPost, roomStateSseRtV1SseRoomsCurrentStateGet } from '../sdk.gen';
-import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostError, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponse, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostError, CaseStartApiV1RoomsCurrentCaseStartPostResponse, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostError, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponse, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostError, GuestLoginApiV1AuthGuestLoginPostResponse, HealthApiHealthGetData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostError, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponse, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostError, JoinRoomApiV1RoomsRoomIdJoinPostResponse, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostError, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponse, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponse, MeApiV1AuthMeGetData, MeApiV1AuthMeGetError, MeApiV1AuthMeGetResponse, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostError, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponse, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostError, RefreshApiV1AuthRefreshPostResponse, RoomStateSseRtV1SseRoomsCurrentStateGetData } from '../types.gen';
+import { blueVoteApiV1CasesCurrentPhasesCurrentBlueVotePost, caseStartApiV1RoomsCurrentCaseStartPost, caseStateSseRtV1SseCasesCurrentStateGet, closeRoomStateStreamRtV1SseRoomsCurrentClosePost, forceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPost, guestLoginApiV1AuthGuestLoginPost, healthApiHealthGet, initBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePost, joinRoomApiV1RoomsRoomIdJoinPost, kickUserApiV1RoomsCurrentUsersUserIdKickPost, leaveRoomApiV1RoomsCurrentLeavePost, logoutApiV1AuthLogoutPost, meApiV1AuthMeGet, type Options, redVoteApiV1CasesCurrentPhasesCurrentRedVotePost, refreshApiV1AuthRefreshPost, roomStateSseRtV1SseRoomsCurrentStateGet } from '../sdk.gen';
+import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostError, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponse, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostError, CaseStartApiV1RoomsCurrentCaseStartPostResponse, CaseStateSseRtV1SseCasesCurrentStateGetData, CaseStateSseRtV1SseCasesCurrentStateGetError, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostError, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponse, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostError, GuestLoginApiV1AuthGuestLoginPostResponse, HealthApiHealthGetData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostError, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponse, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostError, JoinRoomApiV1RoomsRoomIdJoinPostResponse, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostError, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponse, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponse, MeApiV1AuthMeGetData, MeApiV1AuthMeGetError, MeApiV1AuthMeGetResponse, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostError, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponse, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostError, RefreshApiV1AuthRefreshPostResponse, RoomStateSseRtV1SseRoomsCurrentStateGetData } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -396,6 +396,38 @@ export const healthApiHealthGetOptions = (options?: Options<HealthApiHealthGetDa
     queryKey: healthApiHealthGetQueryKey(options)
 });
 
+export const caseStateSseRtV1SseCasesCurrentStateGetQueryKey = (options?: Options<CaseStateSseRtV1SseCasesCurrentStateGetData>) => createQueryKey('caseStateSseRtV1SseCasesCurrentStateGet', options);
+
+/**
+ * Case State Sse
+ *
+ * GET /rt/v1/sse/cases/current/state?after_snapshot_no=...
+ *
+ * Notion: room_state
+ * - Auth: User
+ * - Permission: In Running Case
+ *
+ * Response (SSE)
+ * - event: CASE_EVENT
+ * - id: 1부터 단조증가
+ * - data: RoomStateResponse(JSON)
+ *
+ * Response (REST)
+ * - 403: PERMISSION_DENIED_NOT_IN_ROOM
+ */
+export const caseStateSseRtV1SseCasesCurrentStateGetOptions = (options?: Options<CaseStateSseRtV1SseCasesCurrentStateGetData>) => queryOptions<unknown, AxiosError<CaseStateSseRtV1SseCasesCurrentStateGetError>, unknown, ReturnType<typeof caseStateSseRtV1SseCasesCurrentStateGetQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await caseStateSseRtV1SseCasesCurrentStateGet({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: caseStateSseRtV1SseCasesCurrentStateGetQueryKey(options)
+});
+
 /**
  * Close Room State Stream
  */
@@ -425,8 +457,8 @@ export const roomStateSseRtV1SseRoomsCurrentStateGetQueryKey = (options?: Option
  * - Permission: In Room
  *
  * Response (SSE)
- * - event: room_state
- * - id: 단조증가(연결 단위, MVP)
+ * - event: ROOM_EVENT
+ * - id: 단조증가(연결 단위, MVP에서 1로 고정)
  * - data: RoomStateResponse(JSON)
  *
  * Response (REST)

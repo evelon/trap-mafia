@@ -43,9 +43,9 @@ export const zActionReceipt = z.object({
 });
 
 /**
- * AuthErrorCode
+ * AuthCommonErrorCode
  */
-export const zAuthErrorCode = z.enum(['AUTH_UNAUTHORIZED']);
+export const zAuthCommonErrorCode = z.enum(['AUTH_UNAUTHORIZED']);
 
 /**
  * AuthTokenErrorCode
@@ -89,21 +89,6 @@ export const zBlueVoteRequest = z.object({
 export const zBlueVoteSuccessCode = z.enum(['OK']);
 
 /**
- * CaseStartConflictCode
- */
-export const zCaseStartConflictCode = z.enum([
-    'ROOM_CASE_RUNNING',
-    'ROOM_NOT_ENOUGH_PLAYERS',
-    'ROOM_NOT_ALL_READY',
-    'ROOM_DELETED'
-]);
-
-/**
- * CaseStartForbiddenCode
- */
-export const zCaseStartForbiddenCode = z.enum(['PERMISSION_DENIED_NOT_IN_ROOM', 'PERMISSION_DENIED_NOT_HOST']);
-
-/**
  * CaseStartReason
  */
 export const zCaseStartReason = z.enum(['STARTED']);
@@ -126,11 +111,7 @@ export const zCaseStartSuccessCode = z.enum(['OK']);
 /**
  * CaseStatus
  */
-export const zCaseStatus = z.enum([
-    'RUNNING',
-    'ENDED',
-    'INTERRUPTED'
-]);
+export const zCaseStatus = z.enum(['RUNNING', 'ENDED']);
 
 /**
  * CommonErrorCode
@@ -143,6 +124,20 @@ export const zCommonErrorCode = z.enum([
     'CONFLICT',
     'ALREADY_EXISTS',
     'INTERNAL_SERVER_ERROR'
+]);
+
+/**
+ * ConflictErrorCode
+ */
+export const zConflictErrorCode = z.enum([
+    'CONFLICT_ALREADY_IN_CASE',
+    'CONFLICT_NOT_ON_CASE',
+    'CONFLICT_PHASE_NOT_FOUND',
+    'CONFLICT_SNAPSHOT_NOT_FOUND',
+    'ROOM_CASE_RUNNING',
+    'ROOM_NOT_ENOUGH_PLAYERS',
+    'ROOM_NOT_ALL_READY',
+    'ROOM_DELETED'
 ]);
 
 /**
@@ -200,11 +195,11 @@ export const zEnvelopeNoneTypeActionForbiddenCode = z.object({
 });
 
 /**
- * Envelope[NoneType, AuthErrorCode]
+ * Envelope[NoneType, AuthCommonErrorCode]
  */
-export const zEnvelopeNoneTypeAuthErrorCode = z.object({
+export const zEnvelopeNoneTypeAuthCommonErrorCode = z.object({
     ok: z.boolean(),
-    code: zAuthErrorCode,
+    code: zAuthCommonErrorCode,
     message: z.optional(z.union([
         z.string(),
         z.null()
@@ -234,28 +229,11 @@ export const zEnvelopeNoneTypeAuthTokenErrorCode = z.object({
 });
 
 /**
- * Envelope[NoneType, CaseStartConflictCode]
+ * Envelope[NoneType, ConflictErrorCode]
  */
-export const zEnvelopeNoneTypeCaseStartConflictCode = z.object({
+export const zEnvelopeNoneTypeConflictErrorCode = z.object({
     ok: z.boolean(),
-    code: zCaseStartConflictCode,
-    message: z.optional(z.union([
-        z.string(),
-        z.null()
-    ])),
-    data: z.null(),
-    meta: z.optional(z.union([
-        z.record(z.string(), z.unknown()),
-        z.null()
-    ]))
-});
-
-/**
- * Envelope[NoneType, CaseStartForbiddenCode]
- */
-export const zEnvelopeNoneTypeCaseStartForbiddenCode = z.object({
-    ok: z.boolean(),
-    code: zCaseStartForbiddenCode,
+    code: zConflictErrorCode,
     message: z.optional(z.union([
         z.string(),
         z.null()
@@ -314,13 +292,14 @@ export const zEnvelopeActionReceiptForceSkipDiscussSuccessCode = z.object({
 
 /**
  * GuestInfo
- *
- * If in_case is true, current_case_id must be provided; otherwise it must be null.
  */
 export const zGuestInfo = z.object({
     id: z.uuid(),
     username: z.string(),
-    in_case: z.boolean(),
+    current_room_id: z.optional(z.union([
+        z.uuid(),
+        z.null()
+    ])),
     current_case_id: z.optional(z.union([
         z.uuid(),
         z.null()
@@ -509,6 +488,28 @@ export const zLogoutCode = z.enum(['OK']);
 export const zEnvelopeNoneTypeLogoutCode = z.object({
     ok: z.boolean(),
     code: zLogoutCode,
+    message: z.optional(z.union([
+        z.string(),
+        z.null()
+    ])),
+    data: z.null(),
+    meta: z.optional(z.union([
+        z.record(z.string(), z.unknown()),
+        z.null()
+    ]))
+});
+
+/**
+ * PermissionErrorCode
+ */
+export const zPermissionErrorCode = z.enum(['PERMISSION_DENIED_NOT_IN_ROOM', 'PERMISSION_DENIED_NOT_HOST']);
+
+/**
+ * Envelope[NoneType, PermissionErrorCode]
+ */
+export const zEnvelopeNoneTypePermissionErrorCode = z.object({
+    ok: z.boolean(),
+    code: zPermissionErrorCode,
     message: z.optional(z.union([
         z.string(),
         z.null()
@@ -805,7 +806,11 @@ export const zEnvelopeRoomSnapshotSseEnvelopeCode = z.object({
 /**
  * Subject
  */
-export const zSubject = z.enum(['ME', 'USER']);
+export const zSubject = z.enum([
+    'ME',
+    'USER',
+    'CASE'
+]);
 
 /**
  * Target
@@ -831,17 +836,17 @@ export const zTarget = z.enum(['ROOM', 'CASE']);
  */
 export const zCaseStartMutation = z.object({
     target: z.optional(zTarget).default('ROOM'),
-    subject: z.optional(zSubject).default('ME'),
-    subject_id: z.optional(z.null()),
+    subject: z.optional(zSubject).default('CASE'),
+    subject_id: z.uuid(),
     on_target: z.optional(z.literal(true)).default(true),
     changed: z.optional(z.literal(true)).default(true),
     reason: z.optional(zCaseStartReason).default('STARTED')
 });
 
 /**
- * Envelope[CaseStartMutation, CaseStartSuccessCode]
+ * CaseStartResponse
  */
-export const zEnvelopeCaseStartMutationCaseStartSuccessCode = z.object({
+export const zCaseStartResponse = z.object({
     ok: z.boolean(),
     code: zCaseStartSuccessCode,
     message: z.optional(z.union([
@@ -1188,7 +1193,7 @@ export const zCaseStartApiV1RoomsCurrentCaseStartPostData = z.object({
 /**
  * Successful Response
  */
-export const zCaseStartApiV1RoomsCurrentCaseStartPostResponse = zEnvelopeCaseStartMutationCaseStartSuccessCode;
+export const zCaseStartApiV1RoomsCurrentCaseStartPostResponse = zCaseStartResponse;
 
 export const zKickUserApiV1RoomsCurrentUsersUserIdKickPostData = z.object({
     body: z.optional(z.never()),
@@ -1220,6 +1225,17 @@ export const zHealthApiHealthGetData = z.object({
     body: z.optional(z.never()),
     path: z.optional(z.never()),
     query: z.optional(z.never())
+});
+
+export const zCaseStateSseRtV1SseCasesCurrentStateGetData = z.object({
+    body: z.optional(z.never()),
+    path: z.optional(z.never()),
+    query: z.optional(z.object({
+        after_snapshot_no: z.optional(z.union([
+            z.int(),
+            z.null()
+        ]))
+    }))
 });
 
 export const zCloseRoomStateStreamRtV1SseRoomsCurrentClosePostData = z.object({

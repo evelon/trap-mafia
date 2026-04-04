@@ -11,12 +11,12 @@ export function RoomClient() {
   const { user } = useAuthSuspense();
 
   useEffect(() => {
-    if (!user.current_case_id) {
+    if (!user.current_room_id) {
       router.replace(ROUTES.ROOMS);
     }
   }, [user, router]);
 
-  if (!user.current_case_id) return null;
+  if (!user.current_room_id) return null;
 
   return (
     <div className="flex min-h-screen items-center justify-center">

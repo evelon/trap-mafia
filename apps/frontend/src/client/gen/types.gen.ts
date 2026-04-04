@@ -60,9 +60,9 @@ export type ActionReceipt = {
 };
 
 /**
- * AuthErrorCode
+ * AuthCommonErrorCode
  */
-export type AuthErrorCode = 'AUTH_UNAUTHORIZED';
+export type AuthCommonErrorCode = 'AUTH_UNAUTHORIZED';
 
 /**
  * AuthTokenErrorCode
@@ -100,16 +100,6 @@ export type BlueVoteRequest = {
 export type BlueVoteSuccessCode = 'OK';
 
 /**
- * CaseStartConflictCode
- */
-export type CaseStartConflictCode = 'ROOM_CASE_RUNNING' | 'ROOM_NOT_ENOUGH_PLAYERS' | 'ROOM_NOT_ALL_READY' | 'ROOM_DELETED';
-
-/**
- * CaseStartForbiddenCode
- */
-export type CaseStartForbiddenCode = 'PERMISSION_DENIED_NOT_IN_ROOM' | 'PERMISSION_DENIED_NOT_HOST';
-
-/**
  * CaseStartMutation
  *
  * POST /api/rooms/current/case-start 성공(200) 시 반환되는 mutation 데이터.
@@ -134,7 +124,7 @@ export type CaseStartMutation = {
      *
      * Always null for subject=ME.
      */
-    subject_id?: null;
+    subject_id: string;
     /**
      * On Target
      *
@@ -169,6 +159,40 @@ export type CaseStartRequest = {
 };
 
 /**
+ * CaseStartResponse
+ */
+export type CaseStartResponse = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: CaseStartSuccessCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Actual json payload of responses.
+     */
+    data: CaseStartMutation | null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
  * CaseStartSuccessCode
  */
 export type CaseStartSuccessCode = 'OK';
@@ -176,12 +200,17 @@ export type CaseStartSuccessCode = 'OK';
 /**
  * CaseStatus
  */
-export type CaseStatus = 'RUNNING' | 'ENDED' | 'INTERRUPTED';
+export type CaseStatus = 'RUNNING' | 'ENDED';
 
 /**
  * CommonErrorCode
  */
 export type CommonErrorCode = 'VALIDATION_ERROR' | 'UNKNOWN_ERROR' | 'PERMISSION_DENIED' | 'NOT_FOUND' | 'CONFLICT' | 'ALREADY_EXISTS' | 'INTERNAL_SERVER_ERROR';
+
+/**
+ * ConflictErrorCode
+ */
+export type ConflictErrorCode = 'CONFLICT_ALREADY_IN_CASE' | 'CONFLICT_NOT_ON_CASE' | 'CONFLICT_PHASE_NOT_FOUND' | 'CONFLICT_SNAPSHOT_NOT_FOUND' | 'ROOM_CASE_RUNNING' | 'ROOM_NOT_ENOUGH_PLAYERS' | 'ROOM_NOT_ALL_READY' | 'ROOM_DELETED';
 
 /**
  * Envelope[ActionReceipt, BlueVoteSuccessCode]
@@ -320,40 +349,6 @@ export type EnvelopeActionReceiptRedVoteSuccessCode = {
 };
 
 /**
- * Envelope[CaseStartMutation, CaseStartSuccessCode]
- */
-export type EnvelopeCaseStartMutationCaseStartSuccessCode = {
-    /**
-     * Ok
-     *
-     * Domain-level success/failure.
-     */
-    ok: boolean;
-    /**
-     * Domain result code or snapshot trigger code.
-     */
-    code: CaseStartSuccessCode;
-    /**
-     * Message
-     *
-     * Human-friendly optional message.
-     */
-    message?: string | null;
-    /**
-     * Actual json payload of responses.
-     */
-    data: CaseStartMutation | null;
-    /**
-     * Meta
-     *
-     * Optional metadata.
-     */
-    meta?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-/**
  * Envelope[GuestInfo, LoginCode]
  */
 export type EnvelopeGuestInfoLoginCode = {
@@ -460,9 +455,9 @@ export type EnvelopeNoneTypeActionForbiddenCode = {
 };
 
 /**
- * Envelope[NoneType, AuthErrorCode]
+ * Envelope[NoneType, AuthCommonErrorCode]
  */
-export type EnvelopeNoneTypeAuthErrorCode = {
+export type EnvelopeNoneTypeAuthCommonErrorCode = {
     /**
      * Ok
      *
@@ -472,7 +467,7 @@ export type EnvelopeNoneTypeAuthErrorCode = {
     /**
      * Domain result code or snapshot trigger code.
      */
-    code: AuthErrorCode;
+    code: AuthCommonErrorCode;
     /**
      * Message
      *
@@ -532,9 +527,9 @@ export type EnvelopeNoneTypeAuthTokenErrorCode = {
 };
 
 /**
- * Envelope[NoneType, CaseStartConflictCode]
+ * Envelope[NoneType, ConflictErrorCode]
  */
-export type EnvelopeNoneTypeCaseStartConflictCode = {
+export type EnvelopeNoneTypeConflictErrorCode = {
     /**
      * Ok
      *
@@ -544,43 +539,7 @@ export type EnvelopeNoneTypeCaseStartConflictCode = {
     /**
      * Domain result code or snapshot trigger code.
      */
-    code: CaseStartConflictCode;
-    /**
-     * Message
-     *
-     * Human-friendly optional message.
-     */
-    message?: string | null;
-    /**
-     * Data
-     *
-     * Actual json payload of responses.
-     */
-    data: null;
-    /**
-     * Meta
-     *
-     * Optional metadata.
-     */
-    meta?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-/**
- * Envelope[NoneType, CaseStartForbiddenCode]
- */
-export type EnvelopeNoneTypeCaseStartForbiddenCode = {
-    /**
-     * Ok
-     *
-     * Domain-level success/failure.
-     */
-    ok: boolean;
-    /**
-     * Domain result code or snapshot trigger code.
-     */
-    code: CaseStartForbiddenCode;
+    code: ConflictErrorCode;
     /**
      * Message
      *
@@ -689,6 +648,42 @@ export type EnvelopeNoneTypeLogoutCode = {
      * Domain result code or snapshot trigger code.
      */
     code: LogoutCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Data
+     *
+     * Actual json payload of responses.
+     */
+    data: null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
+ * Envelope[NoneType, PermissionErrorCode]
+ */
+export type EnvelopeNoneTypePermissionErrorCode = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: PermissionErrorCode;
     /**
      * Message
      *
@@ -938,8 +933,6 @@ export type ForceSkipDiscussSuccessCode = 'OK';
 
 /**
  * GuestInfo
- *
- * If in_case is true, current_case_id must be provided; otherwise it must be null.
  */
 export type GuestInfo = {
     /**
@@ -955,15 +948,11 @@ export type GuestInfo = {
      */
     username: string;
     /**
-     * In Case
-     *
-     * Whether the user is currently in a case
+     * Current Room Id
      */
-    in_case: boolean;
+    current_room_id?: string | null;
     /**
      * Current Case Id
-     *
-     * Current case id if in_case is true
      */
     current_case_id?: string | null;
 };
@@ -1307,6 +1296,11 @@ export type LoginCode = 'OK';
 export type LogoutCode = 'OK';
 
 /**
+ * PermissionErrorCode
+ */
+export type PermissionErrorCode = 'PERMISSION_DENIED_NOT_IN_ROOM' | 'PERMISSION_DENIED_NOT_HOST';
+
+/**
  * RedVoteBadRequestCode
  */
 export type RedVoteBadRequestCode = 'INVALID_TARGET_SEAT_NO';
@@ -1526,7 +1520,7 @@ export type SseEnvelopeCode = 'ROOM_STATE' | 'CASE_STATE' | 'ROOM_LEAVE' | 'ROOM
 /**
  * Subject
  */
-export type Subject = 'ME' | 'USER';
+export type Subject = 'ME' | 'USER' | 'CASE';
 
 /**
  * Target
@@ -1624,7 +1618,7 @@ export type MeApiV1AuthMeGetErrors = {
     /**
      * No access token attached in cookie.
      */
-    401: EnvelopeNoneTypeAuthErrorCode;
+    401: EnvelopeNoneTypeAuthCommonErrorCode;
 };
 
 export type MeApiV1AuthMeGetError = MeApiV1AuthMeGetErrors[keyof MeApiV1AuthMeGetErrors];
@@ -1889,11 +1883,11 @@ export type CaseStartApiV1RoomsCurrentCaseStartPostErrors = {
     /**
      * Forbidden
      */
-    403: EnvelopeNoneTypeCaseStartForbiddenCode;
+    403: EnvelopeNoneTypePermissionErrorCode;
     /**
      * Conflict
      */
-    409: EnvelopeNoneTypeCaseStartConflictCode;
+    409: EnvelopeNoneTypeConflictErrorCode;
     /**
      * Request body is not matched with pydantic request model
      */
@@ -1906,7 +1900,7 @@ export type CaseStartApiV1RoomsCurrentCaseStartPostResponses = {
     /**
      * Successful Response
      */
-    200: EnvelopeCaseStartMutationCaseStartSuccessCode;
+    200: CaseStartResponse;
 };
 
 export type CaseStartApiV1RoomsCurrentCaseStartPostResponse = CaseStartApiV1RoomsCurrentCaseStartPostResponses[keyof CaseStartApiV1RoomsCurrentCaseStartPostResponses];
@@ -1983,6 +1977,34 @@ export type HealthApiHealthGetData = {
 };
 
 export type HealthApiHealthGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
+export type CaseStateSseRtV1SseCasesCurrentStateGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * After Snapshot No
+         */
+        after_snapshot_no?: number | null;
+    };
+    url: '/rt/v1/sse/cases/current/state';
+};
+
+export type CaseStateSseRtV1SseCasesCurrentStateGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CaseStateSseRtV1SseCasesCurrentStateGetError = CaseStateSseRtV1SseCasesCurrentStateGetErrors[keyof CaseStateSseRtV1SseCasesCurrentStateGetErrors];
+
+export type CaseStateSseRtV1SseCasesCurrentStateGetResponses = {
     /**
      * Successful Response
      */

@@ -20,7 +20,7 @@ import {
 export function RoomView() {
   const router = useRouter();
   const { user } = useAuthSuspense();
-  const { snapshot, isConnected, isError } = useRoomSse(user.id);
+  const { snapshot, isConnected, isError, isKicked } = useRoomSse(user.id);
   const [isNavigating, startTransition] = useTransition();
 
   const { mutate: leaveRoom, isPending: isLeaving } = useMutation({
@@ -35,15 +35,12 @@ export function RoomView() {
     },
   });
 
-  // 강퇴 감지: SSE에서 본인이 멤버 목록에 없으면 로비로 이동
+  // 강퇴 감지: SSE envelope code(ROOM_KICKED / ROOM_MEMBERSHIP_INVALID)
   useEffect(() => {
-    if (!snapshot) return;
-    const isMember = snapshot.members?.some((m) => m.user_id === user.id);
-    if (!isMember) {
-      toast.error("방에서 퇴장되었습니다.");
-      router.push("/rooms");
-    }
-  }, [snapshot, user, router]);
+    if (!isKicked) return;
+    toast.error("방에서 퇴장되었습니다.");
+    router.push(ROUTES.ROOMS);
+  }, [isKicked, router]);
 
   if (isError) {
     return (

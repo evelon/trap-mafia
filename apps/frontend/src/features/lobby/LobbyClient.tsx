@@ -11,12 +11,12 @@ export function LobbyClient() {
   const { user } = useAuthSuspense();
 
   useEffect(() => {
-    if (user.current_case_id) {
+    if (user.current_room_id) {
       router.replace(ROUTES.ROOMS_CURRENT);
     }
   }, [user, router]);
 
-  if (user.current_case_id) return null;
+  if (user.current_room_id) return null;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4">
