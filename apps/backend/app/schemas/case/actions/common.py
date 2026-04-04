@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import RequiredFieldsModel
 
 
-class ActionReceipt(BaseModel):
+class ActionReceipt(RequiredFieldsModel):
     """
     공통 Action Receipt.
 

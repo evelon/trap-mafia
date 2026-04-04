@@ -3,22 +3,23 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from app.domain.constants.case import SEAT_MAX_EXCLUSIVE, SEAT_MIN
 from app.domain.enum import CaseStatus, PhaseType, VoteFailReason, VoteType
 from app.domain.types import SeatNo
+from app.schemas.base import RequiredFieldsModel
 from app.schemas.common.datetime import UtcDatetime
 from app.schemas.common.ids import CaseId
 
 
-class CaseState(BaseModel):
+class CaseState(RequiredFieldsModel):
     case_id: CaseId
     status: CaseStatus = CaseStatus.RUNNING
     round_no: Annotated[int, Field(ge=1)]
 
 
-class PhaseState(BaseModel):
+class PhaseState(RequiredFieldsModel):
     phase_id: UUID
     phase_type: PhaseType
     seq_in_round: Annotated[int, Field(ge=1)]
@@ -26,7 +27,7 @@ class PhaseState(BaseModel):
     opened_at: UtcDatetime
 
 
-class Player(BaseModel):
+class Player(RequiredFieldsModel):
     user_id: UUID
     username: str  # only in MVP
     seat_no: SeatNo
@@ -34,23 +35,23 @@ class Player(BaseModel):
     vote_tokens: Annotated[int, Field(ge=0, le=4)]
 
 
-class NightPhaseInfo(BaseModel):
+class NightPhaseInfo(RequiredFieldsModel):
     pass
 
 
-class VotePhaseInfo(BaseModel):
+class VotePhaseInfo(RequiredFieldsModel):
     targeter_seat_no: SeatNo
     targeted_seat_no: SeatNo
 
 
-class DiscussPhaseInfo(BaseModel):
+class DiscussPhaseInfo(RequiredFieldsModel):
     player_damaged: SeatNo | None
     blue_vote_left: Annotated[int, Field(ge=0, le=2)]
     last_vote_type: VoteType
     fail_reason: VoteFailReason
 
 
-class CaseSnapshot(BaseModel):
+class CaseSnapshot(RequiredFieldsModel):
     schema_version: Annotated[int, Field(ge=1, default=1)]
     snapshot_no: Annotated[int, Field(ge=1)] = 1
     case_state: CaseState

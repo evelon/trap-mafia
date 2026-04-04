@@ -1,8 +1,7 @@
 from enum import Enum
 
-from pydantic import BaseModel
-
 from app.domain.types import SeatNo
+from app.schemas.base import RequiredFieldsModel
 from app.schemas.common.envelope import Envelope
 
 
@@ -11,12 +10,12 @@ class CaseResultWinner(str, Enum):
     BLUE = "BLUE"
 
 
-class CaseResultPlayer(BaseModel):
+class CaseResultPlayer(RequiredFieldsModel):
     seat_no: SeatNo
     team: CaseResultWinner
 
 
-class CaseResultData(BaseModel):
+class CaseResultData(RequiredFieldsModel):
     winner: CaseResultWinner
     players: list[CaseResultPlayer]
 
