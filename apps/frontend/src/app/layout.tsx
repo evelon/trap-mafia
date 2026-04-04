@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "@/components/layout/providers";
 import { Toaster } from "sonner";
+import { Providers } from "@/features/layout/Providers";
 
 export const metadata: Metadata = {
   title: "Trap Mafia",

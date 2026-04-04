@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponses, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostErrors, CaseStartApiV1RoomsCurrentCaseStartPostResponses, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostErrors, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponses, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostErrors, GuestLoginApiV1AuthGuestLoginPostResponses, HealthApiHealthGetData, HealthApiHealthGetResponses, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponses, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostErrors, JoinRoomApiV1RoomsRoomIdJoinPostResponses, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponses, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponses, MeApiV1AuthMeGetData, MeApiV1AuthMeGetErrors, MeApiV1AuthMeGetResponses, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostErrors, RefreshApiV1AuthRefreshPostResponses, RoomStateSseRtV1SseRoomsCurrentGetData, RoomStateSseRtV1SseRoomsCurrentGetErrors, RoomStateSseRtV1SseRoomsCurrentGetResponses } from './types.gen';
+import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponses, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostErrors, CaseStartApiV1RoomsCurrentCaseStartPostResponses, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostErrors, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponses, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostErrors, GuestLoginApiV1AuthGuestLoginPostResponses, HealthApiHealthGetData, HealthApiHealthGetResponses, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponses, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostErrors, JoinRoomApiV1RoomsRoomIdJoinPostResponses, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponses, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponses, MeApiV1AuthMeGetData, MeApiV1AuthMeGetErrors, MeApiV1AuthMeGetResponses, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostErrors, RefreshApiV1AuthRefreshPostResponses, RoomStateSseRtV1SseRoomsCurrentStateGetData, RoomStateSseRtV1SseRoomsCurrentStateGetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -208,56 +208,16 @@ export const redVoteApiV1CasesCurrentPhasesCurrentRedVotePost = <ThrowOnError ex
 });
 
 /**
- * join_room
- *
- * POST /api/rooms/{room_id}/join
- *
- * 의미:
- * - 현재 사용자가 특정 ROOM에 참가를 시도한다.
- * - 성공 시 200 OK + JoinRoomMutation을 반환한다.
- * - 이미 참가 중인 경우에도 200으로 응답하며, changed=False로 표현한다.
- *
- * 비고:
- * - 실제 ROOM_FULL, membership 검증 로직은 추후 구현 예정이다.
- */
-export const joinRoomApiV1RoomsRoomIdJoinPost = <ThrowOnError extends boolean = false>(options: Options<JoinRoomApiV1RoomsRoomIdJoinPostData, ThrowOnError>) => (options.client ?? client).post<JoinRoomApiV1RoomsRoomIdJoinPostResponses, JoinRoomApiV1RoomsRoomIdJoinPostErrors, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/v1/rooms/{room_id}/join',
-    ...options
-});
-
-/**
  * leave_room
  *
- * POST /api/rooms/current/leave
- *
- * 의미:
- * - 현재 사용자가 자신이 속한 ROOM에서 나가기를 시도한다.
- * - 성공 시 200 OK + LeaveRoomMutation을 반환한다.
- * - 이미 방에 속해 있지 않은 경우에도 200으로 응답하며, changed=False로 표현한다.
+ * POST /api/v1/rooms/current/leave
+ * - access_token 쿠키에서 user_id를 추출
+ * - RoomService.leave_current_room 호출
+ * - LeaveRoomResponse(Envelope)로 반환
  */
 export const leaveRoomApiV1RoomsCurrentLeavePost = <ThrowOnError extends boolean = false>(options?: Options<LeaveRoomApiV1RoomsCurrentLeavePostData, ThrowOnError>) => (options?.client ?? client).post<LeaveRoomApiV1RoomsCurrentLeavePostResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/v1/rooms/current/leave',
-    ...options
-});
-
-/**
- * kick_user
- *
- * POST /api/rooms/current/users/{user_id}/kick
- *
- * 의미:
- * - 특정 USER를 현재 ROOM에서 내보내기를 시도한다.
- * - 성공 시 200 OK + KickUserMutation을 반환한다.
- * - 대상이 해당 ROOM에 없더라도 200으로 응답하며, changed=False로 표현한다.
- *
- * 주의:
- * - 이 API는 대상 room에서의 멤버십 제거 여부만 보장한다.
- */
-export const kickUserApiV1RoomsCurrentUsersUserIdKickPost = <ThrowOnError extends boolean = false>(options: Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData, ThrowOnError>) => (options.client ?? client).post<KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses, KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/v1/rooms/current/users/{user_id}/kick',
     ...options
 });
 
@@ -286,6 +246,40 @@ export const caseStartApiV1RoomsCurrentCaseStartPost = <ThrowOnError extends boo
 });
 
 /**
+ * kick_user
+ *
+ * POST /api/v1/rooms/current/users/{user_id}/kick
+ *
+ * 의미:
+ * - 특정 USER를 현재 ROOM에서 내보내기를 시도한다.
+ * - 성공 시 200 OK + KickUserMutation을 반환한다.
+ * - 대상이 해당 ROOM에 없더라도 200으로 응답하며, changed=False로 표현한다.
+ *
+ * 주의:
+ * - 이 API는 대상 room에서의 멤버십 제거 여부만 보장한다.
+ * - MVP: room 상관 없이 멱등 kick
+ */
+export const kickUserApiV1RoomsCurrentUsersUserIdKickPost = <ThrowOnError extends boolean = false>(options: Options<KickUserApiV1RoomsCurrentUsersUserIdKickPostData, ThrowOnError>) => (options.client ?? client).post<KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses, KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/rooms/current/users/{user_id}/kick',
+    ...options
+});
+
+/**
+ * join_room
+ *
+ * POST /api/v1/rooms/{room_id}/join
+ * - access_token 쿠키에서 user_id를 추출
+ * - RoomService.join_room 호출
+ * - JoinRoomResponse(Envelope)로 반환
+ */
+export const joinRoomApiV1RoomsRoomIdJoinPost = <ThrowOnError extends boolean = false>(options: Options<JoinRoomApiV1RoomsRoomIdJoinPostData, ThrowOnError>) => (options.client ?? client).post<JoinRoomApiV1RoomsRoomIdJoinPostResponses, JoinRoomApiV1RoomsRoomIdJoinPostErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/v1/rooms/{room_id}/join',
+    ...options
+});
+
+/**
  * Health
  */
 export const healthApiHealthGet = <ThrowOnError extends boolean = false>(options?: Options<HealthApiHealthGetData, ThrowOnError>) => (options?.client ?? client).get<HealthApiHealthGetResponses, unknown, ThrowOnError>({
@@ -295,13 +289,22 @@ export const healthApiHealthGet = <ThrowOnError extends boolean = false>(options
 });
 
 /**
+ * Close Room State Stream
+ */
+export const closeRoomStateStreamRtV1SseRoomsCurrentClosePost = <ThrowOnError extends boolean = false>(options?: Options<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, ThrowOnError>) => (options?.client ?? client).post<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/rt/v1/sse/rooms/current/close',
+    ...options
+});
+
+/**
  * Room State Sse
  *
- * GET /rt/v1/sse/rooms/current
+ * GET /rt/v1/sse/rooms/current/state
  *
  * Notion: room_state
- * - Auth: User (MVP: X-User-Id 헤더, 추후 JWT로 대체)
- * - Permission: In Room (MVP: X-Room-Id 헤더로 대체)
+ * - Auth: User
+ * - Permission: In Room
  *
  * Response (SSE)
  * - event: room_state
@@ -311,8 +314,8 @@ export const healthApiHealthGet = <ThrowOnError extends boolean = false>(options
  * Response (REST)
  * - 403: PERMISSION_DENIED_NOT_IN_ROOM
  */
-export const roomStateSseRtV1SseRoomsCurrentGet = <ThrowOnError extends boolean = false>(options?: Options<RoomStateSseRtV1SseRoomsCurrentGetData, ThrowOnError>) => (options?.client ?? client).get<RoomStateSseRtV1SseRoomsCurrentGetResponses, RoomStateSseRtV1SseRoomsCurrentGetErrors, ThrowOnError>({
+export const roomStateSseRtV1SseRoomsCurrentStateGet = <ThrowOnError extends boolean = false>(options?: Options<RoomStateSseRtV1SseRoomsCurrentStateGetData, ThrowOnError>) => (options?.client ?? client).get<RoomStateSseRtV1SseRoomsCurrentStateGetResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/rt/v1/sse/rooms/current',
+    url: '/rt/v1/sse/rooms/current/state',
     ...options
 });
