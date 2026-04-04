@@ -3,12 +3,14 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Self
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from app.schemas.base import RequiredFieldsModel
 
 Meta = dict[str, Any]
 
 
-class Envelope[DataT, CodeEnumT: Enum](BaseModel):
+class Envelope[DataT, CodeEnumT: Enum](RequiredFieldsModel):
     """
     - Keep this as the only top-level shape for every response.
     - Put real payload into `data`.

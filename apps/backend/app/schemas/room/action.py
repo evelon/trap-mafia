@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from app.domain.types import SeatNo
+from app.schemas.base import RequiredFieldsModel
 
 
-class CaseStartRequest(BaseModel):
+class CaseStartRequest(RequiredFieldsModel):
     red_player_count: SeatNo | None = Field(default=None)

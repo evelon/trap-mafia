@@ -1,9 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from app.domain.types import SeatNo
+from app.schemas.base import RequiredFieldsModel
 
 
-class RedVoteRequest(BaseModel):
+class RedVoteRequest(RequiredFieldsModel):
     """
     POST /api/cases/current/red-vote 요청 바디.
 
