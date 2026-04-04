@@ -17,14 +17,11 @@ pnpm dev:https
 
 SSR에서 API를 호출할 때 Node.js가 mkcert CA를 신뢰하도록 `NODE_EXTRA_CA_CERTS`를 설정한다. `pnpm dev`로 실행하면 새로고침 시 SSR API 호출에서 TLS 인증서 오류가 발생한다.
 
-## 스크립트
+## 기타 주요 스크립트
 
 | 명령어               | 설명                                   |
 | -------------------- | -------------------------------------- |
 | `npm install`        | 의존성 설치                            |
-| `npm run dev`        | 개발 서버 실행 (http://localhost:3000) |
-| `npm run build`      | 프로덕션 빌드                          |
-| `npm run start`      | 프로덕션 서버 실행                     |
 | `npm run lint`       | ESLint 검사                            |
 | `npm run check-type` | 타입 검사                              |
 | `npm run format`     | Prettier 포맷팅                        |
