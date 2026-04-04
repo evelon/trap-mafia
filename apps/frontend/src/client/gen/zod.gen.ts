@@ -97,10 +97,10 @@ export const zCaseStartReason = z.enum(['STARTED']);
  * CaseStartRequest
  */
 export const zCaseStartRequest = z.object({
-    red_player_count: z.optional(z.union([
+    red_player_count: z.union([
         z.int().gte(0).lt(8),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -146,18 +146,18 @@ export const zConflictErrorCode = z.enum([
 export const zEnvelopeActionReceiptBlueVoteSuccessCode = z.object({
     ok: z.boolean(),
     code: zBlueVoteSuccessCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zActionReceipt,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -166,15 +166,15 @@ export const zEnvelopeActionReceiptBlueVoteSuccessCode = z.object({
 export const zEnvelopeNoneTypeActionConflictCode = z.object({
     ok: z.boolean(),
     code: zActionConflictCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -183,15 +183,15 @@ export const zEnvelopeNoneTypeActionConflictCode = z.object({
 export const zEnvelopeNoneTypeActionForbiddenCode = z.object({
     ok: z.boolean(),
     code: zActionForbiddenCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -200,15 +200,15 @@ export const zEnvelopeNoneTypeActionForbiddenCode = z.object({
 export const zEnvelopeNoneTypeAuthCommonErrorCode = z.object({
     ok: z.boolean(),
     code: zAuthCommonErrorCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -217,15 +217,15 @@ export const zEnvelopeNoneTypeAuthCommonErrorCode = z.object({
 export const zEnvelopeNoneTypeAuthTokenErrorCode = z.object({
     ok: z.boolean(),
     code: zAuthTokenErrorCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -234,15 +234,15 @@ export const zEnvelopeNoneTypeAuthTokenErrorCode = z.object({
 export const zEnvelopeNoneTypeConflictErrorCode = z.object({
     ok: z.boolean(),
     code: zConflictErrorCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -254,15 +254,15 @@ export const zEnvelopeNoneTypeUnionActionConflictCodeBlueVoteConflictCode = z.ob
         zActionConflictCode,
         zBlueVoteConflictCode
     ]),
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -276,18 +276,18 @@ export const zForceSkipDiscussSuccessCode = z.enum(['OK']);
 export const zEnvelopeActionReceiptForceSkipDiscussSuccessCode = z.object({
     ok: z.boolean(),
     code: zForceSkipDiscussSuccessCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zActionReceipt,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -296,14 +296,14 @@ export const zEnvelopeActionReceiptForceSkipDiscussSuccessCode = z.object({
 export const zGuestInfo = z.object({
     id: z.uuid(),
     username: z.string(),
-    current_room_id: z.optional(z.union([
+    current_room_id: z.union([
         z.uuid(),
         z.null()
-    ])),
-    current_case_id: z.optional(z.union([
+    ]),
+    current_case_id: z.union([
         z.uuid(),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -324,15 +324,15 @@ export const zInitBlueVoteBadRequestCode = z.enum(['INVALID_TARGET_SEAT_NO']);
 export const zEnvelopeNoneTypeInitBlueVoteBadRequestCode = z.object({
     ok: z.boolean(),
     code: zInitBlueVoteBadRequestCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -349,15 +349,15 @@ export const zEnvelopeNoneTypeUnionActionConflictCodeInitBlueVoteConflictCode = 
         zActionConflictCode,
         zInitBlueVoteConflictCode
     ]),
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -371,15 +371,15 @@ export const zInitBlueVoteNotFoundCode = z.enum(['TARGET_SEAT_EMPTY']);
 export const zEnvelopeNoneTypeInitBlueVoteNotFoundCode = z.object({
     ok: z.boolean(),
     code: zInitBlueVoteNotFoundCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -408,18 +408,18 @@ export const zInitBlueVoteSuccessCode = z.enum(['OK']);
 export const zEnvelopeActionReceiptInitBlueVoteSuccessCode = z.object({
     ok: z.boolean(),
     code: zInitBlueVoteSuccessCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zActionReceipt,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -463,18 +463,18 @@ export const zLoginCode = z.enum(['OK']);
 export const zEnvelopeGuestInfoLoginCode = z.object({
     ok: z.boolean(),
     code: zLoginCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zGuestInfo,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -488,15 +488,15 @@ export const zLogoutCode = z.enum(['OK']);
 export const zEnvelopeNoneTypeLogoutCode = z.object({
     ok: z.boolean(),
     code: zLogoutCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -510,15 +510,15 @@ export const zPermissionErrorCode = z.enum(['PERMISSION_DENIED_NOT_IN_ROOM', 'PE
 export const zEnvelopeNoneTypePermissionErrorCode = z.object({
     ok: z.boolean(),
     code: zPermissionErrorCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -532,15 +532,15 @@ export const zRedVoteBadRequestCode = z.enum(['INVALID_TARGET_SEAT_NO']);
 export const zEnvelopeNoneTypeRedVoteBadRequestCode = z.object({
     ok: z.boolean(),
     code: zRedVoteBadRequestCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -557,15 +557,15 @@ export const zEnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode = z.obj
         zActionConflictCode,
         zRedVoteConflictCode
     ]),
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -579,15 +579,15 @@ export const zRedVoteNotFoundCode = z.enum(['TARGET_SEAT_EMPTY']);
 export const zEnvelopeNoneTypeRedVoteNotFoundCode = z.object({
     ok: z.boolean(),
     code: zRedVoteNotFoundCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.null(),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -603,10 +603,10 @@ export const zEnvelopeNoneTypeRedVoteNotFoundCode = z.object({
  * - target_seat_no: 유효한 seat_no(SeatNo), 또는 skip(null)
  */
 export const zRedVoteRequest = z.object({
-    target_seat_no: z.optional(z.union([
+    target_seat_no: z.union([
         z.int().gte(0).lt(8),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -620,18 +620,18 @@ export const zRedVoteSuccessCode = z.enum(['OK']);
 export const zEnvelopeActionReceiptRedVoteSuccessCode = z.object({
     ok: z.boolean(),
     code: zRedVoteSuccessCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zActionReceipt,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -649,14 +649,14 @@ export const zEnvelopeActionReceiptRedVoteSuccessCode = z.object({
  * - MVP 단순화: status는 RUNNING 또는 null로만 사용해도 됩니다.
  */
 export const zRoomCaseInfo = z.object({
-    case_id: z.optional(z.union([
+    case_id: z.union([
         z.uuid(),
         z.null()
-    ])),
-    status: z.optional(z.union([
+    ]),
+    status: z.union([
         zCaseStatus,
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -675,12 +675,12 @@ export const zRoomCaseInfo = z.object({
  * - created_at: ISO-8601 UTC 문자열(예: 2026-01-31T09:12:34.567Z)입니다.
  */
 export const zRoomInfo = z.object({
-    id: z.optional(z.uuid()).default('ffffffff-ffff-ffff-ffff-ffffffffffff'),
+    id: z.uuid().default('ffffffff-ffff-ffff-ffff-ffffffffffff'),
     room_name: z.string().min(4).max(255),
-    host_user_id: z.optional(z.union([
+    host_user_id: z.union([
         z.uuid(),
         z.null()
-    ])),
+    ]),
     created_at: z.string()
 });
 
@@ -717,13 +717,13 @@ export const zRoomMember = z.object({
  * - MVP에서는 아래 기본값을 고정해서 사용할 수 있습니다.
  */
 export const zRoomSettings = z.object({
-    max_players: z.optional(z.int().gte(4).lte(8)).default(8),
-    team_policy: z.optional(z.enum(['RANDOM', 'FIXED'])),
-    full_life: z.optional(z.int().gte(1).lte(4)).default(2),
-    max_vote_phases_per_round: z.optional(z.int().gte(1)).default(2),
-    night_duration_sec: z.optional(z.int().gte(1)).default(30),
-    vote_duration_sec: z.optional(z.int().gte(1)).default(30),
-    discuss_duration_sec: z.optional(z.int().gte(0)).default(120)
+    max_players: z.int().gte(4).lte(8).default(8),
+    team_policy: z.enum(['RANDOM', 'FIXED']),
+    full_life: z.int().gte(1).lte(4).default(2),
+    max_vote_phases_per_round: z.int().gte(1).default(2),
+    night_duration_sec: z.int().gte(1).default(30),
+    vote_duration_sec: z.int().gte(1).default(30),
+    discuss_duration_sec: z.int().gte(0).default(120)
 });
 
 /**
@@ -756,17 +756,17 @@ export const zRoomSnapshotType = z.enum([
  */
 export const zRoomSnapshot = z.object({
     room: zRoomInfo,
-    settings: z.optional(zRoomSettings),
-    current_case: z.optional(z.union([
+    settings: zRoomSettings,
+    current_case: z.union([
         zRoomCaseInfo,
         z.null()
-    ])),
-    members: z.optional(z.array(zRoomMember)),
-    last_event: z.optional(z.union([
+    ]),
+    members: z.array(zRoomMember),
+    last_event: z.union([
         zRoomSnapshotType,
         z.null()
-    ])),
-    logs: z.optional(z.array(z.string()))
+    ]),
+    logs: z.array(z.string())
 });
 
 /**
@@ -789,18 +789,18 @@ export const zSseEnvelopeCode = z.enum([
 export const zEnvelopeRoomSnapshotSseEnvelopeCode = z.object({
     ok: z.boolean(),
     code: zSseEnvelopeCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zRoomSnapshot,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -835,12 +835,12 @@ export const zTarget = z.enum(['ROOM', 'CASE']);
  * - reason == STARTED
  */
 export const zCaseStartMutation = z.object({
-    target: z.optional(zTarget).default('ROOM'),
-    subject: z.optional(zSubject).default('CASE'),
+    target: zTarget.default('ROOM'),
+    subject: zSubject.default('CASE'),
     subject_id: z.uuid(),
-    on_target: z.optional(z.literal(true)).default(true),
-    changed: z.optional(z.literal(true)).default(true),
-    reason: z.optional(zCaseStartReason).default('STARTED')
+    on_target: z.literal(true).default(true),
+    changed: z.literal(true).default(true),
+    reason: zCaseStartReason.default('STARTED')
 });
 
 /**
@@ -849,18 +849,18 @@ export const zCaseStartMutation = z.object({
 export const zCaseStartResponse = z.object({
     ok: z.boolean(),
     code: zCaseStartSuccessCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zCaseStartMutation,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -881,10 +881,10 @@ export const zCaseStartResponse = z.object({
  * - reason: JOINED | ALREADY_JOINED
  */
 export const zJoinRoomMutation = z.object({
-    target: z.optional(zTarget).default('ROOM'),
-    subject: z.optional(zSubject).default('ME'),
-    subject_id: z.optional(z.null()),
-    on_target: z.optional(z.literal(true)).default(true),
+    target: zTarget.default('ROOM'),
+    subject: zSubject.default('ME'),
+    subject_id: z.null(),
+    on_target: z.literal(true).default(true),
     changed: z.boolean(),
     reason: zJoinRoomReason
 });
@@ -895,18 +895,18 @@ export const zJoinRoomMutation = z.object({
 export const zJoinRoomResponse = z.object({
     ok: z.boolean(),
     code: zJoinRoomCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zJoinRoomMutation,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -929,10 +929,10 @@ export const zJoinRoomResponse = z.object({
  * - reason: KICKED | NOT_IN_ROOM
  */
 export const zKickUserMutation = z.object({
-    target: z.optional(zTarget).default('ROOM'),
-    subject: z.optional(zSubject).default('USER'),
+    target: zTarget.default('ROOM'),
+    subject: zSubject.default('USER'),
     subject_id: z.uuid(),
-    on_target: z.optional(z.literal(false)).default(false),
+    on_target: z.literal(false).default(false),
     changed: z.boolean(),
     reason: zKickUserReason
 });
@@ -943,18 +943,18 @@ export const zKickUserMutation = z.object({
 export const zKickUserResponse = z.object({
     ok: z.boolean(),
     code: zKickUserCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zKickUserMutation,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -975,10 +975,10 @@ export const zKickUserResponse = z.object({
  * - reason: LEFT | ALREADY_LEFT
  */
 export const zLeaveRoomMutation = z.object({
-    target: z.optional(zTarget).default('ROOM'),
-    subject: z.optional(zSubject).default('ME'),
-    subject_id: z.optional(z.null()),
-    on_target: z.optional(z.literal(false)).default(false),
+    target: zTarget.default('ROOM'),
+    subject: zSubject.default('ME'),
+    subject_id: z.null(),
+    on_target: z.literal(false).default(false),
     changed: z.boolean(),
     reason: zLeaveRoomReason
 });
@@ -989,18 +989,18 @@ export const zLeaveRoomMutation = z.object({
 export const zLeaveRoomResponse = z.object({
     ok: z.boolean(),
     code: zLeaveRoomCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zLeaveRoomMutation,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 /**
@@ -1041,18 +1041,18 @@ export const zValidationErrorData = z.object({
 export const zValidationErrorResponse = z.object({
     ok: z.boolean(),
     code: zCommonErrorCode,
-    message: z.optional(z.union([
+    message: z.union([
         z.string(),
         z.null()
-    ])),
+    ]),
     data: z.union([
         zValidationErrorData,
         z.null()
     ]),
-    meta: z.optional(z.union([
+    meta: z.union([
         z.record(z.string(), z.unknown()),
         z.null()
-    ]))
+    ])
 });
 
 export const zMeApiV1AuthMeGetData = z.object({

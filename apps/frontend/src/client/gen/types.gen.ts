@@ -117,8 +117,8 @@ export type BlueVoteSuccessCode = 'OK';
  * - reason == STARTED
  */
 export type CaseStartMutation = {
-    target?: Target;
-    subject?: Subject;
+    target: Target;
+    subject: Subject;
     /**
      * Subject Id
      *
@@ -130,17 +130,17 @@ export type CaseStartMutation = {
      *
      * Always true for case_start success mutation.
      */
-    on_target?: true;
+    on_target: true;
     /**
      * Changed
      *
      * Always true for case_start success mutation.
      */
-    changed?: true;
+    changed: true;
     /**
      * Reason string ("STARTED").
      */
-    reason?: CaseStartReason;
+    reason: CaseStartReason;
 };
 
 /**
@@ -155,7 +155,7 @@ export type CaseStartRequest = {
     /**
      * Red Player Count
      */
-    red_player_count?: number | null;
+    red_player_count: number | null;
 };
 
 /**
@@ -177,7 +177,7 @@ export type CaseStartResponse = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -187,7 +187,7 @@ export type CaseStartResponse = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -231,7 +231,7 @@ export type EnvelopeActionReceiptBlueVoteSuccessCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -241,7 +241,7 @@ export type EnvelopeActionReceiptBlueVoteSuccessCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -265,7 +265,7 @@ export type EnvelopeActionReceiptForceSkipDiscussSuccessCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -275,7 +275,7 @@ export type EnvelopeActionReceiptForceSkipDiscussSuccessCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -299,7 +299,7 @@ export type EnvelopeActionReceiptInitBlueVoteSuccessCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -309,7 +309,7 @@ export type EnvelopeActionReceiptInitBlueVoteSuccessCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -333,7 +333,7 @@ export type EnvelopeActionReceiptRedVoteSuccessCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -343,7 +343,7 @@ export type EnvelopeActionReceiptRedVoteSuccessCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -367,7 +367,7 @@ export type EnvelopeGuestInfoLoginCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -377,7 +377,7 @@ export type EnvelopeGuestInfoLoginCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -401,7 +401,7 @@ export type EnvelopeNoneTypeActionConflictCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -413,7 +413,7 @@ export type EnvelopeNoneTypeActionConflictCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -437,7 +437,7 @@ export type EnvelopeNoneTypeActionForbiddenCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -449,7 +449,7 @@ export type EnvelopeNoneTypeActionForbiddenCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -473,7 +473,7 @@ export type EnvelopeNoneTypeAuthCommonErrorCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -485,7 +485,7 @@ export type EnvelopeNoneTypeAuthCommonErrorCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -509,7 +509,7 @@ export type EnvelopeNoneTypeAuthTokenErrorCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -521,7 +521,7 @@ export type EnvelopeNoneTypeAuthTokenErrorCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -545,7 +545,7 @@ export type EnvelopeNoneTypeConflictErrorCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -557,7 +557,7 @@ export type EnvelopeNoneTypeConflictErrorCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -581,7 +581,7 @@ export type EnvelopeNoneTypeInitBlueVoteBadRequestCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -593,7 +593,7 @@ export type EnvelopeNoneTypeInitBlueVoteBadRequestCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -617,7 +617,7 @@ export type EnvelopeNoneTypeInitBlueVoteNotFoundCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -629,7 +629,7 @@ export type EnvelopeNoneTypeInitBlueVoteNotFoundCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -653,7 +653,7 @@ export type EnvelopeNoneTypeLogoutCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -665,7 +665,7 @@ export type EnvelopeNoneTypeLogoutCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -689,7 +689,7 @@ export type EnvelopeNoneTypePermissionErrorCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -701,7 +701,7 @@ export type EnvelopeNoneTypePermissionErrorCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -725,7 +725,7 @@ export type EnvelopeNoneTypeRedVoteBadRequestCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -737,7 +737,7 @@ export type EnvelopeNoneTypeRedVoteBadRequestCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -761,7 +761,7 @@ export type EnvelopeNoneTypeRedVoteNotFoundCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -773,7 +773,7 @@ export type EnvelopeNoneTypeRedVoteNotFoundCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -799,7 +799,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeBlueVoteConflictCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -811,7 +811,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeBlueVoteConflictCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -837,7 +837,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeInitBlueVoteConflictCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -849,7 +849,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeInitBlueVoteConflictCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -875,7 +875,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Data
      *
@@ -887,7 +887,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -911,7 +911,7 @@ export type EnvelopeRoomSnapshotSseEnvelopeCode = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -921,7 +921,7 @@ export type EnvelopeRoomSnapshotSseEnvelopeCode = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -950,11 +950,11 @@ export type GuestInfo = {
     /**
      * Current Room Id
      */
-    current_room_id?: string | null;
+    current_room_id: string | null;
     /**
      * Current Case Id
      */
-    current_case_id?: string | null;
+    current_case_id: string | null;
 };
 
 /**
@@ -1042,20 +1042,20 @@ export type JoinRoomCode = 'OK';
  * - reason: JOINED | ALREADY_JOINED
  */
 export type JoinRoomMutation = {
-    target?: Target;
-    subject?: Subject;
+    target: Target;
+    subject: Subject;
     /**
      * Subject Id
      *
      * Always null for subject=ME.
      */
-    subject_id?: null;
+    subject_id: null;
     /**
      * On Target
      *
      * Always true for join_room mutation.
      */
-    on_target?: true;
+    on_target: true;
     /**
      * Changed
      *
@@ -1092,7 +1092,7 @@ export type JoinRoomResponse = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -1102,7 +1102,7 @@ export type JoinRoomResponse = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -1132,8 +1132,8 @@ export type KickUserCode = 'OK';
  * - reason: KICKED | NOT_IN_ROOM
  */
 export type KickUserMutation = {
-    target?: Target;
-    subject?: Subject;
+    target: Target;
+    subject: Subject;
     /**
      * Subject Id
      *
@@ -1145,7 +1145,7 @@ export type KickUserMutation = {
      *
      * Always false for kick_user mutation.
      */
-    on_target?: false;
+    on_target: false;
     /**
      * Changed
      *
@@ -1182,7 +1182,7 @@ export type KickUserResponse = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -1192,7 +1192,7 @@ export type KickUserResponse = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -1220,20 +1220,20 @@ export type LeaveRoomCode = 'OK';
  * - reason: LEFT | ALREADY_LEFT
  */
 export type LeaveRoomMutation = {
-    target?: Target;
-    subject?: Subject;
+    target: Target;
+    subject: Subject;
     /**
      * Subject Id
      *
      * Always null for subject=ME.
      */
-    subject_id?: null;
+    subject_id: null;
     /**
      * On Target
      *
      * Always false for leave_room mutation.
      */
-    on_target?: false;
+    on_target: false;
     /**
      * Changed
      *
@@ -1270,7 +1270,7 @@ export type LeaveRoomResponse = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -1280,7 +1280,7 @@ export type LeaveRoomResponse = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
@@ -1333,7 +1333,7 @@ export type RedVoteRequest = {
      *
      * Target seat no. null means skip.
      */
-    target_seat_no?: number | null;
+    target_seat_no: number | null;
 };
 
 /**
@@ -1359,8 +1359,8 @@ export type RoomCaseInfo = {
     /**
      * Case Id
      */
-    case_id?: string | null;
-    status?: CaseStatus | null;
+    case_id: string | null;
+    status: CaseStatus | null;
 };
 
 /**
@@ -1384,7 +1384,7 @@ export type RoomInfo = {
      *
      * Room id
      */
-    id?: string;
+    id: string;
     /**
      * Room Name
      *
@@ -1394,7 +1394,7 @@ export type RoomInfo = {
     /**
      * Host User Id
      */
-    host_user_id?: string | null;
+    host_user_id: string | null;
     /**
      * Created At
      *
@@ -1450,31 +1450,31 @@ export type RoomSettings = {
     /**
      * Max Players
      */
-    max_players?: number;
+    max_players: number;
     /**
      * Team Policy
      */
-    team_policy?: 'RANDOM' | 'FIXED';
+    team_policy: 'RANDOM' | 'FIXED';
     /**
      * Full Life
      */
-    full_life?: number;
+    full_life: number;
     /**
      * Max Vote Phases Per Round
      */
-    max_vote_phases_per_round?: number;
+    max_vote_phases_per_round: number;
     /**
      * Night Duration Sec
      */
-    night_duration_sec?: number;
+    night_duration_sec: number;
     /**
      * Vote Duration Sec
      */
-    vote_duration_sec?: number;
+    vote_duration_sec: number;
     /**
      * Discuss Duration Sec
      */
-    discuss_duration_sec?: number;
+    discuss_duration_sec: number;
 };
 
 /**
@@ -1492,17 +1492,17 @@ export type RoomSettings = {
  */
 export type RoomSnapshot = {
     room: RoomInfo;
-    settings?: RoomSettings;
-    current_case?: RoomCaseInfo | null;
+    settings: RoomSettings;
+    current_case: RoomCaseInfo | null;
     /**
      * Members
      */
-    members?: Array<RoomMember>;
-    last_event?: RoomSnapshotType | null;
+    members: Array<RoomMember>;
+    last_event: RoomSnapshotType | null;
     /**
      * Logs
      */
-    logs?: Array<string>;
+    logs: Array<string>;
 };
 
 /**
@@ -1564,7 +1564,7 @@ export type ValidationErrorResponse = {
      *
      * Human-friendly optional message.
      */
-    message?: string | null;
+    message: string | null;
     /**
      * Actual json payload of responses.
      */
@@ -1574,7 +1574,7 @@ export type ValidationErrorResponse = {
      *
      * Optional metadata.
      */
-    meta?: {
+    meta: {
         [key: string]: unknown;
     } | null;
 };
