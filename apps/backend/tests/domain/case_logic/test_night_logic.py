@@ -25,6 +25,7 @@ def test_validate_red_vote_success():
         target_seat_no=1,
         actor_seat_no=0,
         max_seat_no=4,
+        alive_seat_nos={0, 1},
         already_acted=False,
     )
 
@@ -40,6 +41,7 @@ def test_validate_red_vote_skip_success():
         target_seat_no=None,  # skip
         actor_seat_no=0,
         max_seat_no=4,
+        alive_seat_nos={0},
         already_acted=False,
     )
 
@@ -53,6 +55,7 @@ def test_validate_red_vote_not_night():
             target_seat_no=1,
             actor_seat_no=0,
             max_seat_no=4,
+            alive_seat_nos=set(),
             already_acted=False,
         )
 
@@ -68,6 +71,7 @@ def test_validate_red_vote_not_alive():
             target_seat_no=1,
             actor_seat_no=0,
             max_seat_no=4,
+            alive_seat_nos=set(),
             already_acted=False,
         )
 
@@ -83,6 +87,7 @@ def test_validate_red_vote_already_acted():
             target_seat_no=1,
             actor_seat_no=0,
             max_seat_no=4,
+            alive_seat_nos={0, 1},
             already_acted=True,
         )
 
@@ -98,6 +103,7 @@ def test_validate_red_vote_invalid_seat():
             target_seat_no=5,  # out of range
             actor_seat_no=0,
             max_seat_no=4,
+            alive_seat_nos={0, 1, 2, 3},
             already_acted=False,
         )
 
@@ -113,6 +119,23 @@ def test_validate_red_vote_self_vote():
             target_seat_no=1,
             actor_seat_no=1,
             max_seat_no=4,
+            alive_seat_nos={0, 1},
+            already_acted=False,
+        )
+
+
+def test_validate_red_vote_dead_target():
+    actor_id = uuid4()
+
+    with pytest.raises(NightRuleViolationError):
+        validate_red_vote(
+            is_night_phase=True,
+            actor_player_id=actor_id,
+            alive_player_ids={actor_id},
+            target_seat_no=1,
+            actor_seat_no=0,
+            max_seat_no=4,
+            alive_seat_nos={0, 2, 3},
             already_acted=False,
         )
 

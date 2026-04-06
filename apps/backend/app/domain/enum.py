@@ -14,8 +14,8 @@ class PhaseType(str, Enum):
 
 
 class CaseTeam(str, Enum):
-    RED_TEAM = "RED_TEAM"
-    BLUE_TEAM = "BLUE_TEAM"
+    RED = "RED"
+    BLUE = "BLUE"
 
 
 class VoteType(str, Enum):

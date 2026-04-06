@@ -5,9 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.case_logic.night import NightRuleViolationError
-from app.domain.enum import PhaseType
+from app.domain.enum import CaseTeam, PhaseType, VoteFailReason
 from app.models.case import Case, CaseAction, CasePlayer, Phase
 from app.models.case_snapshot import CaseSnapshotHistory
+from app.schemas.case.state import CaseSnapshot
 from app.services.case import CaseService
 from tests.conftest import FakePubSub
 
@@ -66,6 +67,46 @@ async def test_red_vote_skip_creates_case_action_with_null_target(
     assert len(actions) == 1
     assert actions[0].case_id == case.id
     assert actions[0].night_target_seat_no is None
+
+
+@pytest.mark.anyio
+async def test_red_vote_spends_all_actor_tokens_immediately(
+    db_session: AsyncSession,
+    case_service: CaseService,
+    started_case_with_players: tuple[Case, list[CasePlayer]],
+):
+    case, players = started_case_with_players
+    actor = players[0]
+
+    assert actor.vote_tokens == 1
+
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=actor.id,
+        target_seat_no=players[1].seat_no,
+    )
+
+    await db_session.refresh(actor)
+    assert actor.vote_tokens == 0
+
+
+@pytest.mark.anyio
+async def test_red_vote_skip_preserves_tokens(
+    db_session: AsyncSession,
+    case_service: CaseService,
+    started_case_with_players: tuple[Case, list[CasePlayer]],
+):
+    case, players = started_case_with_players
+    actor = players[0]
+
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=actor.id,
+        target_seat_no=None,
+    )
+
+    await db_session.refresh(actor)
+    assert actor.vote_tokens == 1
 
 
 @pytest.mark.anyio
@@ -325,11 +366,13 @@ async def test_red_vote_all_skips_end_night(
         )
 
     # then
-    result1 = await db_session.execute(select(CaseSnapshotHistory))
+    result1 = await db_session.execute(
+        select(CaseSnapshotHistory).where(CaseSnapshotHistory.case_id == case.id)
+    )
     histories = result1.scalars().all()
     assert len(histories) == before_count + 1
 
-    result2 = await db_session.execute(select(Phase))
+    result2 = await db_session.execute(select(Phase).where(Phase.case_id == case.id))
     phases = result2.scalars().all()
     assert len(phases) >= 2
 
@@ -345,6 +388,105 @@ async def test_red_vote_all_skips_end_night(
     assert len(closed_night_phases) == 1
 
     assert len(fake_pubsub.published) == before_publish_count + 1
+
+
+@pytest.mark.anyio
+async def test_red_vote_resolution_counts_only_red_team_votes(
+    db_session: AsyncSession,
+    case_service: CaseService,
+    started_case_with_players: tuple[Case, list[CasePlayer]],
+):
+    case, players = started_case_with_players
+
+    red_players = [player for player in players if player.team == CaseTeam.RED]
+    blue_players = [player for player in players if player.team == CaseTeam.BLUE]
+    assert len(red_players) >= 2
+    assert len(blue_players) >= 2
+
+    red_target = blue_players[0]
+    ignored_blue_target = red_players[0]
+
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=red_players[0].id,
+        target_seat_no=red_target.seat_no,
+    )
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=red_players[1].id,
+        target_seat_no=red_target.seat_no,
+    )
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=blue_players[0].id,
+        target_seat_no=ignored_blue_target.seat_no,
+    )
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=blue_players[1].id,
+        target_seat_no=ignored_blue_target.seat_no,
+    )
+
+    await db_session.refresh(red_target)
+    await db_session.refresh(ignored_blue_target)
+    assert red_target.life_left == 1
+    assert ignored_blue_target.life_left == 2
+
+    result = await db_session.execute(
+        select(CaseSnapshotHistory)
+        .where(CaseSnapshotHistory.case_id == case.id)
+        .order_by(CaseSnapshotHistory.snapshot_no.desc())
+    )
+    history = result.scalars().first()
+    assert history
+    snapshot = CaseSnapshot.model_validate(history.snapshot_json)
+    assert snapshot.night_phase_result is not None
+    assert snapshot.night_phase_result.player_damaged == red_target.seat_no
+    assert snapshot.night_phase_result.fail_reason is None
+
+
+@pytest.mark.anyio
+async def test_red_vote_resolution_marks_no_vote_when_only_blue_votes_exist(
+    db_session: AsyncSession,
+    case_service: CaseService,
+    started_case_with_players: tuple[Case, list[CasePlayer]],
+):
+    case, players = started_case_with_players
+
+    red_players = [player for player in players if player.team == CaseTeam.RED]
+    blue_players = [player for player in players if player.team == CaseTeam.BLUE]
+
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=blue_players[0].id,
+        target_seat_no=red_players[0].seat_no,
+    )
+    await case_service.red_vote(
+        case_id=case.id,
+        actor_player_id=blue_players[1].id,
+        target_seat_no=red_players[0].seat_no,
+    )
+    for red_player in red_players:
+        await case_service.red_vote(
+            case_id=case.id,
+            actor_player_id=red_player.id,
+            target_seat_no=None,
+        )
+
+    await db_session.refresh(red_players[0])
+    assert red_players[0].life_left == 2
+
+    result = await db_session.execute(
+        select(CaseSnapshotHistory)
+        .where(CaseSnapshotHistory.case_id == case.id)
+        .order_by(CaseSnapshotHistory.snapshot_no.desc())
+    )
+    history = result.scalars().first()
+    assert history
+    snapshot = CaseSnapshot.model_validate(history.snapshot_json)
+    assert snapshot.night_phase_result is not None
+    assert snapshot.night_phase_result.player_damaged is None
+    assert snapshot.night_phase_result.fail_reason == VoteFailReason.NO_VOTE
 
 
 # Additional tests

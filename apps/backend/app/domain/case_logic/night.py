@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID
 
+from app.domain.enum import CaseTeam, VoteFailReason
 from app.domain.exceptions.common import DomainError
 
 
@@ -11,6 +12,7 @@ class NightRuleViolationReason(str, Enum):
     NOT_ALIVE = "NOT_ALIVE"
     ALREADY_ACTED = "ALREADY_ACTED"
     INVALID_TARGET_SEAT = "INVALID_TARGET_SEAT"
+    TARGET_NOT_ALIVE = "TARGET_NOT_ALIVE"
     SELF_VOTE = "SELF_VOTE"
 
 
@@ -28,6 +30,7 @@ def validate_red_vote(
     target_seat_no: int | None,
     actor_seat_no: int,
     max_seat_no: int,
+    alive_seat_nos: set[int],
     already_acted: bool,
 ) -> None:
     """
@@ -76,6 +79,9 @@ def validate_red_vote(
     if target_seat_no == actor_seat_no:
         raise NightRuleViolationError(reason=NightRuleViolationReason.SELF_VOTE)
 
+    if target_seat_no not in alive_seat_nos:
+        raise NightRuleViolationError(reason=NightRuleViolationReason.TARGET_NOT_ALIVE)
+
 
 def should_end_night(
     *,
@@ -101,3 +107,43 @@ def should_end_night(
         모든 플레이어가 의사 표시를 마쳤으면 True, 아니면 False.
     """
     return action_count >= alive_player_count
+
+
+def resolve_red_vote(
+    *,
+    actions_by_actor_id: dict[UUID, int | None],
+    player_id_to_team: dict[UUID, CaseTeam],
+) -> tuple[int | None, VoteFailReason | None]:
+    participant_ids = [
+        actor_id
+        for actor_id, target_seat_no in actions_by_actor_id.items()
+        if target_seat_no is not None
+    ]
+    if len(participant_ids) == 1:
+        return None, VoteFailReason.SOLO_VOTE
+
+    red_vote_counts: dict[int, int] = {}
+    for actor_id in participant_ids:
+        if player_id_to_team[actor_id] != CaseTeam.RED:
+            continue
+        target_seat_no = actions_by_actor_id[actor_id]
+        if target_seat_no is None:
+            continue
+        red_vote_counts[target_seat_no] = red_vote_counts.get(target_seat_no, 0) + 1
+
+    if not red_vote_counts:
+        return None, VoteFailReason.NO_VOTE
+
+    max_votes = max(red_vote_counts.values())
+    highest_targets = [
+        target_seat_no
+        for target_seat_no, vote_count in red_vote_counts.items()
+        if vote_count == max_votes
+    ]
+    if len(highest_targets) != 1:
+        return None, VoteFailReason.TIE
+
+    if len(participant_ids) < 2:
+        return None, VoteFailReason.SOLO_VOTE
+
+    return highest_targets[0], None

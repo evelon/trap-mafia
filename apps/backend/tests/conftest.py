@@ -739,6 +739,7 @@ def case_action_repo(db_session: AsyncSession) -> CaseActionRepo:
 def case_service(
     db_session: AsyncSession,
     case_repo: CaseRepo,
+    case_action_repo: CaseActionRepo,
     case_player_repo: CasePlayerRepo,
     case_history_repo: CaseSnapshotHistoryRepo,
     room_member_repo: RoomMemberRepo,
@@ -750,6 +751,7 @@ def case_service(
     return CaseService(
         db=db_session,
         case_repo=case_repo,
+        case_action_repo=case_action_repo,
         case_player_repo=case_player_repo,
         case_history_repo=case_history_repo,
         room_member_repo=room_member_repo,

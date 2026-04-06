@@ -18,7 +18,7 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.domain.constants.case import SEAT_NO_MAX_EXCLUSIVE
-from app.domain.enum import ActionType, CaseStatus, PhaseType
+from app.domain.enum import ActionType, CaseStatus, CaseTeam, PhaseType
 from app.models.base import Base
 
 
@@ -94,9 +94,13 @@ class CasePlayer(Base):
         nullable=False,
         index=True,
     )
+    team: Mapped[CaseTeam] = mapped_column(
+        Enum(CaseTeam, name="case_team"),
+        nullable=False,
+    )
     seat_no: Mapped[int] = mapped_column(nullable=False)
     life_left: Mapped[int] = mapped_column(nullable=False, default=2)
-    vote_tokens: Mapped[int] = mapped_column(nullable=False, default=0)
+    vote_tokens: Mapped[int] = mapped_column(nullable=False, default=1)
 
     __table_args__ = (
         UniqueConstraint("case_id", "user_id", name="uq_case_players_case_user"),

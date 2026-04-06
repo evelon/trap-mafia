@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.domain.enum import CaseTeam
 from app.models.case import CasePlayer
 from app.schemas.common.ids import CaseId, UserId
 
@@ -19,7 +20,9 @@ class CasePlayerRepo:
             CasePlayer(
                 case_id=case_id,
                 user_id=user_id,
+                team=CaseTeam.BLUE if seat_no % 2 == 0 else CaseTeam.RED,
                 seat_no=seat_no,
+                vote_tokens=1,
             )
             for seat_no, user_id in enumerate(user_ids)
         ]

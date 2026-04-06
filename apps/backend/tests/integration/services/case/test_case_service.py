@@ -109,7 +109,7 @@ async def test_start_case_creates_first_snapshot_in_case_snapshot_shape(
     assert {p.user_id for p in snapshot.players} == set(user_ids)
     assert [p.seat_no for p in snapshot.players] == [0, 1, 2, 3]
     assert [p.life_left for p in snapshot.players] == [2, 2, 2, 2]
-    assert [p.vote_tokens for p in snapshot.players] == [0, 0, 0, 0]
+    assert [p.vote_tokens for p in snapshot.players] == [1, 1, 1, 1]
 
     assert snapshot.logs == []
 

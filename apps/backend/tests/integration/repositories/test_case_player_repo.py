@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
+from app.domain.enum import CaseTeam
 from app.models.auth import User
 from app.models.case import Case, CasePlayer
 from app.repositories.case_player import CasePlayerRepo
@@ -50,19 +51,22 @@ async def test_create_many_inserts_case_players(db_session: AsyncSession, user_c
     assert len(rows) == 3
 
     assert rows[0].user_id == host_user_id
+    assert rows[0].team == CaseTeam.BLUE
     assert rows[0].seat_no == 0
     assert rows[0].life_left == 2
-    assert rows[0].vote_tokens == 0
+    assert rows[0].vote_tokens == 1
 
     assert rows[1].user_id == user1_id
+    assert rows[1].team == CaseTeam.RED
     assert rows[1].seat_no == 1
     assert rows[1].life_left == 2
-    assert rows[1].vote_tokens == 0
+    assert rows[1].vote_tokens == 1
 
     assert rows[2].user_id == user2_id
+    assert rows[2].team == CaseTeam.BLUE
     assert rows[2].seat_no == 2
     assert rows[2].life_left == 2
-    assert rows[2].vote_tokens == 0
+    assert rows[2].vote_tokens == 1
 
 
 @pytest.mark.anyio
@@ -79,9 +83,11 @@ async def test_list_by_case_id_returns_players_in_seat_order(
     # 일부러 seat_no 순서와 다르게 insert
     db_session.add_all(
         [
-            CasePlayer(case_id=case_id, user_id=user2.id, seat_no=2),
-            CasePlayer(case_id=case_id, user_id=user_case.host_user_id, seat_no=0),
-            CasePlayer(case_id=case_id, user_id=user1.id, seat_no=1),
+            CasePlayer(case_id=case_id, user_id=user2.id, team=CaseTeam.BLUE, seat_no=2),
+            CasePlayer(
+                case_id=case_id, user_id=user_case.host_user_id, team=CaseTeam.BLUE, seat_no=0
+            ),
+            CasePlayer(case_id=case_id, user_id=user1.id, team=CaseTeam.RED, seat_no=1),
         ]
     )
     await db_session.commit()

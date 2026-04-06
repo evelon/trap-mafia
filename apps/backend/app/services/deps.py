@@ -5,6 +5,7 @@ from fastapi import Depends
 from app.infra.db.session import DbSessionDep
 from app.infra.pubsub.bus.deps import CaseEventBusDep, RoomEventBusDep
 from app.repositories.deps import (
+    CaseActionRepoDep,
     CaseHistoryRepoDep,
     CasePlayerRepoDep,
     CaseRepoDep,
@@ -32,6 +33,7 @@ RoomServiceDep = Annotated[RoomService, Depends(get_room_service)]
 def get_case_service(
     db: DbSessionDep,
     case_repo: CaseRepoDep,
+    case_action_repo: CaseActionRepoDep,
     case_player_repo: CasePlayerRepoDep,
     case_history_repo: CaseHistoryRepoDep,
     room_member_repo: RoomMemberRepoDep,
@@ -43,6 +45,7 @@ def get_case_service(
     case_service = CaseService(
         db,
         case_repo=case_repo,
+        case_action_repo=case_action_repo,
         case_player_repo=case_player_repo,
         case_history_repo=case_history_repo,
         room_member_repo=room_member_repo,

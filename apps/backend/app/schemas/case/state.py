@@ -5,12 +5,18 @@ from uuid import UUID
 
 from pydantic import Field
 
-from app.domain.constants.case import SEAT_MAX_EXCLUSIVE, SEAT_MIN
-from app.domain.enum import CaseStatus, PhaseType, VoteFailReason, VoteType
+from app.domain.constants.case import (
+    BLUE_VOTE_MAX_EXCLUSIVE,
+    SEAT_MAX_EXCLUSIVE,
+    SEAT_MIN,
+    SEAT_NO_MAX_EXCLUSIVE,
+    SEAT_NO_MIN,
+)
+from app.domain.enum import CaseStatus, PhaseType, VoteFailReason
 from app.domain.types import SeatNo
 from app.schemas.base import RequiredFieldsModel
 from app.schemas.common.datetime import UtcDatetime
-from app.schemas.common.ids import CaseId
+from app.schemas.common.ids import CaseId, PhaseId
 
 
 class CaseState(RequiredFieldsModel):
@@ -20,7 +26,7 @@ class CaseState(RequiredFieldsModel):
 
 
 class PhaseState(RequiredFieldsModel):
-    phase_id: UUID
+    phase_id: PhaseId
     phase_type: PhaseType
     seq_in_round: Annotated[int, Field(ge=1)]
     phase_no_in_round: Annotated[int, Field(ge=1)]
@@ -35,20 +41,24 @@ class Player(RequiredFieldsModel):
     vote_tokens: Annotated[int, Field(ge=0, le=4)]
 
 
-class NightPhaseInfo(RequiredFieldsModel):
-    pass
+class NightPhaseResult(RequiredFieldsModel):
+    player_damaged: Annotated[int | None, Field(ge=SEAT_NO_MIN, lt=SEAT_NO_MAX_EXCLUSIVE)]
+    fail_reason: None | VoteFailReason
 
 
-class VotePhaseInfo(RequiredFieldsModel):
+class BlueVoteInitResult(RequiredFieldsModel):
     targeter_seat_no: SeatNo
     targeted_seat_no: SeatNo
 
 
-class DiscussPhaseInfo(RequiredFieldsModel):
-    player_damaged: SeatNo | None
-    blue_vote_left: Annotated[int, Field(ge=0, le=2)]
-    last_vote_type: VoteType
-    fail_reason: VoteFailReason
+class VotePhaseResult(RequiredFieldsModel):
+    player_damaged: Annotated[int, Field(ge=SEAT_NO_MIN, lt=SEAT_NO_MAX_EXCLUSIVE)]
+    fail_reason: None | VoteFailReason
+    blue_vote_left: Annotated[int, Field(ge=0, lt=BLUE_VOTE_MAX_EXCLUSIVE)]
+
+
+class RoundEndResult(RequiredFieldsModel):
+    pass
 
 
 class CaseSnapshot(RequiredFieldsModel):
@@ -57,7 +67,8 @@ class CaseSnapshot(RequiredFieldsModel):
     case_state: CaseState
     phase_state: PhaseState
     players: Annotated[list[Player], Field(min_length=SEAT_MIN, max_length=SEAT_MAX_EXCLUSIVE)]
-    night_phase_info: NightPhaseInfo | None
-    vote_phase_info: VotePhaseInfo | None
-    discuss_phase_info: DiscussPhaseInfo | None
+    night_phase_result: NightPhaseResult | None
+    blue_vote_init_result: BlueVoteInitResult | None
+    vote_phase_result: VotePhaseResult | None
+    round_end_result: RoundEndResult | None
     logs: list[str]
