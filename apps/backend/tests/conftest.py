@@ -39,6 +39,7 @@ from app.models.case import Case, CasePlayer
 from app.models.room import Room
 from app.mvp import create_mvp_lifespan
 from app.repositories.case import CaseRepo
+from app.repositories.case_action import CaseActionRepo
 from app.repositories.case_history import CaseSnapshotHistoryRepo
 from app.repositories.case_player import CasePlayerRepo
 from app.repositories.phase import PhaseRepo
@@ -727,6 +728,11 @@ def room_repo(db_session: AsyncSession) -> RoomRepo:
 @pytest.fixture
 def phase_repo(db_session: AsyncSession) -> PhaseRepo:
     return PhaseRepo(db_session)
+
+
+@pytest.fixture
+def case_action_repo(db_session: AsyncSession) -> CaseActionRepo:
+    return CaseActionRepo(db_session)
 
 
 @pytest.fixture

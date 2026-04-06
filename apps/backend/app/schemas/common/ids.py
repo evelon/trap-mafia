@@ -22,6 +22,10 @@ PhaseId = Annotated[
     UUID,
     Field(description="Phase identifier (UUID)", examples=["550e8400-e29b-41d4-a716-446655440000"]),
 ]
+PlayerId = Annotated[
+    UUID,
+    Field(description="Phase identifier (UUID)", examples=["550e8400-e29b-41d4-a716-446655440000"]),
+]
 ConnId = str
 # CaseHistoryId = Annotated[int, Field(description="Action identifier", examples=[42])]
 # CaseActionHistoryId = Annotated[int, Field(description="Action identifier", examples=[42])]

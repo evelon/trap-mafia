@@ -4,6 +4,7 @@ from fastapi import Depends
 
 from app.infra.db.session import DbSessionDep
 from app.repositories.case import CaseRepo
+from app.repositories.case_action import CaseActionRepo
 from app.repositories.case_history import CaseSnapshotHistoryRepo
 from app.repositories.case_player import CasePlayerRepo
 from app.repositories.phase import PhaseRepo
@@ -59,3 +60,10 @@ def get_phase_repo(db: DbSessionDep) -> PhaseRepo:
 
 
 PhaseRepoDep = Annotated[PhaseRepo, Depends(get_phase_repo)]
+
+
+def get_case_action_repo(db: DbSessionDep) -> CaseActionRepo:
+    return CaseActionRepo(db)
+
+
+CaseActionRepoDep = Annotated[CaseActionRepo, Depends(get_case_action_repo)]
