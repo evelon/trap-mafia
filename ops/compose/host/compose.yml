@@ -8,6 +8,8 @@ services:
       - "${HTTPS_PORT}:443"
     volumes:
       - ../../../infra/edge/caddy/Caddyfile.host:/etc/caddy/Caddyfile:ro
+      # mkcert 로컬 인증서 (개발 환경 전용)
+      - ../../../infra/edge/caddy/certs:/certs:ro
       - caddy_data:/data
       - caddy_config:/config
     extra_hosts:

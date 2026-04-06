@@ -5,11 +5,11 @@ export default defineConfig({
   output: {
     path: "./src/client/gen",
     postProcess: ["prettier"],
+    entryFile: false,
   },
   plugins: [
     {
       name: "@hey-api/sdk",
-      includeInEntry: false,
     },
     "@hey-api/typescript",
     {
@@ -19,7 +19,7 @@ export default defineConfig({
     "zod",
     {
       name: "@tanstack/react-query",
-      includeInEntry: true,
+      // includeInEntry: true,
     },
   ],
 });

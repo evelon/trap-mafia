@@ -62,7 +62,12 @@ export type ActionReceipt = {
 /**
  * AuthErrorCode
  */
-export type AuthErrorCode = 'AUTH_USER_NOT_FOUND' | 'AUTH_USERNAME_NOT_FOUND' | 'AUTH_WRONG_PW' | 'AUTH_TOKEN_NOT_INCLUDED' | 'AUTH_TOKEN_INVALID' | 'AUTH_TOKEN_EXPIRED' | 'AUTH_TOKEN_PAYLOAD_INVALID' | 'AUTH_UNAUTHORIZED';
+export type AuthErrorCode = 'AUTH_UNAUTHORIZED';
+
+/**
+ * AuthTokenErrorCode
+ */
+export type AuthTokenErrorCode = 'AUTH_TOKEN_NOT_INCLUDED' | 'AUTH_TOKEN_INVALID' | 'AUTH_TOKEN_EXPIRED' | 'AUTH_TOKEN_PAYLOAD_INVALID';
 
 /**
  * BlueVoteChoice
@@ -169,9 +174,14 @@ export type CaseStartRequest = {
 export type CaseStartSuccessCode = 'OK';
 
 /**
+ * CaseStatus
+ */
+export type CaseStatus = 'RUNNING' | 'ENDED' | 'INTERRUPTED';
+
+/**
  * CommonErrorCode
  */
-export type CommonErrorCode = 'VALIDATION_ERROR';
+export type CommonErrorCode = 'VALIDATION_ERROR' | 'UNKNOWN_ERROR' | 'PERMISSION_DENIED' | 'NOT_FOUND' | 'CONFLICT' | 'ALREADY_EXISTS' | 'INTERNAL_SERVER_ERROR';
 
 /**
  * Envelope[ActionReceipt, BlueVoteSuccessCode]
@@ -196,7 +206,7 @@ export type EnvelopeActionReceiptBlueVoteSuccessCode = {
     /**
      * Actual json payload of responses.
      */
-    data?: ActionReceipt | null;
+    data: ActionReceipt | null;
     /**
      * Meta
      *
@@ -230,7 +240,7 @@ export type EnvelopeActionReceiptForceSkipDiscussSuccessCode = {
     /**
      * Actual json payload of responses.
      */
-    data?: ActionReceipt | null;
+    data: ActionReceipt | null;
     /**
      * Meta
      *
@@ -264,7 +274,7 @@ export type EnvelopeActionReceiptInitBlueVoteSuccessCode = {
     /**
      * Actual json payload of responses.
      */
-    data?: ActionReceipt | null;
+    data: ActionReceipt | null;
     /**
      * Meta
      *
@@ -298,7 +308,7 @@ export type EnvelopeActionReceiptRedVoteSuccessCode = {
     /**
      * Actual json payload of responses.
      */
-    data?: ActionReceipt | null;
+    data: ActionReceipt | null;
     /**
      * Meta
      *
@@ -332,7 +342,7 @@ export type EnvelopeCaseStartMutationCaseStartSuccessCode = {
     /**
      * Actual json payload of responses.
      */
-    data?: CaseStartMutation | null;
+    data: CaseStartMutation | null;
     /**
      * Meta
      *
@@ -366,109 +376,7 @@ export type EnvelopeGuestInfoLoginCode = {
     /**
      * Actual json payload of responses.
      */
-    data?: GuestInfo | null;
-    /**
-     * Meta
-     *
-     * Optional metadata.
-     */
-    meta?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-/**
- * Envelope[JoinRoomMutation, JoinRoomCode]
- */
-export type EnvelopeJoinRoomMutationJoinRoomCode = {
-    /**
-     * Ok
-     *
-     * Domain-level success/failure.
-     */
-    ok: boolean;
-    /**
-     * Domain result code or snapshot trigger code.
-     */
-    code: JoinRoomCode;
-    /**
-     * Message
-     *
-     * Human-friendly optional message.
-     */
-    message?: string | null;
-    /**
-     * Actual json payload of responses.
-     */
-    data?: JoinRoomMutation | null;
-    /**
-     * Meta
-     *
-     * Optional metadata.
-     */
-    meta?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-/**
- * Envelope[KickUserMutation, KickUserCode]
- */
-export type EnvelopeKickUserMutationKickUserCode = {
-    /**
-     * Ok
-     *
-     * Domain-level success/failure.
-     */
-    ok: boolean;
-    /**
-     * Domain result code or snapshot trigger code.
-     */
-    code: KickUserCode;
-    /**
-     * Message
-     *
-     * Human-friendly optional message.
-     */
-    message?: string | null;
-    /**
-     * Actual json payload of responses.
-     */
-    data?: KickUserMutation | null;
-    /**
-     * Meta
-     *
-     * Optional metadata.
-     */
-    meta?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-/**
- * Envelope[LeaveRoomMutation, LeaveRoomCode]
- */
-export type EnvelopeLeaveRoomMutationLeaveRoomCode = {
-    /**
-     * Ok
-     *
-     * Domain-level success/failure.
-     */
-    ok: boolean;
-    /**
-     * Domain result code or snapshot trigger code.
-     */
-    code: LeaveRoomCode;
-    /**
-     * Message
-     *
-     * Human-friendly optional message.
-     */
-    message?: string | null;
-    /**
-     * Actual json payload of responses.
-     */
-    data?: LeaveRoomMutation | null;
+    data: GuestInfo | null;
     /**
      * Meta
      *
@@ -504,7 +412,7 @@ export type EnvelopeNoneTypeActionConflictCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -540,7 +448,7 @@ export type EnvelopeNoneTypeActionForbiddenCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -576,7 +484,43 @@ export type EnvelopeNoneTypeAuthErrorCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
+ * Envelope[NoneType, AuthTokenErrorCode]
+ */
+export type EnvelopeNoneTypeAuthTokenErrorCode = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: AuthTokenErrorCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Data
+     *
+     * Actual json payload of responses.
+     */
+    data: null;
     /**
      * Meta
      *
@@ -612,7 +556,7 @@ export type EnvelopeNoneTypeCaseStartConflictCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -648,43 +592,7 @@ export type EnvelopeNoneTypeCaseStartForbiddenCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
-    /**
-     * Meta
-     *
-     * Optional metadata.
-     */
-    meta?: {
-        [key: string]: unknown;
-    } | null;
-};
-
-/**
- * Envelope[NoneType, CommonErrorCode]
- */
-export type EnvelopeNoneTypeCommonErrorCode = {
-    /**
-     * Ok
-     *
-     * Domain-level success/failure.
-     */
-    ok: boolean;
-    /**
-     * Domain result code or snapshot trigger code.
-     */
-    code: CommonErrorCode;
-    /**
-     * Message
-     *
-     * Human-friendly optional message.
-     */
-    message?: string | null;
-    /**
-     * Data
-     *
-     * Actual json payload of responses.
-     */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -720,7 +628,7 @@ export type EnvelopeNoneTypeInitBlueVoteBadRequestCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -756,7 +664,7 @@ export type EnvelopeNoneTypeInitBlueVoteNotFoundCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -792,7 +700,7 @@ export type EnvelopeNoneTypeLogoutCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -828,7 +736,7 @@ export type EnvelopeNoneTypeRedVoteBadRequestCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -864,7 +772,7 @@ export type EnvelopeNoneTypeRedVoteNotFoundCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -902,7 +810,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeBlueVoteConflictCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -940,7 +848,7 @@ export type EnvelopeNoneTypeUnionActionConflictCodeInitBlueVoteConflictCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
     /**
      * Meta
      *
@@ -978,7 +886,41 @@ export type EnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode = {
      *
      * Actual json payload of responses.
      */
-    data?: null;
+    data: null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
+ * Envelope[RoomSnapshot, SSEEnvelopeCode]
+ */
+export type EnvelopeRoomSnapshotSseEnvelopeCode = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: SseEnvelopeCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Actual json payload of responses.
+     */
+    data: RoomSnapshot | null;
     /**
      * Meta
      *
@@ -1143,6 +1085,40 @@ export type JoinRoomMutation = {
 export type JoinRoomReason = 'JOINED' | 'ALREADY_JOINED';
 
 /**
+ * JoinRoomResponse
+ */
+export type JoinRoomResponse = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: JoinRoomCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Actual json payload of responses.
+     */
+    data: JoinRoomMutation | null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
  * KickUserCode
  */
 export type KickUserCode = 'OK';
@@ -1199,6 +1175,40 @@ export type KickUserMutation = {
 export type KickUserReason = 'KICKED' | 'NOT_IN_ROOM';
 
 /**
+ * KickUserResponse
+ */
+export type KickUserResponse = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: KickUserCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Actual json payload of responses.
+     */
+    data: KickUserMutation | null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
  * LeaveRoomCode
  */
 export type LeaveRoomCode = 'OK';
@@ -1253,6 +1263,40 @@ export type LeaveRoomMutation = {
 export type LeaveRoomReason = 'LEFT' | 'ALREADY_LEFT';
 
 /**
+ * LeaveRoomResponse
+ */
+export type LeaveRoomResponse = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: LeaveRoomCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Actual json payload of responses.
+     */
+    data: LeaveRoomMutation | null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
  * LoginCode
  */
 export type LoginCode = 'OK';
@@ -1304,6 +1348,182 @@ export type RedVoteRequest = {
 export type RedVoteSuccessCode = 'OK';
 
 /**
+ * RoomCaseInfo
+ *
+ * Purpose
+ * - 현재 방에서 진행 중이거나 과거의 케이스(게임 한 판)의 최소 상태를 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.current_case 블록에 해당합니다.
+ *
+ * Field interpretation
+ * - case_id가 null이면 아직 케이스가 없으며 status도 null이어야 합니다.
+ * - case_id가 존재하면 status는 RUNNING 또는 ENDED가 될 수 있습니다.
+ * - MVP 단순화: status는 RUNNING 또는 null로만 사용해도 됩니다.
+ */
+export type RoomCaseInfo = {
+    /**
+     * Case Id
+     */
+    case_id?: string | null;
+    status?: CaseStatus | null;
+};
+
+/**
+ * RoomInfo
+ *
+ * Purpose
+ * - 방 자체 메타 정보를 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.room 블록에 해당합니다.
+ *
+ * Field interpretation
+ * - id: MVP에서는 1로 고정해서 사용할 수 있습니다.
+ * - room_name: MVP에서는 "test_room"처럼 고정 문자열을 사용할 수 있습니다.
+ * - host_user_id: 방장 유저의 UUID입니다.
+ * - created_at: ISO-8601 UTC 문자열(예: 2026-01-31T09:12:34.567Z)입니다.
+ */
+export type RoomInfo = {
+    /**
+     * Id
+     *
+     * Room id
+     */
+    id?: string;
+    /**
+     * Room Name
+     *
+     * Room name
+     */
+    room_name: string;
+    /**
+     * Host User Id
+     */
+    host_user_id?: string | null;
+    /**
+     * Created At
+     *
+     * ISO-8601 UTC string
+     */
+    created_at: string;
+};
+
+/**
+ * RoomMember
+ *
+ * Purpose
+ * - 방에 active한(퇴장하지 않은) 멤버의 최소 정보를 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.members[] 항목입니다.
+ *
+ * Field interpretation
+ * - members에는 left_at이 null인 active 멤버만 포함합니다(실제 구현 규칙).
+ * - members의 정렬은 joined_at ASC(입장 순)입니다(실제 구현 규칙).
+ */
+export type RoomMember = {
+    /**
+     * User Id
+     */
+    user_id: string;
+    /**
+     * Username
+     */
+    username: string;
+    /**
+     * Joined At
+     *
+     * ISO-8601 UTC string
+     */
+    joined_at: string;
+};
+
+/**
+ * RoomSettings
+ *
+ * Purpose
+ * - 방 설정(플레이 규칙/제한)을 담습니다.
+ *
+ * Meaning
+ * - room_snapshot.settings 블록에 해당합니다.
+ *
+ * Field interpretation
+ * - discuss_duration_sec이 0이면 시간 제한이 없음을 뜻합니다.
+ * - MVP에서는 아래 기본값을 고정해서 사용할 수 있습니다.
+ */
+export type RoomSettings = {
+    /**
+     * Max Players
+     */
+    max_players?: number;
+    /**
+     * Team Policy
+     */
+    team_policy?: 'RANDOM' | 'FIXED';
+    /**
+     * Full Life
+     */
+    full_life?: number;
+    /**
+     * Max Vote Phases Per Round
+     */
+    max_vote_phases_per_round?: number;
+    /**
+     * Night Duration Sec
+     */
+    night_duration_sec?: number;
+    /**
+     * Vote Duration Sec
+     */
+    vote_duration_sec?: number;
+    /**
+     * Discuss Duration Sec
+     */
+    discuss_duration_sec?: number;
+};
+
+/**
+ * RoomSnapshot
+ *
+ * Purpose
+ * - 방 상태를 SSE/REST에서 한 번에 전달하기 위한 스냅샷입니다.
+ *
+ * Meaning
+ * - Notion의 room_snapshot 전체 구조에 해당합니다.
+ *
+ * Field interpretation
+ * - room/settings/current_case/members를 포함합니다.
+ * - MVP 목업에서는 기본값들을 그대로 사용해도 스냅샷을 만들 수 있습니다.
+ */
+export type RoomSnapshot = {
+    room: RoomInfo;
+    settings?: RoomSettings;
+    current_case?: RoomCaseInfo | null;
+    /**
+     * Members
+     */
+    members?: Array<RoomMember>;
+    last_event?: RoomSnapshotType | null;
+    /**
+     * Logs
+     */
+    logs?: Array<string>;
+};
+
+/**
+ * RoomSnapshotType
+ */
+export type RoomSnapshotType = 'room.connected' | 'room.member.joined' | 'room.member.left' | 'room.member.kicked' | 'room.member.readied' | 'room.member.unreadied' | 'room.case.started' | 'room.case.ended' | 'room.stream_close';
+
+/**
+ * SSEEnvelopeCode
+ *
+ * SSE의 Envelope 유형을 나타냄
+ */
+export type SseEnvelopeCode = 'ROOM_STATE' | 'CASE_STATE' | 'ROOM_LEAVE' | 'ROOM_KICKED' | 'ROOM_MEMBERSHIP_INVALID' | 'STREAM_CLOSE';
+
+/**
  * Subject
  */
 export type Subject = 'ME' | 'USER';
@@ -1327,6 +1547,68 @@ export type ValidationError = {
     msg: string;
     /**
      * Error Type
+     */
+    type: string;
+};
+
+/**
+ * ValidationErrorResponse
+ */
+export type ValidationErrorResponse = {
+    /**
+     * Ok
+     *
+     * Domain-level success/failure.
+     */
+    ok: boolean;
+    /**
+     * Domain result code or snapshot trigger code.
+     */
+    code: CommonErrorCode;
+    /**
+     * Message
+     *
+     * Human-friendly optional message.
+     */
+    message?: string | null;
+    /**
+     * Actual json payload of responses.
+     */
+    data: ValidationErrorData | null;
+    /**
+     * Meta
+     *
+     * Optional metadata.
+     */
+    meta?: {
+        [key: string]: unknown;
+    } | null;
+};
+
+/**
+ * _ValidationErrorData
+ */
+export type ValidationErrorData = {
+    /**
+     * Fields
+     */
+    fields: Array<ValidationFieldError>;
+};
+
+/**
+ * _ValidationFieldError
+ */
+export type ValidationFieldError = {
+    /**
+     * Field
+     */
+    field: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Type
      */
     type: string;
 };
@@ -1369,9 +1651,9 @@ export type GuestLoginApiV1AuthGuestLoginPostErrors = {
      */
     400: unknown;
     /**
-     * Unprocessable Entity
+     * Request body is not matched with pydantic request model
      */
-    422: EnvelopeNoneTypeCommonErrorCode;
+    422: ValidationErrorResponse;
 };
 
 export type GuestLoginApiV1AuthGuestLoginPostError = GuestLoginApiV1AuthGuestLoginPostErrors[keyof GuestLoginApiV1AuthGuestLoginPostErrors];
@@ -1396,7 +1678,7 @@ export type RefreshApiV1AuthRefreshPostErrors = {
     /**
      * Invalid / expired / missing refresh token.
      */
-    401: EnvelopeNoneTypeAuthErrorCode;
+    401: EnvelopeNoneTypeAuthTokenErrorCode;
 };
 
 export type RefreshApiV1AuthRefreshPostError = RefreshApiV1AuthRefreshPostErrors[keyof RefreshApiV1AuthRefreshPostErrors];
@@ -1445,9 +1727,9 @@ export type BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors = {
      */
     409: EnvelopeNoneTypeUnionActionConflictCodeBlueVoteConflictCode;
     /**
-     * Unprocessable Entity
+     * Request body is not matched with pydantic request model
      */
-    422: EnvelopeNoneTypeCommonErrorCode;
+    422: ValidationErrorResponse;
 };
 
 export type BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostError = BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors[keyof BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors];
@@ -1519,9 +1801,9 @@ export type InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors = {
      */
     409: EnvelopeNoneTypeUnionActionConflictCodeInitBlueVoteConflictCode;
     /**
-     * Unprocessable Entity
+     * Request body is not matched with pydantic request model
      */
-    422: EnvelopeNoneTypeCommonErrorCode;
+    422: ValidationErrorResponse;
 };
 
 export type InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostError = InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors[keyof InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors];
@@ -1562,9 +1844,9 @@ export type RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors = {
      */
     409: EnvelopeNoneTypeUnionActionConflictCodeRedVoteConflictCode;
     /**
-     * Unprocessable Entity
+     * Request body is not matched with pydantic request model
      */
-    422: EnvelopeNoneTypeCommonErrorCode;
+    422: ValidationErrorResponse;
 };
 
 export type RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostError = RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors[keyof RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors];
@@ -1579,6 +1861,87 @@ export type RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses = {
 };
 
 export type RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponse = RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses[keyof RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses];
+
+export type LeaveRoomApiV1RoomsCurrentLeavePostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/rooms/current/leave';
+};
+
+export type LeaveRoomApiV1RoomsCurrentLeavePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: LeaveRoomResponse;
+};
+
+export type LeaveRoomApiV1RoomsCurrentLeavePostResponse = LeaveRoomApiV1RoomsCurrentLeavePostResponses[keyof LeaveRoomApiV1RoomsCurrentLeavePostResponses];
+
+export type CaseStartApiV1RoomsCurrentCaseStartPostData = {
+    body: CaseStartRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/rooms/current/case-start';
+};
+
+export type CaseStartApiV1RoomsCurrentCaseStartPostErrors = {
+    /**
+     * Forbidden
+     */
+    403: EnvelopeNoneTypeCaseStartForbiddenCode;
+    /**
+     * Conflict
+     */
+    409: EnvelopeNoneTypeCaseStartConflictCode;
+    /**
+     * Request body is not matched with pydantic request model
+     */
+    422: ValidationErrorResponse;
+};
+
+export type CaseStartApiV1RoomsCurrentCaseStartPostError = CaseStartApiV1RoomsCurrentCaseStartPostErrors[keyof CaseStartApiV1RoomsCurrentCaseStartPostErrors];
+
+export type CaseStartApiV1RoomsCurrentCaseStartPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeCaseStartMutationCaseStartSuccessCode;
+};
+
+export type CaseStartApiV1RoomsCurrentCaseStartPostResponse = CaseStartApiV1RoomsCurrentCaseStartPostResponses[keyof CaseStartApiV1RoomsCurrentCaseStartPostResponses];
+
+export type KickUserApiV1RoomsCurrentUsersUserIdKickPostData = {
+    body?: never;
+    path: {
+        /**
+         * User Id
+         *
+         * User identifier (UUID)
+         */
+        user_id: string;
+    };
+    query?: never;
+    url: '/api/v1/rooms/current/users/{user_id}/kick';
+};
+
+export type KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type KickUserApiV1RoomsCurrentUsersUserIdKickPostError = KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors[keyof KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors];
+
+export type KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: KickUserResponse;
+};
+
+export type KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse = KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses[keyof KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses];
 
 export type JoinRoomApiV1RoomsRoomIdJoinPostData = {
     body?: never;
@@ -1607,89 +1970,10 @@ export type JoinRoomApiV1RoomsRoomIdJoinPostResponses = {
     /**
      * Successful Response
      */
-    200: EnvelopeJoinRoomMutationJoinRoomCode;
+    200: JoinRoomResponse;
 };
 
 export type JoinRoomApiV1RoomsRoomIdJoinPostResponse = JoinRoomApiV1RoomsRoomIdJoinPostResponses[keyof JoinRoomApiV1RoomsRoomIdJoinPostResponses];
-
-export type LeaveRoomApiV1RoomsCurrentLeavePostData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/rooms/current/leave';
-};
-
-export type LeaveRoomApiV1RoomsCurrentLeavePostResponses = {
-    /**
-     * Successful Response
-     */
-    200: EnvelopeLeaveRoomMutationLeaveRoomCode;
-};
-
-export type LeaveRoomApiV1RoomsCurrentLeavePostResponse = LeaveRoomApiV1RoomsCurrentLeavePostResponses[keyof LeaveRoomApiV1RoomsCurrentLeavePostResponses];
-
-export type KickUserApiV1RoomsCurrentUsersUserIdKickPostData = {
-    body?: never;
-    path: {
-        /**
-         * User Id
-         */
-        user_id: string;
-    };
-    query?: never;
-    url: '/api/v1/rooms/current/users/{user_id}/kick';
-};
-
-export type KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type KickUserApiV1RoomsCurrentUsersUserIdKickPostError = KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors[keyof KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors];
-
-export type KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: EnvelopeKickUserMutationKickUserCode;
-};
-
-export type KickUserApiV1RoomsCurrentUsersUserIdKickPostResponse = KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses[keyof KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses];
-
-export type CaseStartApiV1RoomsCurrentCaseStartPostData = {
-    body: CaseStartRequest;
-    path?: never;
-    query?: never;
-    url: '/api/v1/rooms/current/case-start';
-};
-
-export type CaseStartApiV1RoomsCurrentCaseStartPostErrors = {
-    /**
-     * Forbidden
-     */
-    403: EnvelopeNoneTypeCaseStartForbiddenCode;
-    /**
-     * Conflict
-     */
-    409: EnvelopeNoneTypeCaseStartConflictCode;
-    /**
-     * Unprocessable Entity
-     */
-    422: EnvelopeNoneTypeCommonErrorCode;
-};
-
-export type CaseStartApiV1RoomsCurrentCaseStartPostError = CaseStartApiV1RoomsCurrentCaseStartPostErrors[keyof CaseStartApiV1RoomsCurrentCaseStartPostErrors];
-
-export type CaseStartApiV1RoomsCurrentCaseStartPostResponses = {
-    /**
-     * Successful Response
-     */
-    200: EnvelopeCaseStartMutationCaseStartSuccessCode;
-};
-
-export type CaseStartApiV1RoomsCurrentCaseStartPostResponse = CaseStartApiV1RoomsCurrentCaseStartPostResponses[keyof CaseStartApiV1RoomsCurrentCaseStartPostResponses];
 
 export type HealthApiHealthGetData = {
     body?: never;
@@ -1705,33 +1989,30 @@ export type HealthApiHealthGetResponses = {
     200: unknown;
 };
 
-export type RoomStateSseRtV1SseRoomsCurrentGetData = {
+export type CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-User-Id
-         */
-        'X-User-Id'?: string | null;
-        /**
-         * X-Room-Id
-         */
-        'X-Room-Id'?: string | null;
-    };
     path?: never;
     query?: never;
-    url: '/rt/v1/sse/rooms/current';
+    url: '/rt/v1/sse/rooms/current/close';
 };
 
-export type RoomStateSseRtV1SseRoomsCurrentGetErrors = {
+export type CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses = {
     /**
-     * Validation Error
+     * Successful Response
      */
-    422: HttpValidationError;
+    200: EnvelopeRoomSnapshotSseEnvelopeCode;
 };
 
-export type RoomStateSseRtV1SseRoomsCurrentGetError = RoomStateSseRtV1SseRoomsCurrentGetErrors[keyof RoomStateSseRtV1SseRoomsCurrentGetErrors];
+export type CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponse = CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses[keyof CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses];
 
-export type RoomStateSseRtV1SseRoomsCurrentGetResponses = {
+export type RoomStateSseRtV1SseRoomsCurrentStateGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/rt/v1/sse/rooms/current/state';
+};
+
+export type RoomStateSseRtV1SseRoomsCurrentStateGetResponses = {
     /**
      * Successful Response
      */

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from app.schemas.base import RequiredFieldsModel
 from app.schemas.common.envelope import Envelope
 from app.schemas.common.ids import CaseId, RoomId, UserId
 
@@ -12,7 +13,7 @@ class LoginCode(str, Enum):
     OK = "OK"
 
 
-class GuestInfo(BaseModel):
+class GuestInfo(RequiredFieldsModel):
     id: UserId = Field(description="User ID (UUID)")
     username: str = Field(description="Username")
     current_room_id: RoomId | None = Field(default=None)

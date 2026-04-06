@@ -3,19 +3,19 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import status
-from pydantic import BaseModel
 
 from app.core.error_codes import AuthTokenErrorCode, CommonErrorCode
+from app.schemas.base import RequiredFieldsModel
 from app.schemas.common.envelope import Envelope
 
 
-class _ValidationFieldError(BaseModel):
+class _ValidationFieldError(RequiredFieldsModel):
     field: str
     message: str
     type: str
 
 
-class _ValidationErrorData(BaseModel):
+class _ValidationErrorData(RequiredFieldsModel):
     fields: list[_ValidationFieldError]
 
 
