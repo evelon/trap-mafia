@@ -1,6 +1,9 @@
-import { zGuestLoginRequest } from "@/client/gen/zod.gen";
 import { refineField } from "@/shared/lib/zod";
 import z from "zod";
+
+const zGuestLoginRequest = z.object({
+  username: z.string().min(3).max(32),
+});
 
 export const loginSchema = refineField(zGuestLoginRequest, {
   field: "username",

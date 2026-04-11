@@ -22,9 +22,8 @@ src/
 ├── client/
 │   └── gen/                # OpenAPI-TS 자동 생성 코드 (수동 편집 금지)
 │       ├── types.gen.ts    # 타입 정의
-│       ├── zod.gen.ts      # Zod 스키마
 │       ├── sdk.gen.ts      # SDK (SSE용)
-│       ├── @tanstack/      # React Query 훅 (REST용)
+│       ├── @tanstack/      # React Query 훅 옵션 (REST용)
 │       └── ...
 └── ...
 ```
