@@ -7,9 +7,10 @@ import { ParticipantCard } from "@/features/room/ParticipantCard";
 interface Props {
   members: RoomMember[];
   maxPlayers: number;
+  myUserId: string;
 }
 
-export function ParticipantGrid({ members, maxPlayers }: Props) {
+export function ParticipantGrid({ members, maxPlayers, myUserId }: Props) {
   const slots = useMemo(
     () => Array.from({ length: maxPlayers }, (_, i) => members[i] ?? null),
     [members, maxPlayers],
@@ -25,6 +26,7 @@ export function ParticipantGrid({ members, maxPlayers }: Props) {
           <ParticipantCard
             key={member?.user_id ?? `empty-${index}`}
             member={member}
+            isMe={member?.user_id === myUserId}
           />
         ))}
       </div>

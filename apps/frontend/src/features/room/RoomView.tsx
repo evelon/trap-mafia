@@ -11,6 +11,7 @@ import type { ConnectionStatus } from "@/features/room/useRoomSse";
 
 interface Props {
   snapshot: RoomSnapshot;
+  myUserId: string;
   connectionStatus: ConnectionStatus;
   onRetry: () => void;
   onDisconnect: () => void;
@@ -18,6 +19,7 @@ interface Props {
 
 export function RoomView({
   snapshot,
+  myUserId,
   connectionStatus,
   onRetry,
   onDisconnect,
@@ -40,7 +42,11 @@ export function RoomView({
       />
 
       <div className="relative flex-1">
-        <ParticipantGrid members={members} maxPlayers={settings.max_players} />
+        <ParticipantGrid
+          members={members}
+          maxPlayers={settings.max_players}
+          myUserId={myUserId}
+        />
 
         {(connectionStatus === "reconnecting" ||
           connectionStatus === "failed") && (

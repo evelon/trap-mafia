@@ -2,10 +2,13 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Info } from "lucide-react";
 import { toast } from "sonner";
-import { leaveRoomApiV1RoomsCurrentLeavePostMutation } from "@/client/gen/@tanstack/react-query.gen";
+import {
+  leaveRoomApiV1RoomsCurrentLeavePostMutation,
+  meApiV1AuthMeGetQueryKey,
+} from "@/client/gen/@tanstack/react-query.gen";
 import { ROUTES } from "@/shared/routes";
 import { Button } from "@/shadcn-ui/ui/button";
 
@@ -23,12 +26,16 @@ export function RoomHeader({
   onLeaveReady,
 }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isNavigating, startTransition] = useTransition();
 
   const { mutate: leaveRoom, isPending: isLeaving } = useMutation({
     ...leaveRoomApiV1RoomsCurrentLeavePostMutation(),
-    onSuccess: () => {
+    onSuccess: async () => {
       onLeaveReady();
+      await queryClient.refetchQueries({
+        queryKey: meApiV1AuthMeGetQueryKey(),
+      });
       startTransition(() => {
         router.push(ROUTES.ROOMS);
       });

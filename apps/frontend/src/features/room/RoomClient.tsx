@@ -29,6 +29,7 @@ export function RoomClient() {
   return (
     <RoomView
       snapshot={snapshot}
+      myUserId={user.id}
       connectionStatus={connectionStatus}
       onRetry={retry}
       onDisconnect={disconnect}
