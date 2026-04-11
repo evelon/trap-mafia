@@ -141,7 +141,7 @@ function useAuth() {
 
 ## 4. 401 자동 갱신 (Axios Interceptor)
 
-`axios-config.ts`에 response interceptor를 추가하여 access_token 만료 시 자동 refresh.
+`axios-interceptor.ts`에 response interceptor를 추가하여 access_token 만료 시 자동 refresh.
 
 ```
 요청 → 401 응답
@@ -344,7 +344,7 @@ useMutation(logoutMutation)
 | 파일                                     | 작업     | 설명                              |
 | ---------------------------------------- | -------- | --------------------------------- |
 | `src/hooks/useAuth.ts`                   | **신규** | 인증 커스텀 훅                    |
-| `src/client/axios-config.ts`             | **수정** | 401 interceptor 추가              |
+| `src/client/client-config.ts`            | **수정** | 401 interceptor 추가              |
 | `src/middleware.ts`                       | **신규** | 쿠키 존재 여부 기반 라우트 보호   |
 | `src/app/(authenticated)/layout.tsx`     | **신규** | 클라이언트 auth guard 레이아웃    |
 | `src/components/login/LoginForm.tsx`     | **수정** | useAuth 연동, 리다이렉트 활성화  |
@@ -352,7 +352,7 @@ useMutation(logoutMutation)
 ### 의존 관계 (구현 순서)
 
 ```
-1. axios-config.ts (interceptor)
+1. client-config.ts (interceptor)
 2. useAuth.ts (훅)
 3. middleware.ts
 4. (authenticated)/layout.tsx

@@ -8,6 +8,10 @@ import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/shared/routes";
 
+/**
+ * 비인증 컨텍스트(public 페이지)에서 로그인 여부에 따라 UI를 분기할 때 사용.
+ * (authed) 하위에서는 useAuthSuspense를 사용한다.
+ */
 export function useAuth() {
   const queryClient = useQueryClient();
   const router = useRouter();

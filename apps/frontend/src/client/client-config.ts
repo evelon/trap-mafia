@@ -2,10 +2,10 @@ import { ClientOptions, Config, CreateClientConfig } from "./gen/client";
 
 export const createClientConfig: CreateClientConfig = (config) => ({
   ...config,
-  ...AXIOS_CONFIG,
+  ...CUSTOM_CONFIG,
 });
 
-const AXIOS_CONFIG: Config<ClientOptions> = {
+const CUSTOM_CONFIG: Config<ClientOptions> = {
   /*
    * NOTE
    * - https://localhost:443 (443이 기본 포트라 포트 명시 안해도 됨)
