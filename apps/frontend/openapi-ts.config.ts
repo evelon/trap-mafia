@@ -14,7 +14,7 @@ export default defineConfig({
     "@hey-api/typescript",
     {
       name: "@hey-api/client-axios",
-      runtimeConfigPath: "../axios-config",
+      runtimeConfigPath: "../client-config",
     },
     {
       name: "@tanstack/react-query",
