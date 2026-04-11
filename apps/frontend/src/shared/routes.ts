@@ -2,7 +2,6 @@ export const ROUTES = {
   LOGIN: "/login",
   ROOMS: "/rooms",
   ROOMS_CURRENT: "/rooms/current",
-  CASE: (caseId: string) => `/case/${caseId}`,
 } as const;
 
 export const API_PATHS = {

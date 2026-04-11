@@ -26,12 +26,10 @@ import { Input } from "@/shadcn-ui/ui/input";
 import { Button } from "@/shadcn-ui/ui/button";
 
 function getPostLoginPath(user: GuestInfo) {
-  switch (user.in_case) {
-    case true:
-      return ROUTES.CASE(user.current_case_id!);
-    default:
-      return ROUTES.ROOMS;
+  if (user.current_room_id) {
+    return ROUTES.ROOMS_CURRENT;
   }
+  return ROUTES.ROOMS;
 }
 
 export function LoginForm() {

@@ -22,9 +22,8 @@ src/
 ├── client/
 │   └── gen/                # OpenAPI-TS 자동 생성 코드 (수동 편집 금지)
 │       ├── types.gen.ts    # 타입 정의
-│       ├── zod.gen.ts      # Zod 스키마
 │       ├── sdk.gen.ts      # SDK (SSE용)
-│       ├── @tanstack/      # React Query 훅 (REST용)
+│       ├── @tanstack/      # React Query 훅 옵션 (REST용)
 │       └── ...
 └── ...
 ```
@@ -32,6 +31,10 @@ src/
 > 위 구조는 전체 목록이 아니며, 핵심만 의도적으로 축약해 표시한 것이다.
 
 - 경로 별칭: `@/*` → `./src/*`
+
+## 피처 스펙
+
+구현 설계는 `specs/` 디렉토리의 스펙 문서를 기준으로 한다. 스펙 목록은 `specs/README.md` 참조.
 
 ## 백엔드 연동
 

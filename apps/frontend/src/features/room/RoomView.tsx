@@ -1,103 +1,66 @@
 "use client";
 
-import { useTransition, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { leaveRoomApiV1RoomsCurrentLeavePostMutation } from "@/client/gen/@tanstack/react-query.gen";
-import { useAuthSuspense } from "@/features/login/useAuthSuspense";
-import { ROUTES } from "@/shared/routes";
-import { useRoomSse } from "./useRoomSse";
-import { Button } from "@/shadcn-ui/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/shadcn-ui/ui/card";
+import { useState } from "react";
+import type { RoomSnapshot } from "@/client/gen/types.gen";
+import { ConnectionErrorOverlay } from "@/features/room/ConnectionErrorOverlay";
+import { ParticipantGrid } from "@/features/room/ParticipantGrid";
+import { RoomHeader } from "@/features/room/RoomHeader";
+import { RoomSettingsModal } from "@/features/room/RoomSettingsModal";
+import { StartGameButton } from "@/features/room/StartGameButton";
+import type { ConnectionStatus } from "@/features/room/useRoomSse";
 
-export function RoomView() {
-  const router = useRouter();
-  const { user } = useAuthSuspense();
-  const { snapshot, isConnected, isError } = useRoomSse(user.id);
-  const [isNavigating, startTransition] = useTransition();
+interface Props {
+  snapshot: RoomSnapshot;
+  myUserId: string;
+  connectionStatus: ConnectionStatus;
+  onRetry: () => void;
+  onDisconnect: () => void;
+}
 
-  const { mutate: leaveRoom, isPending: isLeaving } = useMutation({
-    ...leaveRoomApiV1RoomsCurrentLeavePostMutation(),
-    onSuccess: () => {
-      startTransition(() => {
-        router.push(ROUTES.ROOMS);
-      });
-    },
-    onError: () => {
-      toast.error("방 퇴장에 실패했습니다.");
-    },
-  });
+export function RoomView({
+  snapshot,
+  myUserId,
+  connectionStatus,
+  onRetry,
+  onDisconnect,
+}: Props) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  // 강퇴 감지: SSE에서 본인이 멤버 목록에 없으면 로비로 이동
-  useEffect(() => {
-    if (!snapshot) return;
-    const isMember = snapshot.members?.some((m) => m.user_id === user.id);
-    if (!isMember) {
-      toast.error("방에서 퇴장되었습니다.");
-      router.push("/rooms");
-    }
-  }, [snapshot, user, router]);
+  const { room, settings, members, current_case } = snapshot;
 
-  if (isError) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardContent className="pt-6 text-center">
-          <p className="text-destructive">
-            서버 연결에 실패했습니다. 새로고침해주세요.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!isConnected || !snapshot) {
-    return (
-      <Card className="w-full max-w-md">
-        <CardContent className="pt-6 text-center">
-          <p className="text-muted-foreground">연결 중...</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // TODO: MVP 이후에는 호스트에게만 보여야 함
+  const isGameRunning =
+    current_case !== null && current_case.status === "RUNNING";
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>{snapshot.room.room_name}</CardTitle>
-      </CardHeader>
+    <div className="relative flex h-dvh flex-col">
+      <RoomHeader
+        roomName={room.room_name}
+        settingsSummary={`${settings.max_players}명`}
+        onSettingsClick={() => setSettingsOpen(true)}
+        onLeaveReady={onDisconnect}
+      />
 
-      <CardContent>
-        <h3 className="text-sm font-medium text-muted-foreground mb-2">
-          참가자 ({snapshot.members?.length ?? 0})
-        </h3>
-        <ul className="space-y-1">
-          {snapshot.members?.map((member) => (
-            <li key={member.user_id} className="text-sm">
-              {member.username}
-              {member.user_id === user.id && (
-                <span className="text-muted-foreground ml-1">(나)</span>
-              )}
-            </li>
-          ))}
-        </ul>
-      </CardContent>
+      <div className="relative flex-1">
+        <ParticipantGrid
+          members={members}
+          maxPlayers={settings.max_players}
+          myUserId={myUserId}
+        />
 
-      <CardFooter>
-        <Button
-          variant="outline"
-          disabled={isLeaving || isNavigating}
-          onClick={() => leaveRoom({})}
-        >
-          {isLeaving || isNavigating ? "나가는 중..." : "방 나가기"}
-        </Button>
-      </CardFooter>
-    </Card>
+        {(connectionStatus === "reconnecting" ||
+          connectionStatus === "failed") && (
+          <ConnectionErrorOverlay status={connectionStatus} onRetry={onRetry} />
+        )}
+      </div>
+
+      {!isGameRunning && <StartGameButton />}
+
+      <RoomSettingsModal
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        settings={settings}
+      />
+    </div>
   );
 }

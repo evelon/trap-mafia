@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponses, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostErrors, CaseStartApiV1RoomsCurrentCaseStartPostResponses, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostErrors, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponses, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostErrors, GuestLoginApiV1AuthGuestLoginPostResponses, HealthApiHealthGetData, HealthApiHealthGetResponses, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponses, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostErrors, JoinRoomApiV1RoomsRoomIdJoinPostResponses, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponses, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponses, MeApiV1AuthMeGetData, MeApiV1AuthMeGetErrors, MeApiV1AuthMeGetResponses, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostErrors, RefreshApiV1AuthRefreshPostResponses, RoomStateSseRtV1SseRoomsCurrentStateGetData, RoomStateSseRtV1SseRoomsCurrentStateGetResponses } from './types.gen';
+import type { BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostData, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostErrors, BlueVoteApiV1CasesCurrentPhasesCurrentBlueVotePostResponses, CaseStartApiV1RoomsCurrentCaseStartPostData, CaseStartApiV1RoomsCurrentCaseStartPostErrors, CaseStartApiV1RoomsCurrentCaseStartPostResponses, CaseStateSseRtV1SseCasesCurrentStateGetData, CaseStateSseRtV1SseCasesCurrentStateGetErrors, CaseStateSseRtV1SseCasesCurrentStateGetResponses, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostData, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostErrors, ForceSkipDiscussApiV1CasesCurrentPhasesCurrentForceSkipDiscussPostResponses, GuestLoginApiV1AuthGuestLoginPostData, GuestLoginApiV1AuthGuestLoginPostErrors, GuestLoginApiV1AuthGuestLoginPostResponses, HealthApiHealthGetData, HealthApiHealthGetResponses, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostData, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostErrors, InitBlueVoteApiV1CasesCurrentPhasesCurrentInitBlueVotePostResponses, JoinRoomApiV1RoomsRoomIdJoinPostData, JoinRoomApiV1RoomsRoomIdJoinPostErrors, JoinRoomApiV1RoomsRoomIdJoinPostResponses, KickUserApiV1RoomsCurrentUsersUserIdKickPostData, KickUserApiV1RoomsCurrentUsersUserIdKickPostErrors, KickUserApiV1RoomsCurrentUsersUserIdKickPostResponses, LeaveRoomApiV1RoomsCurrentLeavePostData, LeaveRoomApiV1RoomsCurrentLeavePostResponses, LogoutApiV1AuthLogoutPostData, LogoutApiV1AuthLogoutPostResponses, MeApiV1AuthMeGetData, MeApiV1AuthMeGetErrors, MeApiV1AuthMeGetResponses, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostData, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostErrors, RedVoteApiV1CasesCurrentPhasesCurrentRedVotePostResponses, RefreshApiV1AuthRefreshPostData, RefreshApiV1AuthRefreshPostErrors, RefreshApiV1AuthRefreshPostResponses, RoomStateSseRtV1SseRoomsCurrentStateGetData, RoomStateSseRtV1SseRoomsCurrentStateGetResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -289,6 +289,29 @@ export const healthApiHealthGet = <ThrowOnError extends boolean = false>(options
 });
 
 /**
+ * Case State Sse
+ *
+ * GET /rt/v1/sse/cases/current/state?after_snapshot_no=...
+ *
+ * Notion: room_state
+ * - Auth: User
+ * - Permission: In Running Case
+ *
+ * Response (SSE)
+ * - event: CASE_EVENT
+ * - id: 1부터 단조증가
+ * - data: RoomStateResponse(JSON)
+ *
+ * Response (REST)
+ * - 403: PERMISSION_DENIED_NOT_IN_ROOM
+ */
+export const caseStateSseRtV1SseCasesCurrentStateGet = <ThrowOnError extends boolean = false>(options?: Options<CaseStateSseRtV1SseCasesCurrentStateGetData, ThrowOnError>) => (options?.client ?? client).get<CaseStateSseRtV1SseCasesCurrentStateGetResponses, CaseStateSseRtV1SseCasesCurrentStateGetErrors, ThrowOnError>({
+    responseType: 'json',
+    url: '/rt/v1/sse/cases/current/state',
+    ...options
+});
+
+/**
  * Close Room State Stream
  */
 export const closeRoomStateStreamRtV1SseRoomsCurrentClosePost = <ThrowOnError extends boolean = false>(options?: Options<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostData, ThrowOnError>) => (options?.client ?? client).post<CloseRoomStateStreamRtV1SseRoomsCurrentClosePostResponses, unknown, ThrowOnError>({
@@ -307,8 +330,8 @@ export const closeRoomStateStreamRtV1SseRoomsCurrentClosePost = <ThrowOnError ex
  * - Permission: In Room
  *
  * Response (SSE)
- * - event: room_state
- * - id: 단조증가(연결 단위, MVP)
+ * - event: ROOM_EVENT
+ * - id: 단조증가(연결 단위, MVP에서 1로 고정)
  * - data: RoomStateResponse(JSON)
  *
  * Response (REST)

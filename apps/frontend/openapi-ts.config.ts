@@ -16,10 +16,8 @@ export default defineConfig({
       name: "@hey-api/client-axios",
       runtimeConfigPath: "../axios-config",
     },
-    "zod",
     {
       name: "@tanstack/react-query",
-      // includeInEntry: true,
     },
   ],
 });
