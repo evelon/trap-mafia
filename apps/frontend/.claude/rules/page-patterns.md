@@ -1,9 +1,9 @@
 ---
-description: 라우트 구조, 인증 흐름, Suspense/Error Boundary 패턴
+description: 페이지 패턴: 라우트 구조, 인증 흐름, 데이터 로딩·에러 처리, Suspense/Error Boundary
 paths: ["src/features/**", "src/app/**"]
 ---
 
-# 데이터 흐름 및 에러 처리 패턴
+# 페이지 패턴
 
 ## 라우트 구조
 
@@ -26,9 +26,14 @@ paths: ["src/features/**", "src/app/**"]
 2. **`useSuspenseQuery(/auth/me)`**: 토큰 유효성 검증 + user 데이터 로드
 3. **axios interceptor**: 401 응답 시 `/login` 리다이렉트 — 이 에러는 `error.tsx`에 도달하지 않는다
 
-## 데이터 유형별 로딩·에러 처리
+## API 호출
 
-- **Query(조회)**: `useSuspenseQuery`를 사용하고, 로딩은 Suspense boundary에 위임한다. 에러는 `error.tsx` 또는 Error Boundary에서 처리한다.
+- **Query/Mutation**: `src/client/gen/@tanstack/react-query.gen.ts`의 옵션 팩토리(`~QueryOptions`, `~Mutation`)를 `useSuspenseQuery`/`useMutation`에 스프레드해서 사용한다.
+- **SSE**: `createSseClient`를 사용한다. axios를 사용하지 않으므로 interceptor의 401 처리가 적용되지 않는다.
+
+## 로딩·에러 처리
+
+- **Query(조회)**: `useSuspenseQuery`를 사용하므로 Suspense / Error Boundary로 처리한다.
 - **Mutation(변경)**: Suspense 대상이 아니다. `isPending`으로 로딩, `onError` 콜백으로 에러를 직접 처리한다.
 - **SSE**: Suspense 대상이 아니다. 커스텀 훅 내부에서 `isConnected`/`isError` 상태로 직접 처리한다.
 
