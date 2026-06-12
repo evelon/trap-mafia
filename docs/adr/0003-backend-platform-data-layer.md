@@ -141,7 +141,6 @@ Alembic은 이에 대응하는 표준 마이그레이션 도구다.
 
 마이그레이션은 **Alembic autogenerate를 기본**으로 사용하며,  
 필요 시 리뷰 후 수동 조정을 옵션으로 둔다.
-ㅋ
 
 ## Consequences
 
